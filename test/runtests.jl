@@ -1,9 +1,13 @@
 using DataCurator
 using Test
+using Logging
+using Random
 
 @testset "DataCurator.jl" begin
     # Write your tests here.
     @testset "traversal" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         # root = "/dev/shm/test"
         C = [11, 21, 41]
@@ -25,9 +29,13 @@ using Test
             @test i[] == C[j]
             rm(root, force=true, recursive=true)
         end
+        global_logger(c)
+
     end
 
     @testset "exittest" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         # root = "/dev/shm/test"
         C = [41, 100]
@@ -45,12 +53,16 @@ using Test
             @test i[] < C[j]
             rm(root, force=true, recursive=true)
         end
+        global_logger(c)
+
     end
 
 
     @testset "fuzz" begin
         # warnquit = x -> begin @warn x; return :quit; end
         N = 100
+        c = global_logger()
+        global_logger(NullLogger())
         import Random
         Random.seed!(42)
         for i in 1:N
@@ -68,7 +80,38 @@ using Test
             @test q == :proceed
             rm(root, force=true, recursive=true)
         end
+        global_logger(c)
+
         # end
+    end
+
+    @testset "hierarchical" begin
+        N = 100
+        c = global_logger()
+        global_logger(NullLogger())
+        Random.seed!(42)
+        for i in 1:N
+            root = mktempdir()
+            # for (j,N) in enumerate([N])
+            M = rand(10:20)
+            mkpath(joinpath(root, ["$i" for i in 1:M]...))
+            for i in 1:M
+                touch(joinpath(root, ["$i" for i in 1:i]..., "$i.txt"))
+            end
+            # i = Threads.Atomic{Int}(0);
+            q=verify_template(root, [(x->false, quit_on_fail)])
+            @test q == :quit
+            q=verify_template(root, [(x->false, warn_on_fail)])
+            @test q == :proceed
+            template = [(x->false, warn_on_fail)]
+            templater = Dict([(-1, template), (1, template)])
+            z=verify_template(root, templater; traversalpolicy=topdown)
+            @test z == :proceed
+            z=verify_template(root, template; traversalpolicy=topdown)
+            @test z == :proceed
+            rm(root, force=true, recursive=true)
+        end
+        global_logger(c)
     end
 
     #
