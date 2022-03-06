@@ -5,7 +5,7 @@ import Logging
 # Write your package code here.
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
-verify_template, always, never, warn_on_fail, quit_on_fail, sample, transform_template, quit, proceed, filename, integer_name
+verify_template, always, never, warn_on_fail, quit_on_fail, sample, expand_sequential, expand_threaded, transform_template, quit, proceed, filename, integer_name
 
 quit = :quit
 proceed = :proceed
@@ -27,9 +27,9 @@ always = x->true
 never = x->false
 sample = x->Random.rand()>0.5
 
-function bottomup(node, expander, visitor; context=nothing)
-    nodes = expander(node)
-    for _node in nodes
+
+function expand_sequential(node, expander, visitor, context)
+    for _node in expander(node)
         if isnothing(context)
             ncontext = context
         else
@@ -37,12 +37,43 @@ function bottomup(node, expander, visitor; context=nothing)
             ncontext["level"] = context["level"] + 1
             ncontext["node"] = _node
         end
-        rv = bottomup(_node, expander, visitor; context=ncontext)
+        rv = bottomup(_node, expander, visitor; context=ncontext, inner=expand_sequential)
         if rv == :quit
             @debug "Early exit triggered"
             return :quit
         end
     end
+end
+
+
+function expand_threaded(node, expander, visitor, context)
+    @threads for _node in expander(node)
+        if isnothing(context)
+            ncontext = context
+        else
+            ncontext = copy(context)
+            ncontext["level"] = context["level"] + 1
+            ncontext["node"] = _node
+        end
+        rv = bottomup(_node, expander, visitor; context=ncontext, inner=expand_threaded)
+        if rv == :quit
+            @debug "Early exit triggered"
+            return :quit
+        end
+    end
+end
+"""
+    topdown(node, expander, visitor; context=nothing, inner=expand_sequential)
+        Recursively apply visitor onto node, until expander(node) -> []
+        If context is nothing, the visitor function gets the current node as sole arguments.
+        Otherwise, context is expected to contain: "node" => node, "level" => recursion level.
+        Inner is the delegate function that will execute the expand phase. Options are : expand_sequential, expand_threaded
+
+        Traversal is done in a post-order way, e.g. visit after expanding. In other words, leaves before nodes, working from bottom to top.
+"""
+function bottomup(node, expander, visitor; context=nothing, inner=expand_sequential)
+    # nodes = expander(node)
+    inner(node, expander, visitor, context)
     early_exit = visitor(isnothing(context) ? node : context)
     if early_exit == :quit
         @debug "Early exit triggered"
@@ -52,30 +83,22 @@ function bottomup(node, expander, visitor; context=nothing)
     end
 end
 
+"""
+    topdown(node, expander, visitor; context=nothing, inner=expand_sequential)
+    Recursively apply visitor onto node, until expander(node) -> []
+    If context is nothing, the visitor function gets the current node as sole arguments.
+    Otherwise, context is expected to contain: "node" => node, "level" => recursion level.
+    Inner is the delegate function that will execute the expand phase. Options are : expand_sequential, expand_threaded
 
-
-function topdown(node, expander, visitor; context=nothing)
-    @debug node
+    Traversal is done in a pre-order way, e.g. visit before expanding.
+"""
+function topdown(node, expander, visitor; context=nothing, inner=expand_sequential)
     early_exit = visitor(isnothing(context) ? node : context)
     if early_exit == :quit
         @debug "Early exit triggered"
         return :quit
     end
-    nodes = expander(node)
-    for _node in nodes
-        if isnothing(context)
-            ncontext = context
-        else
-            ncontext = copy(context)
-            ncontext["level"] = context["level"] + 1
-            ncontext["node"] = _node
-        end
-        rv = topdown(_node, expander, visitor; context=ncontext)
-        if rv == :quit
-            @debug "Early exit triggered"
-            return :quit
-        end
-    end
+    inner(node, expander, visitor, context)
     return :proceed
 end
 
