@@ -77,13 +77,27 @@ function transform_template(start, template; expander=expand_filesystem, travers
     traversalpolicy(start, expander, x->transformer(x, template), 1)
 end
 
-
 function verifier(node, template)
     for (condition, onfail) in template
         if condition(node) == false
             rv = onfail(node)
             if rv == :quit
                 return :quit
+            end
+        end
+    end
+end
+
+function verifier_hierarchical(node, template; level=1)
+    if haskey(template, level)
+        level_conditions = template[level]
+        @info "Applying $(length(level_conditions)) to $level"
+        for (condition, onfail) in level_conditions
+            if condition(node) == false
+                rv = onfail(node)
+                if rv == :quit
+                    return :quit
+                end
             end
         end
     end

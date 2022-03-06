@@ -49,7 +49,7 @@ using Test
 
 
     @testset "fuzz" begin
-        warnquit = x -> begin @warn x; return :quit; end
+        # warnquit = x -> begin @warn x; return :quit; end
         N = 100
         import Random
         Random.seed!(42)
@@ -70,4 +70,28 @@ using Test
         end
         # end
     end
+
+    #
+    # @testset "fuzz" begin
+    #     warnquit = x -> begin @warn x; return :quit; end
+    #     N = 100
+    #     import Random
+    #     Random.seed!(42)
+    #     for i in 1:N
+    #         root = mktempdir()
+    #         # for (j,N) in enumerate([N])
+    #         M = rand(10:20)
+    #         mkpath(joinpath(root, ["$i" for i in 1:M]...))
+    #         for i in 1:M
+    #             touch(joinpath(root, ["$i" for i in 1:i]..., "$i.txt"))
+    #         end
+    #         # i = Threads.Atomic{Int}(0);
+    #         q=verify_template(root, [(x->false, quit_on_fail)])
+    #         @test q == :quit
+    #         q=verify_template(root, [(x->false, warn_on_fail)])
+    #         @test q == :proceed
+    #         rm(root, force=true, recursive=true)
+    #     end
+    #     # end
+    # end
 end
