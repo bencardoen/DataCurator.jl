@@ -14,14 +14,14 @@ using Test
             end
             visitor = x -> ~isnothin(tryparse(Int, basename(x)))
             vts = x -> @debug x
-            topdown(root, expand_filesystem, vts, 1)
-            bottomup(root, expand_filesystem, vts, 1)
+            topdown(root, expand_filesystem, vts)
+            bottomup(root, expand_filesystem, vts)
             i = Threads.Atomic{Int}(0);
             visitor = x -> Threads.atomic_add!(i, 1)
-            topdown(root, expand_filesystem, visitor, 1)
+            topdown(root, expand_filesystem, visitor)
             @test i[] ==  C[j]
             i = Threads.Atomic{Int}(0);
-            bottomup(root, expand_filesystem, visitor, 1)
+            bottomup(root, expand_filesystem, visitor)
             @test i[] == C[j]
             rm(root, force=true, recursive=true)
         end
@@ -38,10 +38,10 @@ using Test
             end
             i = Threads.Atomic{Int}(0);
             visitor = x -> begin Threads.atomic_add!(i, 1); (rand() > 0.5) ? (return :quit) : (return :proceed); end
-            topdown(root, expand_filesystem, visitor, 1)
+            topdown(root, expand_filesystem, visitor)
             @test i[] <  C[j]
             i = Threads.Atomic{Int}(0);
-            bottomup(root, expand_filesystem, visitor, 1)
+            bottomup(root, expand_filesystem, visitor)
             @test i[] < C[j]
             rm(root, force=true, recursive=true)
         end

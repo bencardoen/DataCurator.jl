@@ -15,48 +15,68 @@ warn_on_fail = x -> @warn "$x"
 quit_on_fail = x -> begin @warn "$x"; return :quit; end
 
 function verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy=:sequential)
-    return traversalpolicy(start, expander, x->verifier(x, template), 1)
+    if typeof(template) <: Vector || typeof(template) <: Dict
+        return traversalpolicy(start, expander, verify_dispatch; context=Dict([("node", start), ("template", template), ("level",1)]))
+    else
+        @error "Unsupported template"
+        throw(ArgumentError("Template is of type $(typeof(template)) which is neither Vector, nor Dict"))
+    end
 end
 
 always = x->true
 never = x->false
 sample = x->Random.rand()>0.5
 
-function topdown(node, expander, visitor, level)
-    @debug node
-    early_exit = visitor(node)
-    if early_exit == :quit
-        @debug "Early exit triggered"
-        return :quit
-    end
-    nodes = expander(node)
-    # @threads
-     @threads for _node in nodes
-        rv = topdown(_node, expander, visitor, level+1)
-        if rv == :quit
-            @debug "Early exit triggered"
-            return :quit
-        end
-    end
-    return :proceed
-end
-
-function bottomup(node, expander, visitor, level)
+function bottomup(node, expander, visitor; context=nothing)
     nodes = expander(node)
     for _node in nodes
-        rv = bottomup(_node, expander, visitor, level+1)
+        if isnothing(context)
+            ncontext = context
+        else
+            ncontext = copy(context)
+            ncontext["level"] = context["level"] + 1
+            ncontext["node"] = _node
+        end
+        rv = bottomup(_node, expander, visitor; context=ncontext)
         if rv == :quit
             @debug "Early exit triggered"
             return :quit
         end
     end
-    early_exit = visitor(node)
+    early_exit = visitor(isnothing(context) ? node : context)
     if early_exit == :quit
         @debug "Early exit triggered"
         return :quit
     else
         return :proceed
     end
+end
+
+
+
+function topdown(node, expander, visitor; context=nothing)
+    @debug node
+    early_exit = visitor(isnothing(context) ? node : context)
+    if early_exit == :quit
+        @debug "Early exit triggered"
+        return :quit
+    end
+    nodes = expander(node)
+    for _node in nodes
+        if isnothing(context)
+            ncontext = context
+        else
+            ncontext = copy(context)
+            ncontext["level"] = context["level"] + 1
+            ncontext["node"] = _node
+        end
+        rv = topdown(_node, expander, visitor; context=ncontext)
+        if rv == :quit
+            @debug "Early exit triggered"
+            return :quit
+        end
+    end
+    return :proceed
 end
 
 
@@ -84,8 +104,50 @@ function transform_template(start, template; expander=expand_filesystem, travers
         end
     end
 end
+"""
+    verifier(node, template::Vector, level::Int)
+    Dispatched function to verify at recursion level with conditions set in template for node.
+    Level is ignored for now, except to debug
+"""
+function verifier(node, template::Vector, level::Int)
+    for (condition, onfail) in template
+        if condition(node) == false
+            rv = onfail(node)
+            if rv == :quit
+                @debug "Early exit for $node at $level"
+                return :quit
+            end
+        end
+    end
+    return :proceed
+end
 
-function verifier(node, template)
+"""
+    verify_dispatch(context)
+    Use multiple dispatch to call the right function verifier.
+"""
+function verify_dispatch(context)
+    return verifier(context["node"], context["template"], context["level"])
+end
+
+
+"""
+    verifier(node, templater::Dict, level::Int)
+    Dispatched function to verify at recursion level with conditions set in templater[level] for node.
+    Will apply templater[-1] as default if it's given, else no-op.
+"""
+function verifier(node, templater::Dict{Int, <:Vector{<:Tuple}}, level::Int)
+    if haskey(templater, level)
+        template = templater[level]
+    else
+        if haskey(templater, -1)
+            @debug "Default verification"
+            template = templater[-1]
+        else
+            template = []
+            @debug "No verification at level $level for $node"
+        end
+    end
     for (condition, onfail) in template
         if condition(node) == false
             rv = onfail(node)
@@ -94,21 +156,7 @@ function verifier(node, template)
             end
         end
     end
-end
-
-function verifier_hierarchical(node, template; level=1)
-    if haskey(template, level)
-        level_conditions = template[level]
-        @info "Applying $(length(level_conditions)) to $level"
-        for (condition, onfail) in level_conditions
-            if condition(node) == false
-                rv = onfail(node)
-                if rv == :quit
-                    return :quit
-                end
-            end
-        end
-    end
+    return :proceed
 end
 
 function transformer(node, template)
