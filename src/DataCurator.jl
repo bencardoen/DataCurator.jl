@@ -74,7 +74,15 @@ function visit_filesystem(node)
 end
 
 function transform_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy=:sequential)
-    traversalpolicy(start, expander, x->transformer(x, template), 1)
+    if typeof(template) <: Vector
+        return traversalpolicy(start, expander, x->verifier(x, template), 1)
+    else
+        if typeof(template) <: Dict
+            @info "Scaffolding"
+        else
+            @error "Unsupported template"
+        end
+    end
 end
 
 function verifier(node, template)
