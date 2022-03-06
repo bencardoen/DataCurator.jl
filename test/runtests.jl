@@ -109,6 +109,13 @@ using Random
             @test z == :proceed
             z=verify_template(root, template; traversalpolicy=topdown)
             @test z == :proceed
+            templater = Dict([(1, template)])
+            z=verify_template(root, templater; traversalpolicy=topdown)
+            @test z == :proceed
+            # templater = Dict{Int, <:Vector}()
+            templater = Dict([(i, template) for i in 1:M])
+            z=verify_template(root, templater; traversalpolicy=topdown)
+            @test z == :proceed
             rm(root, force=true, recursive=true)
         end
         global_logger(c)
