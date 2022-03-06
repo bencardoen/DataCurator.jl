@@ -115,6 +115,8 @@ using Random
             templater = Dict([(i, template) for i in 1:M])
             z=verify_template(root, templater; traversalpolicy=topdown)
             @test z == :proceed
+            z=verify_template(root, templater; traversalpolicy=topdown, parallel_policy="parallel")
+            @test z == :proceed
             rm(root, force=true, recursive=true)
         end
         global_logger(c)

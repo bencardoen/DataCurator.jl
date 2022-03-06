@@ -14,18 +14,19 @@ integer_name = x->~isnothing(tryparse(Int, filename(x)))
 warn_on_fail = x -> @warn "$x"
 quit_on_fail = x -> begin @warn "$x"; return :quit; end
 
-function verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy=:sequential)
+always = x->true
+never = x->false
+sample = x->Random.rand()>0.5
+
+
+function verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy="sequential")
     if typeof(template) <: Vector || typeof(template) <: Dict
-        return traversalpolicy(start, expander, verify_dispatch; context=Dict([("node", start), ("template", template), ("level",1)]))
+        return traversalpolicy(start, expander, verify_dispatch; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
     else
         @error "Unsupported template"
         throw(ArgumentError("Template is of type $(typeof(template)) which is neither Vector, nor Dict"))
     end
 end
-
-always = x->true
-never = x->false
-sample = x->Random.rand()>0.5
 
 
 function expand_sequential(node, expander, visitor, context)
@@ -62,6 +63,9 @@ function expand_threaded(node, expander, visitor, context)
         end
     end
 end
+
+_expand_table = Dict([("parallel", expand_threaded), ("sequential", expand_sequential)])
+
 """
     topdown(node, expander, visitor; context=nothing, inner=expand_sequential)
         Recursively apply visitor onto node, until expander(node) -> []
@@ -117,6 +121,8 @@ function visit_filesystem(node)
 end
 
 function transform_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy=:sequential)
+    executor = _expand_table(parallel_policy)
+    @error "FIXME"
     if typeof(template) <: Vector
         return traversalpolicy(start, expander, x->verifier(x, template), 1)
     else
