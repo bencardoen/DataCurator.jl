@@ -86,14 +86,14 @@ using Random
     end
 
     @testset "hierarchical" begin
-        N = 100
+        N = 500
         c = global_logger()
         global_logger(NullLogger())
         Random.seed!(42)
         for i in 1:N
             root = mktempdir()
             # for (j,N) in enumerate([N])
-            M = rand(10:20)
+            M = rand(10:10)
             mkpath(joinpath(root, ["$i" for i in 1:M]...))
             for i in 1:M
                 touch(joinpath(root, ["$i" for i in 1:i]..., "$i.txt"))
@@ -112,7 +112,6 @@ using Random
             templater = Dict([(1, template)])
             z=verify_template(root, templater; traversalpolicy=topdown)
             @test z == :proceed
-            # templater = Dict{Int, <:Vector}()
             templater = Dict([(i, template) for i in 1:M])
             z=verify_template(root, templater; traversalpolicy=topdown)
             @test z == :proceed
@@ -121,27 +120,5 @@ using Random
         global_logger(c)
     end
 
-    #
-    # @testset "fuzz" begin
-    #     warnquit = x -> begin @warn x; return :quit; end
-    #     N = 100
-    #     import Random
-    #     Random.seed!(42)
-    #     for i in 1:N
-    #         root = mktempdir()
-    #         # for (j,N) in enumerate([N])
-    #         M = rand(10:20)
-    #         mkpath(joinpath(root, ["$i" for i in 1:M]...))
-    #         for i in 1:M
-    #             touch(joinpath(root, ["$i" for i in 1:i]..., "$i.txt"))
-    #         end
-    #         # i = Threads.Atomic{Int}(0);
-    #         q=verify_template(root, [(x->false, quit_on_fail)])
-    #         @test q == :quit
-    #         q=verify_template(root, [(x->false, warn_on_fail)])
-    #         @test q == :proceed
-    #         rm(root, force=true, recursive=true)
-    #     end
-    #     # end
-    # end
+
 end
