@@ -4,7 +4,54 @@ using Logging
 using Random
 
 @testset "DataCurator.jl" begin
-    # Write your tests here.
+
+    @testset "transformer" begin
+        root = mktempdir()
+        N = 1
+        mkpath(joinpath(root, ["$i" for i in 1:N]...))
+        for i in 1:N
+                touch(joinpath(root, ["$i" for i in 1:i]..., " $i .txt"))
+        end
+        condition = x -> ~contains(x, ' ')
+        no_space = x -> replace(x, ' ' => '_')
+        action = x -> transform_inplace(x, no_space)
+        has_whitespace = condition
+        space_to_ = action
+        @test transform_template(root, [(has_whitespace, space_to_)]) == :proceed
+        verify_template(root, [(has_whitespace, space_to_)]) == :proceed
+        rm(root, recursive=true, force=true)
+    end
+
+    @testset "transform" begin
+        c = global_logger()
+        global_logger(NullLogger())
+        root = mktempdir()
+        mkpath(joinpath(root, "a"))
+        pt = joinpath(root, "a")
+        @test isdir(pt)
+        file = joinpath(root, "a", "a.txt")
+        touch(file)
+        @test isfile(file)
+        nf = transform_copy(file, x->x)
+        @test isfile(nf)
+        up = x -> uppercase(x)
+        nf = transform_inplace(file, up)
+        @test ~isfile(file)
+        @test isfile(nf)
+        nd = transform_copy(pt, up)
+        @test isdir(nd)
+        @test isdir(pt)
+        rm(root, recursive=true, force=true)
+        root = mktempdir()
+        PT = joinpath(root, "a")
+        mkpath(PT)
+        nf = transform_inplace(PT, up)
+        @test isdir(nf)
+        @test ~isdir(PT)
+        rm(root, recursive=true, force=true)
+        global_logger(c)
+    end
+
     @testset "traversal" begin
         c = global_logger()
         global_logger(NullLogger())

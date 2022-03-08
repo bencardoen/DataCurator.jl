@@ -5,7 +5,7 @@ import Logging
 # Write your package code here.
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
-verify_template, always, never, warn_on_fail, quit_on_fail, sample, expand_sequential, expand_threaded, transform_template, quit, proceed, filename, integer_name
+verify_template, always, never, transform_template, transform_inplace, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, expand_threaded, transform_template, quit, proceed, filename, integer_name
 
 quit = :quit
 proceed = :proceed
@@ -19,6 +19,70 @@ never = x->false
 sample = x->Random.rand()>0.5
 
 
+"""
+    transform_inplace(x, f)
+        x = f(x) for a file or directory. Refuses to act if x' exists.
+"""
+function transform_inplace(x, f)
+    return transform_action(x, f; action=mv)
+end
+
+"""
+    transform_copy(x, f)
+        x' = f(x) for a file or directory, a copy rather than a move. Refuses to act if x' exists.
+"""
+function transform_copy(x, f)
+    return transform_action(x, f; action=cp)
+end
+
+function transform_action(x, f; action=mv)
+
+    if isfile(x)
+
+        path, file = splitdir(x)
+        name, ext = splitext(file)
+        y = f(name)
+        if y == name
+            @warn "No-op"
+            return x
+        end
+        newfile = joinpath(path, join([y, ext]))
+        if isfile(newfile)
+            @warn "$newfile already exists"
+            return x
+        else
+            action(x, newfile)
+            @info "$x -> $newfile"
+            return newfile
+        end
+    else
+        if isdir(x)
+            components = splitpath(x)
+            last = components[end]
+            # name, ext = splitext(file)
+            y = f(last)
+            if y == last
+                @warn "noop"
+                return x
+            end
+            components[end] = y
+            newdir = joinpath(components...)
+            if isdir(newdir)
+                @warn "$newdir already exists"
+                return x
+            else
+                action(x, newdir)
+                @info "$x -> $newdir"
+                return newdir
+            end
+        else
+            @warn "x is neither file nor dir"
+            return x
+        end
+    end
+end
+
+
 function verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy="sequential")
     if typeof(template) <: Vector || typeof(template) <: Dict
         return traversalpolicy(start, expander, verify_dispatch; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
@@ -27,6 +91,8 @@ function verify_template(start, template; expander=expand_filesystem, traversalp
         throw(ArgumentError("Template is of type $(typeof(template)) which is neither Vector, nor Dict"))
     end
 end
+
+transform_template = verify_template
 
 
 function expand_sequential(node, expander, visitor, context)
@@ -120,19 +186,6 @@ function visit_filesystem(node)
     @info node
 end
 
-function transform_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy=:sequential)
-    executor = _expand_table(parallel_policy)
-    @error "FIXME"
-    if typeof(template) <: Vector
-        return traversalpolicy(start, expander, x->verifier(x, template), 1)
-    else
-        if typeof(template) <: Dict
-            @info "Scaffolding"
-        else
-            @error "Unsupported template"
-        end
-    end
-end
 """
     verifier(node, template::Vector, level::Int)
     Dispatched function to verify at recursion level with conditions set in template for node.
@@ -141,6 +194,7 @@ end
 function verifier(node, template::Vector, level::Int)
     for (condition, onfail) in template
         if condition(node) == false
+            @warn "Condition failed on $node"
             rv = onfail(node)
             if rv == :quit
                 @debug "Early exit for $node at $level"
@@ -187,19 +241,19 @@ function verifier(node, templater::Dict{Int, <:Vector{<:Tuple}}, level::Int)
     end
     return :proceed
 end
-
-function transformer(node, template)
-    # @warn "X"
-    for (condition, action) in template
-        if condition(node)
-            rv = action(node)
-            if rv == :quit
-                return :quit
-            end
-            node = isnothing(rv) ? node : rv
-        end
-    end
-end
+#
+# function transformer(node, template)
+#     # @warn "X"
+#     for (condition, action) in template
+#         if condition(node)
+#             rv = action(node)
+#             if rv == :quit
+#                 return :quit
+#             end
+#             node = isnothing(rv) ? node : rv
+#         end
+#     end
+# end
 
 logical_and = (x, conditions) -> all(c(x) for c in conditions)
 

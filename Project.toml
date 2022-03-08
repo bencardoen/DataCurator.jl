@@ -4,7 +4,10 @@ authors = ["Ben Cardoen <26388277+bencardoen@users.noreply.github.com> and contr
 version = "0.1.0"
 
 [deps]
+HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+MAT = "23992714-dd62-5051-b70f-ba57cb901cac"
+MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
 Match = "7eb4fadd-790c-5f42-8a69-bfa0b872bfbf"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
