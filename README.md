@@ -33,6 +33,7 @@ A **target** is your datastore, in the simplest case a folder.
 
 - Implemented
   - [x] Local Filesystems
+  - [x] Parallel execution
 - Future
   - [-] Archives
     - [-] JLD
@@ -41,6 +42,9 @@ A **target** is your datastore, in the simplest case a folder.
 
 ## Template
 A template is a set of conditions that a user specifies as recipe describing the layout of the dataset.
+You can either define them as "I want X, Y, Z to be true, and do A if it's not".
+You can also reverse, and state "On X, Y, or Z, do A".
+You can also specify defaults, use shorthand code, and work with hierarchical templates.
 
 ## Verification
 Verification is quite simply verifying in place if a dataset confirms to a template, logging when part of the dataset does not match the dataset.

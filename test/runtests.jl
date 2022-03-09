@@ -5,7 +5,9 @@ using Random
 using Images
 
 @testset "DataCurator.jl" begin
-    @testset "validate_dataset" begin
+    @testset "validate_dataset_hierarchy" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         pt = joinpath(root, "1", "Type 2", "Serie 14")
         mkpath(pt)
@@ -32,9 +34,12 @@ using Images
         template[5] = [(x->all_of(x, [isfile, valid_channel, is3d]), warn_on_fail)]
         @test verify_template(root, template; act_on_success=false)==:proceed
         rm(root, force=true, recursive=true)
+        global_logger(c)
     end
 
     @testset "validate_dataset" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         pt = joinpath(root, "1", "Type 2", "Serie 14")
         mkpath(pt)
@@ -56,7 +61,11 @@ using Images
         template = [(isfile, countsize)]
         verify_template(root, template; act_on_success=true)
         @test sum(Q.data) == 1648
+        Q = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
+        verify_template(root, template; act_on_success=true, parallel_policy="parallel")
+        @test   sum(Q.data) == 1648
         rm(root, force=true, recursive=true)
+        global_logger(c)
     end
 
 #
@@ -70,10 +79,10 @@ using Images
     ### Count filesizes
     ###
 
-    @testset "counter" begin
-        QT = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
-        # Count file sizes
-    end
+    # @testset "counter" begin
+    #     QT = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
+    #     # Count file sizes
+    # end
 
     @testset "transformer" begin
         root = mktempdir()
