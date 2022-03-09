@@ -2,8 +2,37 @@ using DataCurator
 using Test
 using Logging
 using Random
+using Images
 
 @testset "DataCurator.jl" begin
+    @testset "validate_pattern" begin
+        root = mktempdir()
+        pt = joinpath(root, "1", "Type 2", "Serie 14")
+        mkpath(pt)
+        a = zeros(3, 3, 3)
+        f1 = joinpath(pt, "channel_1.tif")
+        Images.save(f1, a)
+        f2 = joinpath(pt, "channel_2.tif")
+        Images.save(f2, a)
+        isint = x -> ~isnothing(tryparse(Int, basename(x)))
+        condition = x->false
+        action = x-> @info x
+        is3d = x-> length(size(Images.load(x)))==3
+        is2d = x-> length(size(Images.load(x)))==3
+        valid_channel = x -> occursin(r".*[1,2]\.tif", x)
+        valid_cellnr = x->occursin(r"Serie\ [0-9]+", x)
+        @test valid_cellnr("Serie 040")
+        template = Dict()
+        isint = x -> ~isnothing(tryparse(Int, splitpath(x)[end]))
+        template[-1] = [(always, x-> quit_on_fail)]
+        template[1] = [(x-> isdir(x), warn_on_fail)]
+        template[2] = [(x->all_of(x, [isdir, isint]), warn_on_fail)]
+        template[3] = [(x-> isdir(x), warn_on_fail)]
+        template[4] = [(x->all_of(x, [isdir, valid_cellnr]), warn_on_fail)]
+        template[5] = [(x->all_of(x, [isfile, valid_channel, is3d]), warn_on_fail)]
+        @test verify_template(root, template)==:proceed
+        rm(root, force=true, recursive=true)
+    end
 
     @testset "transformer" begin
         root = mktempdir()

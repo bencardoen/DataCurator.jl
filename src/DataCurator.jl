@@ -5,7 +5,7 @@ import Logging
 # Write your package code here.
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
-verify_template, always, never, transform_template, transform_inplace, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, expand_threaded, transform_template, quit, proceed, filename, integer_name
+verify_template, always, never, transform_template, all_of, transform_inplace, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, expand_threaded, transform_template, quit, proceed, filename, integer_name
 
 quit = :quit
 proceed = :proceed
@@ -82,7 +82,17 @@ function transform_action(x, f; action=mv)
     end
 end
 
-
+"""
+    verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy="sequential")
+    Recursively verifies a dataset anchored at start using a given template.
+    For example, start can be the top directory of a filesystem.
+    A template has one of 2 forms:
+        - template = [(condition, action_on_fail), (condition, action), ...]
+            - where condition accepts a node and returns true if ok, false if not.
+            - action is a function that accepts a node as argument, and is trigger when condition fails, example warn_on_fail logs a warning
+    Traversalpolicy is bottomup or topdown. For modifying actions bottomup is more stable.
+    Parallel_policy is one of "sequential" or "parallel". While parallel execution can be a lot faster, be very careful if your actions share global state.
+"""
 function verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy="sequential")
     if typeof(template) <: Vector || typeof(template) <: Dict
         return traversalpolicy(start, expander, verify_dispatch; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
@@ -219,16 +229,19 @@ end
     Dispatched function to verify at recursion level with conditions set in templater[level] for node.
     Will apply templater[-1] as default if it's given, else no-op.
 """
-function verifier(node, templater::Dict{Int, <:Vector{<:Tuple}}, level::Int)
+function verifier(node, templater::Dict, level::Int)
+    @info "Level $level for $node"
     if haskey(templater, level)
+        @info "Level key $level found for $node"
         template = templater[level]
     else
+        @info "Level key $level NOT found for $node"
         if haskey(templater, -1)
-            @debug "Default verification"
+            @info "Default verification"
             template = templater[-1]
         else
             template = []
-            @debug "No verification at level $level for $node"
+            @info "No verification at level $level for $node"
         end
     end
     for (condition, onfail) in template
@@ -240,6 +253,17 @@ function verifier(node, templater::Dict{Int, <:Vector{<:Tuple}}, level::Int)
         end
     end
     return :proceed
+end
+
+
+
+function all_of(x, fs)
+    for f in fs
+        if f(x) == false
+            return false
+        end
+    end
+    return true
 end
 #
 # function transformer(node, template)

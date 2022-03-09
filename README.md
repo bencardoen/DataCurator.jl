@@ -55,6 +55,26 @@ Let's say you only want to do this test on files, not directories.
 template = [x -> isfile(x) && isinteger(x)]
 ```
 
+### Hierarchical templates
+Let's assume your pipeline expects the following layout
+- root
+  - replicate number
+    - celltype
+      - cellnr
+        - 2 tif files, \*1.tif, and \*1.tif with equal dimensions
+
+To verify this your conditions change depending on the level or depth where you're checking.
+
+The verifier visits the directories as follows
+- root : level 1
+  - replicate : level 2
+    - celltype : level 3
+      - cellnr : level 4
+        - tif-file : level 5
+
+For each level you can, but do not need to, define a template.
+You can also specify a default template, if you don't care about the level number. For example, if you encounter a level 5 where only 3 are expected, the default could be **quit**.
+
 
 ## Curation
 
