@@ -29,7 +29,7 @@ using Images
         template[-1] = [(always, x-> quit_on_fail)]
         template[1] = [(x-> isdir(x), warn_on_fail)]
         template[2] = [(x->all_of(x, [isdir, isint]), warn_on_fail)]
-        template[3] = [(x-> isdir(x), warn_on_fail)]
+        template[3] = [(x->isdir(x), warn_on_fail)]
         template[4] = [(x->all_of(x, [isdir, valid_cellnr]), warn_on_fail)]
         template[5] = [(x->all_of(x, [isfile, valid_channel, is3d]), warn_on_fail)]
         @test verify_template(root, template; act_on_success=false)==:proceed
@@ -56,12 +56,12 @@ using Images
         valid_channel = x -> occursin(r".*[1,2]\.tif", x)
         valid_cellnr = x->occursin(r"Serie\ [0-9]+", x)
         @test valid_cellnr("Serie 040")
-        Q = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
-        countsize = x -> parallel_increment(Q; inc=filesize(x))
+        Q = make_counter()#ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
+        countsize = x -> increment_counter(Q; inc=filesize(x))
         template = [(isfile, countsize)]
         verify_template(root, template; act_on_success=true)
         @test sum(Q.data) == 1648
-        Q = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
+        Q = make_counter(true)
         verify_template(root, template; act_on_success=true, parallel_policy="parallel")
         @test   sum(Q.data) == 1648
         rm(root, force=true, recursive=true)
@@ -85,6 +85,8 @@ using Images
     # end
 
     @testset "transformer" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         N = 1
         mkpath(joinpath(root, ["$i" for i in 1:N]...))
@@ -99,6 +101,7 @@ using Images
         @test transform_template(root, [(has_whitespace, space_to_)]) == :proceed
         verify_template(root, [(has_whitespace, space_to_)]) == :proceed
         rm(root, recursive=true, force=true)
+        global_logger(c)
     end
 
     @testset "transform" begin
