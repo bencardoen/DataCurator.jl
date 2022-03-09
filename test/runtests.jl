@@ -5,7 +5,7 @@ using Random
 using Images
 
 @testset "DataCurator.jl" begin
-    @testset "validate_pattern" begin
+    @testset "validate_dataset" begin
         root = mktempdir()
         pt = joinpath(root, "1", "Type 2", "Serie 14")
         mkpath(pt)
@@ -30,9 +30,14 @@ using Images
         template[3] = [(x-> isdir(x), warn_on_fail)]
         template[4] = [(x->all_of(x, [isdir, valid_cellnr]), warn_on_fail)]
         template[5] = [(x->all_of(x, [isfile, valid_channel, is3d]), warn_on_fail)]
-        @test verify_template(root, template)==:proceed
+        @test verify_template(root, template; act_on_success=true)==:proceed
         rm(root, force=true, recursive=true)
     end
+
+
+    ### Count triggers
+    ### Count filesizes
+    ### 
 
     @testset "transformer" begin
         root = mktempdir()

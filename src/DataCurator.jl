@@ -82,6 +82,7 @@ function transform_action(x, f; action=mv)
     end
 end
 
+
 """
     verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy="sequential")
     Recursively verifies a dataset anchored at start using a given template.
@@ -93,9 +94,11 @@ end
     Traversalpolicy is bottomup or topdown. For modifying actions bottomup is more stable.
     Parallel_policy is one of "sequential" or "parallel". While parallel execution can be a lot faster, be very careful if your actions share global state.
 """
-function verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy="sequential")
+function verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy="sequential", act_on_success=false)
+    verify_dispatch_flipped = x -> verify_dispatch(x;on_success=true)
+    vf = act_on_success ? verify_dispatch_flipped : verify_dispatch
     if typeof(template) <: Vector || typeof(template) <: Dict
-        return traversalpolicy(start, expander, verify_dispatch; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
+        return traversalpolicy(start, expander, vf; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
     else
         @error "Unsupported template"
         throw(ArgumentError("Template is of type $(typeof(template)) which is neither Vector, nor Dict"))
@@ -103,6 +106,16 @@ function verify_template(start, template; expander=expand_filesystem, traversalp
 end
 
 transform_template = verify_template
+
+# function transform_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy="sequential"; act)
+#     vf = act_on_success ? verify_dispatch_flipped : verify_dispatch
+#     if typeof(template) <: Vector || typeof(template) <: Dict
+#         return traversalpolicy(start, expander, verify_dispatch; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
+#     else
+#         @error "Unsupported template"
+#         throw(ArgumentError("Template is of type $(typeof(template)) which is neither Vector, nor Dict"))
+#     end
+# end
 
 
 function expand_sequential(node, expander, visitor, context)
@@ -201,11 +214,11 @@ end
     Dispatched function to verify at recursion level with conditions set in template for node.
     Level is ignored for now, except to debug
 """
-function verifier(node, template::Vector, level::Int)
-    for (condition, onfail) in template
-        if condition(node) == false
+function verifier(node, template::Vector, level::Int; on_success=false)
+    for (condition, action) in template
+        if condition(node) == on_success
             @warn "Condition failed on $node"
-            rv = onfail(node)
+            rv = action(node)
             if rv == :quit
                 @debug "Early exit for $node at $level"
                 return :quit
@@ -219,8 +232,8 @@ end
     verify_dispatch(context)
     Use multiple dispatch to call the right function verifier.
 """
-function verify_dispatch(context)
-    return verifier(context["node"], context["template"], context["level"])
+function verify_dispatch(context; on_success=false)
+    return verifier(context["node"], context["template"], context["level"];on_success=on_success)
 end
 
 
@@ -229,7 +242,7 @@ end
     Dispatched function to verify at recursion level with conditions set in templater[level] for node.
     Will apply templater[-1] as default if it's given, else no-op.
 """
-function verifier(node, templater::Dict, level::Int)
+function verifier(node, templater::Dict, level::Int; on_success=false)
     @info "Level $level for $node"
     if haskey(templater, level)
         @info "Level key $level found for $node"
@@ -244,9 +257,9 @@ function verifier(node, templater::Dict, level::Int)
             @info "No verification at level $level for $node"
         end
     end
-    for (condition, onfail) in template
-        if condition(node) == false
-            rv = onfail(node)
+    for (condition, action) in template
+        if condition(node) == on_success
+            rv = action(node)
             if rv == :quit
                 return :quit
             end
