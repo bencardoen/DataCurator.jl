@@ -5,7 +5,7 @@ import Logging
 # Write your package code here.
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
-verify_template, always, never, transform_template, all_of, transform_inplace, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, expand_threaded, transform_template, quit, proceed, filename, integer_name
+verify_template, always, never, parallel_increment, transform_template, all_of, transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, expand_threaded, transform_template, quit, proceed, filename, integer_name
 
 quit = :quit
 proceed = :proceed
@@ -81,6 +81,25 @@ function transform_action(x, f; action=mv)
         end
     end
 end
+
+
+function parallel_increment(ct; inc=1)
+    vl = ct.data[Base.Threads.threadid()]
+    ct.data[Base.Threads.threadid()] = vl + inc
+end
+
+"""
+    Usage
+    QT = ParallelCount(zeros(Int64, Base.Threads.nthreads()), Int64(0))
+    QT.data[threadid()] = ...
+
+"""
+struct ParallelCounter{T<:Number}
+       data::Vector{T}
+end
+
+# get_counter =
+# QT = ParallelCount(zeros(Int64, Base.Threads.nthreads()), Int64(0))
 
 
 """

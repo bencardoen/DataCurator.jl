@@ -30,14 +30,50 @@ using Images
         template[3] = [(x-> isdir(x), warn_on_fail)]
         template[4] = [(x->all_of(x, [isdir, valid_cellnr]), warn_on_fail)]
         template[5] = [(x->all_of(x, [isfile, valid_channel, is3d]), warn_on_fail)]
-        @test verify_template(root, template; act_on_success=true)==:proceed
+        @test verify_template(root, template; act_on_success=false)==:proceed
         rm(root, force=true, recursive=true)
     end
 
+    @testset "validate_dataset" begin
+        root = mktempdir()
+        pt = joinpath(root, "1", "Type 2", "Serie 14")
+        mkpath(pt)
+        a = zeros(3, 3, 3)
+        f1 = joinpath(pt, "channel_1.tif")
+        Images.save(f1, a)
+        f2 = joinpath(pt, "channel_2.tif")
+        Images.save(f2, a)
+        isint = x -> ~isnothing(tryparse(Int, basename(x)))
+        condition = x->false
+        action = x-> @info x
+        is3d = x-> length(size(Images.load(x)))==3
+        is2d = x-> length(size(Images.load(x)))==3
+        valid_channel = x -> occursin(r".*[1,2]\.tif", x)
+        valid_cellnr = x->occursin(r"Serie\ [0-9]+", x)
+        @test valid_cellnr("Serie 040")
+        Q = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
+        countsize = x -> parallel_increment(Q; inc=filesize(x))
+        template = [(isfile, countsize)]
+        verify_template(root, template; act_on_success=true)
+        @test sum(Q.data) == 1648
+        rm(root, force=true, recursive=true)
+    end
+
+#
+# Q = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
+# countsize = x -> _parallel_increment(Q; inc=filesize(x))
+# template = [(isfile, countsize)]
+# verify_template(root, template; act_on_success=true)
+# sum(Q.data)
 
     ### Count triggers
     ### Count filesizes
-    ### 
+    ###
+
+    @testset "counter" begin
+        QT = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
+        # Count file sizes
+    end
 
     @testset "transformer" begin
         root = mktempdir()
