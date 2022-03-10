@@ -11,7 +11,7 @@ transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, 
 expand_threaded, transform_template, quit, proceed, filename, integer_name,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs,
-apply_all, ignore, log_to_file, size_of_file, move_link
+apply_all, ignore, log_to_file, size_of_file, new_path, copy_to
 
 function read_counter(ct)
     return sum(ct.data)
@@ -77,7 +77,7 @@ function transform_copy(x, f)
     return transform_action(x, f; action=cp)
 end
 
-function move_link(root, node, newroot)
+function new_path(root, node, newroot)
     rp, np, nwp = splitpath(root), splitpath(node), splitpath(newroot)
     if node == root
         @warn "No-op for $root $node $newroot"
@@ -86,7 +86,17 @@ function move_link(root, node, newroot)
     @assert length(rp) < length(np)
     LP = length(rp)
     # @info rp np[LP+1:end]
-    joinpath(newroot, np[LP+1:end]...)
+    newpath = joinpath(newroot, np[LP+1:end]...)
+    mkpath(splitdir(newpath)[1])
+    return newpath
+end
+
+function copy_to(root, node, newroot)
+    np = new_path(root, node, newroot)
+    if np == node
+        return
+    end
+    mv(node, np)
 end
 
 function transform_action(x, f=x->x; action=mv)

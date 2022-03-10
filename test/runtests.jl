@@ -52,11 +52,16 @@ using Images
     @testset "movelink" begin
         root = mktempdir()
         node = joinpath(root, "a", "b")
-        newroot = "/dev/shm/X"
-        mkpath(newroot)
-        newpath = move_link(root, node, newroot)
-        @test newpath == "/dev/shm/X/a/b"
-        newpath = move_link(root, root, newroot)
+        mkpath(node)
+        FL = joinpath(node, "Q.txt")
+        touch(FL)
+        # mkpath(node)
+        newroot = mktempdir()
+        # mkpath(newroot)
+        newpath = new_path(root, node, newroot)
+        np = copy_to(root, node, newroot)
+        @test isdir(np)
+        newpath = new_path(root, root, newroot)
         @test newpath == root
         rm(root, recursive=true, force=true)
     end
