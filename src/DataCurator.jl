@@ -1,22 +1,62 @@
 module DataCurator
 using Base.Threads
 import Random
+import Images
 import Logging
-# Write your package code here.
+using LoggingExtras
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
-verify_template, always, never, increment_counter, make_counter, transform_template, all_of, transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, expand_threaded, transform_template, quit, proceed, filename, integer_name
+verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
+transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential,
+expand_threaded, transform_template, quit, proceed, filename, integer_name,
+any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
+is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, apply_all, ignore, log_to_file
 
+function read_counter(ct)
+    return sum(ct.data)
+end
+
+whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
+is_lower = x -> any(islowercase(_x) for _x in x)
+is_upper = x -> any(isuppercase(_x) for _x in x)
+has_whitespace = x -> ~isnothing(match(r"[\s,\t]", x))
 quit = :quit
 proceed = :proceed
 filename = x->basename(x)
 integer_name = x->~isnothing(tryparse(Int, filename(x)))
 warn_on_fail = x -> @warn "$x"
 quit_on_fail = x -> begin @warn "$x"; return :quit; end
-
+is_img = x -> isfile(x) & ~isnothing(try Images.load(x) catch e end;)
+is_kd_img = (x, k) -> is_img(x) & length(size(Images.load(x)))==k
+is_2d_img = x -> is_kd_img(x, 2)
+is_3d_img = x -> is_kd_img(x, 3)
+is_rgb = x -> is_img(x) & (eltype(Images.load(x)) <: RGB)
+read_dir = x -> isdir(x) ? [] : readdir(x, join=true) |>collect
+files = x -> [_x for _x in read_dir(x) if isfile(_x)]
+has_n_files = (k, x) -> length(files(x))==k
+subdirs = x -> [_x for _x in read_dir(x) if isdir(x)]
+has_n_subdirs = (k, x) -> length(subdirs(x))==k
+log_to_file = (fname, x) -> write_file(fname, x)
+ignore = x -> nothing
 always = x->true
 never = x->false
 sample = x->Random.rand()>0.5
+# count_error = (ct, _) -> increment_counter(ct)
+
+function apply_all(fs, x)
+    for f in fs
+        f(x)
+    end
+end
+
+function write_file(fname, msg)
+    if ~endswith(msg, "\n")
+        msg = msg * "\n"
+    end
+    open(fname, "a"; lock=true) do f
+        write(f, msg)
+    end
+end
 
 
 """
@@ -304,6 +344,15 @@ function all_of(x, fs)
         end
     end
     return true
+end
+
+function any_of(x, fs)
+    for f in fs
+        if f(x) == true
+            return true
+        end
+    end
+    return false
 end
 #
 # function transformer(node, template)

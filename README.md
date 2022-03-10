@@ -27,6 +27,24 @@ This package formalizes that step, and makes it so you can focus on the compute 
 
 If you read academic papers and have tried reproducing their results, the description of data curation always hides some 'obvious' (to the authors) steps, or steps that only work on their systems, and so forth. The lost time in contacting the authors, if they respond, means fewer papers get reproduced, less software reduced, and fewer algorithms validated by reviewers by running them, not reading them.
 
+## Quickstart recipes
+### Replace whitespace and uppercase
+Rename all files/directories with ' ' in them to '_' and switch any uppercase to lowercase.
+```julia
+condition = x -> is_upper(x) | has_whitespace(x)
+fix = x -> whitespace_to(lowercase(x), '_')
+action = x -> transform_inplace(x, fix)
+transform_template("rootdirectory", [(condition, action)], act_on_success=true)
+```
+Next, we verify our dataset has no uppercase/whitespace in names.
+```julia
+counter = make_counter()
+action = x -> increment_counter(counter)
+verify_template("rootdirectory", [(condition, action)], act_on_success=true)
+read_counter(counter) == 0
+```
+### Extract all 3D tif files to a single directory
+
 ## Targets
 
 A **target** is your datastore, in the simplest case a folder.

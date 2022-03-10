@@ -37,6 +37,17 @@ using Images
         global_logger(c)
     end
 
+    @testset "shortcodes" begin
+        rt = mktempdir()
+        z = zeros(3,3,3)
+        FN = joinpath(rt, "file.tif")
+        Images.save(FN, z)
+        @test isfile(FN)
+        @test is_img(FN)
+        @test is_3d_img(FN)
+        @test ~ has_n_files(2, FN)
+    end
+
     @testset "validate_dataset" begin
         c = global_logger()
         global_logger(NullLogger())
