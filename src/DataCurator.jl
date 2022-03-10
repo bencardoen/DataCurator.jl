@@ -10,7 +10,8 @@ verify_template, always, never, increment_counter, make_counter, read_counter, t
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential,
 expand_threaded, transform_template, quit, proceed, filename, integer_name,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
-is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, apply_all, ignore, log_to_file
+is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs,
+apply_all, ignore, log_to_file, size_of_file, move_link
 
 function read_counter(ct)
     return sum(ct.data)
@@ -41,6 +42,7 @@ ignore = x -> nothing
 always = x->true
 never = x->false
 sample = x->Random.rand()>0.5
+size_of_file = x -> isfile(x) ? filesize(x) : 0
 # count_error = (ct, _) -> increment_counter(ct)
 
 function apply_all(fs, x)
@@ -75,10 +77,20 @@ function transform_copy(x, f)
     return transform_action(x, f; action=cp)
 end
 
-function transform_action(x, f; action=mv)
+function move_link(root, node, newroot)
+    rp, np, nwp = splitpath(root), splitpath(node), splitpath(newroot)
+    if node == root
+        @warn "No-op for $root $node $newroot"
+        return node
+    end
+    @assert length(rp) < length(np)
+    LP = length(rp)
+    # @info rp np[LP+1:end]
+    joinpath(newroot, np[LP+1:end]...)
+end
 
+function transform_action(x, f=x->x; action=mv)
     if isfile(x)
-
         path, file = splitdir(x)
         name, ext = splitext(file)
         y = f(name)

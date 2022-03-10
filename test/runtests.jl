@@ -49,6 +49,18 @@ using Images
         has_n_files(rt, 2)
     end
 
+    @testset "movelink" begin
+        root = mktempdir()
+        node = joinpath(root, "a", "b")
+        newroot = "/dev/shm/X"
+        mkpath(newroot)
+        newpath = move_link(root, node, newroot)
+        @test newpath == "/dev/shm/X/a/b"
+        newpath = move_link(root, root, newroot)
+        @test newpath == root
+        rm(root, recursive=true, force=true)
+    end
+
     @testset "validate_dataset" begin
         c = global_logger()
         global_logger(NullLogger())
