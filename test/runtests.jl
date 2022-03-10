@@ -46,6 +46,7 @@ using Images
         @test is_img(FN)
         @test is_3d_img(FN)
         @test ~ has_n_files(2, FN)
+        has_n_files(rt, 2)
     end
 
     @testset "validate_dataset" begin

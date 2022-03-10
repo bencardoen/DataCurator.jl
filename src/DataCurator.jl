@@ -27,15 +27,15 @@ integer_name = x->~isnothing(tryparse(Int, filename(x)))
 warn_on_fail = x -> @warn "$x"
 quit_on_fail = x -> begin @warn "$x"; return :quit; end
 is_img = x -> isfile(x) & ~isnothing(try Images.load(x) catch e end;)
-is_kd_img = (x, k) -> is_img(x) & length(size(Images.load(x)))==k
+is_kd_img = (x, k) -> is_img(x) & (length(size(Images.load(x)))==k)
 is_2d_img = x -> is_kd_img(x, 2)
 is_3d_img = x -> is_kd_img(x, 3)
 is_rgb = x -> is_img(x) & (eltype(Images.load(x)) <: RGB)
-read_dir = x -> isdir(x) ? [] : readdir(x, join=true) |>collect
+read_dir = x -> isdir(x) ? (readdir(x, join=true) |>collect) : []
 files = x -> [_x for _x in read_dir(x) if isfile(_x)]
-has_n_files = (k, x) -> length(files(x))==k
+has_n_files = (x, k) -> isdir(x) & (length(files(x))==k)
 subdirs = x -> [_x for _x in read_dir(x) if isdir(x)]
-has_n_subdirs = (k, x) -> length(subdirs(x))==k
+has_n_subdirs = (x, k) -> (length(subdirs(x))==k)
 log_to_file = (fname, x) -> write_file(fname, x)
 ignore = x -> nothing
 always = x->true
