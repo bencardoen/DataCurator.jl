@@ -11,7 +11,7 @@ transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, 
 expand_threaded, transform_template, quit, proceed, filename, integer_name,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs,
-apply_all, ignore, log_to_file, size_of_file, new_path, copy_to
+apply_all, ignore, log_to_file, size_of_file, new_path, move_to, copy_to
 
 function read_counter(ct)
     return sum(ct.data)
@@ -91,23 +91,51 @@ function new_path(root, node, newroot)
     return newpath
 end
 
-function copy_to(root, node, newroot)
-    np = new_path(root, node, newroot)
-    if np == node
-        return
+
+"""
+    /a/b/c, /a/b/c/d/e, /x/y
+        if keeprelative
+        -> /x/y/c/d/e
+        if ~keeprelative
+        -> /x/y/e
+"""
+function send_to(root, node, newroot; op=cp, keeprelative=true)
+    if keeprelative
+        np = new_path(root, node, newroot)
+        if np == node
+            return
+        end
+        op(node, np)
+    else
+        #/a "/a/b/c.txt" /Q --> Q/c.txt
+        if isfile(node)
+            fname = basename(node)
+            newp = joinpath(newroot, fname)
+            op(node, newp)
+        else
+            last = splitpath(node)[end]
+            newp = joinpath(newroot, last)
+            # mkpath(newp)
+            op(node, newp)
+        end
     end
-    mv(node, np)
 end
+
+function copy_to(existing_root, node, target_root; keeprelative=true)
+    send_to(existing_root, node, target_root; keeprelative=keeprelative, op=cp)
+end
+function move_to(existing_root, node, target_root; keeprelative=true)
+    send_to(existing_root, node, target_root; keeprelative=keeprelative, op=mv)
+end
+# copy_to = (root, node, newroot) -> send_to(root, node, newroot; op=cp)
+# move_to = (root, node, newroot) -> send_to(root, node, newroot; op=mv)
+
 
 function transform_action(x, f=x->x; action=mv)
     if isfile(x)
         path, file = splitdir(x)
         name, ext = splitext(file)
         y = f(name)
-        if y == name
-            @warn "No-op"
-            return x
-        end
         newfile = joinpath(path, join([y, ext]))
         if isfile(newfile)
             @warn "$newfile already exists"
