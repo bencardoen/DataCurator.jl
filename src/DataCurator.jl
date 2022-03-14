@@ -11,11 +11,32 @@ transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, 
 expand_threaded, transform_template, quit, proceed, filename, integer_name,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs,
-apply_all, ignore, log_to_file, size_of_file, new_path, move_to, copy_to
+apply_all, ignore, generate_counter, log_to_file, size_of_file, new_path, move_to, copy_to, ends_with_integer, begins_with_integer, contains_integer
 
 function read_counter(ct)
     return sum(ct.data)
 end
+
+
+"""
+    Make a count and counting functor that can be incremented by threads
+    ```
+    c, ct = generate_counter()
+    ct(something)
+    @info c # "Counter = 1"
+    # Threaded version
+    pc, pct = generate_counter(true; x->reduce(*, size(x))))
+    a = zeros(3,3,3)
+    pct(a) # Threadsafe writes
+    # Printing the counter is not threadsafe, only read when all threads have finished.
+    @info pc # "Counter = 27"
+"""
+function generate_counter(parallel=true; incrementer=x->1)
+    ct = make_counter(parallel)
+    counter = x->increment_counter(ct; inc=x->incrementer(x))
+    return ct, counter
+end
+
 
 whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
 is_lower = x -> any(islowercase(_x) for _x in x)
@@ -44,6 +65,19 @@ never = x->false
 sample = x->Random.rand()>0.5
 size_of_file = x -> isfile(x) ? filesize(x) : 0
 # count_error = (ct, _) -> increment_counter(ct)
+
+
+function ends_with_integer(x)
+    ~isnothing(match(r"[0-9]+$", x))
+end
+
+function begins_with_integer(x)
+    ~isnothing(match(r"^[0-9]+", x))
+end
+
+function contains_integer(x)
+    ~isnothing(match(r"[0-9]+", x))
+end
 
 function apply_all(fs, x)
     for f in fs
@@ -188,6 +222,10 @@ struct ParallelCounter{T<:Number}
        data::Vector{T}
 end
 
+Base.show(io::IO, p::ParallelCounter) = print(io, "Counter = $(read_counter(p))")
+Base.string(p::ParallelCounter) = "Counter = $(read_counter(p))"
+
+
 struct SequentialCounter{T<:Number}
        data::Vector{T}
 end
@@ -199,6 +237,10 @@ function make_counter(parallel=false)
         return SequentialCounter(zeros(Int64, 1))
     end
 end
+
+
+Base.show(io::IO, p::SequentialCounter) = print(io, "Counter = $(read_counter(p))")
+Base.string(p::SequentialCounter) = "Counter = $(read_counter(p))"
 
 """
     verify_template(start, template; expander=expand_filesystem, traversalpolicy=bottomup, parallel_policy="sequential")

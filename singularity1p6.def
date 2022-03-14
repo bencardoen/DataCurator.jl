@@ -27,6 +27,7 @@ From: fedora:35
     julia --project=$LOCALPKG -e 'using DataCurator; using Pkg; Pkg.test("DataCurator")'
     rm -rf /opt/juliadepot/logs
     ln -s /dev/shm/ /opt/juliadepot/logs
+    ln -s /dev/shm/ /opt/juliadepot/scratchspaces
 
     ## Cleanup
     dnf remove -y wget unzip
