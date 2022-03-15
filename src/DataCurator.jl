@@ -11,7 +11,7 @@ transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, 
 expand_threaded, transform_template, quit, proceed, filename, integer_name,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs,
-apply_all, ignore, generate_counter, log_to_file, size_of_file, delete_file, delete_folder, new_path, move_to, copy_to, ends_with_integer, begins_with_integer, contains_integer
+apply_all, ignore, generate_counter, log_to_file, size_of_file, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to, copy_to, ends_with_integer, begins_with_integer, contains_integer
 
 function read_counter(ct)
     return sum(ct.data)
@@ -56,6 +56,8 @@ is_rgb = x -> is_img(x) & (eltype(Images.load(x)) <: RGB)
 read_dir = x -> isdir(x) ? (readdir(x, join=true) |>collect) : []
 files = x -> [_x for _x in read_dir(x) if isfile(_x)]
 has_n_files = (x, k) -> isdir(x) & (length(files(x))==k)
+n_files_or_more = (x, k) -> isdir(x) & (length(files(x))>=k)
+less_than_n_files = (x, k) -> isdir(x) & (length(files(x))<k)
 subdirs = x -> [_x for _x in read_dir(x) if isdir(x)]
 has_n_subdirs = (x, k) -> (length(subdirs(x))==k)
 log_to_file = (fname, x) -> write_file(fname, x)
@@ -87,6 +89,7 @@ end
 
 function delete_file(x)
     if isfile(x)
+        @warn "Deleting $x"
         rm(x; force=true)
     end
 end

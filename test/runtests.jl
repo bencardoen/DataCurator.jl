@@ -51,6 +51,19 @@ using Images
         @test read_counter(sc) == 13248
     end
 
+
+    @testset "nfiles" begin
+        root = mktempdir()
+        t = joinpath(root, "1.txt")
+        @test ~n_files_or_more(root, 1)
+        @test ~has_n_files(root, 1)
+        @test less_than_n_files(root, 1)
+        touch(t)
+        @test n_files_or_more(root, 1)
+        @test has_n_files(root, 1)
+        @test less_than_n_files(root, 2)
+    end
+
     @testset "destructive" begin
         root = mktempdir()
         for i in [1]
