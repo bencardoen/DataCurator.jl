@@ -37,6 +37,49 @@ using Images
         global_logger(c)
     end
 
+    @testset "incrementer" begin
+        ec, count_error = generate_counter(true)
+        count_error(2)
+        @test read_counter(ec) == 1
+        sc, count_size = generate_counter(true; incrementer=size_of_file)
+        n = zeros(20,20,20)
+        nf = joinpath(mktempdir(), "test.tif")
+        Images.save(nf, n)
+        count_size("/dev/shm/noexist.txtst")
+        @test read_counter(sc) == 0
+        count_size(nf)
+        @test read_counter(sc) == 13248
+    end
+
+    @testset "destructive" begin
+        root = mktempdir()
+        for i in [1]
+            for s in [14]
+                pt = joinpath(root, "$i", "Type 2", "Serie $s")
+                mkpath(pt)
+                a = zeros(3, 3, 3)
+                f0 = joinpath(pt, "channel_0.tif")
+                Images.save(f0, a)
+                f1 = joinpath(pt, "channel_1.tif")
+                Images.save(f1, a)
+                f2 = joinpath(pt, "channel_2.tif")
+                Images.save(f2, a)
+            end
+        end
+        s, ct = generate_counter(true)
+        template = [( x -> endswith(x, "0.tif"), x->apply_all([ct, delete_file],x))]
+        @test isfile(joinpath(root, "1", "Type 2", "Serie 14", "channel_0.tif"))
+        verify_template(root, template; act_on_success=true)
+        @test ~isfile(joinpath(root, "1", "Type 2", "Serie 14", "channel_0.tif"))
+        @test read_counter(s) == 1
+        s, ct = generate_counter(true)
+        template = [( x -> endswith(x, "0.tif"), x->apply_all([ct, delete_file],x))]
+        verify_template(root, template; act_on_success=true)
+        @test ~isfile(joinpath(root, "1", "Type 2", "Serie 14", "channel_0.tif"))
+        @test read_counter(s) == 0
+
+    end
+
     @testset "shortcodes" begin
         rt = mktempdir()
         z = zeros(3,3,3)

@@ -11,7 +11,7 @@ transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, 
 expand_threaded, transform_template, quit, proceed, filename, integer_name,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs,
-apply_all, ignore, generate_counter, log_to_file, size_of_file, new_path, move_to, copy_to, ends_with_integer, begins_with_integer, contains_integer
+apply_all, ignore, generate_counter, log_to_file, size_of_file, delete_file, delete_folder, new_path, move_to, copy_to, ends_with_integer, begins_with_integer, contains_integer
 
 function read_counter(ct)
     return sum(ct.data)
@@ -33,8 +33,8 @@ end
 """
 function generate_counter(parallel=true; incrementer=x->1)
     ct = make_counter(parallel)
-    counter = x->increment_counter(ct; inc=x->incrementer(x))
-    return ct, counter
+    # counter = x->increment_counter(ct; inc=x->incrementer(x))
+    return ct, x->increment_counter(ct; inc=incrementer(x))
 end
 
 
@@ -82,6 +82,18 @@ end
 function apply_all(fs, x)
     for f in fs
         f(x)
+    end
+end
+
+function delete_file(x)
+    if isfile(x)
+        rm(x; force=true)
+    end
+end
+
+function delete_folder(x)
+    if isdir(x)
+        rm(x; force=true, recursive=true)
     end
 end
 
@@ -207,9 +219,13 @@ function transform_action(x, f=x->x; action=mv)
 end
 
 
-function increment_counter(ct; inc=1)
+function increment_counter(ct; inc=1, incfunc=nothing)
     vl = ct.data[Base.Threads.threadid()]
-    ct.data[Base.Threads.threadid()] = vl + inc
+    if isnothing(incfunc)
+        ct.data[Base.Threads.threadid()] = vl + inc
+    else
+        ct.data[Base.Threads.threadid()] = vl + incfunc(inc)
+    end
 end
 
 """
