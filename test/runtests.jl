@@ -37,6 +37,19 @@ using Images
         global_logger(c)
     end
 
+    @testset "regex" begin
+        T = "123 Serie"
+        @test ~isnothing(read_prefix_int(T))
+        @test isnothing(read_postfix_int(T))
+        @test isnothing(read_prefix_int(reverse(T)))
+        @test ~isnothing(read_postfix_int(reverse(T)))
+        T = "123.345 Series"
+        @test ~isnothing(read_prefix_float(T))
+        @test isnothing(read_postfix_float(T))
+        @test isnothing(read_prefix_float(reverse(T)))
+        @test ~isnothing(read_postfix_float(reverse(T)))
+    end
+
     @testset "incrementer" begin
         ec, count_error = generate_counter(true)
         count_error(2)

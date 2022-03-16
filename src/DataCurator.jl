@@ -11,7 +11,10 @@ transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, 
 expand_threaded, transform_template, quit, proceed, filename, integer_name,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs,
-apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to, copy_to, ends_with_integer, begins_with_integer, contains_integer
+apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list,
+shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
+copy_to, ends_with_integer, begins_with_integer, contains_integer,
+safe_match, read_type, read_int, read_float, read_prefix_float, read_prefix_int, read_postfix_float, read_postfix_int
 
 function read_counter(ct)
     return sum(ct.data)
@@ -36,6 +39,8 @@ function generate_counter(parallel=true; incrementer=x->1)
     # counter = x->increment_counter(ct; inc=x->incrementer(x))
     return ct, x->increment_counter(ct; inc=incrementer(x))
 end
+
+FR = r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?"
 
 
 whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
@@ -66,6 +71,15 @@ always = x->true
 never = x->false
 sample = x->Random.rand()>0.5
 size_of_file = x -> isfile(x) ? filesize(x) : 0
+
+safe_match = (x, regex) -> isnothing(match(regex, x)) ? nothing : match(regex, x).match
+read_type = (x, regex, type) -> isnothing(safe_match(x, regex)) ? nothing : tryparse(type, safe_match(x, regex))
+read_postfix_int = x -> read_type(x, r"[0-9]+$", Int) #tryparse(Int, safe_match(x, r"[0-9]+$"))
+read_prefix_int = x -> read_type(x, r"^[0-9]+", Int)
+read_int = x -> read_type(x, r"[0-9]+", Int)
+read_postfix_float = x -> read_type(x,  r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?$", Float64) #tryparse(Int, safe_match(x, r"[0-9]+$"))
+read_prefix_float = x -> read_type(x,  r"^[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?", Float64)
+read_float = x -> read_type(x, FR, Float64)
 # count_error = (ct, _) -> increment_counter(ct)
 
 function make_shared_list()

@@ -28,23 +28,40 @@ for i in [1,2,3]
 end
 
 
+function formatpath(x)
+    parts = splitpath(x)
+    parts[end] = "$(read_postfix_int(parts[end]))"
+    return joinpath(parts...)
+end
+
+
+
+## Make counters to keep track of what changed
 ec, count_error = generate_counter(true)
 cc, count_correct = generate_counter(true)
 sc, count_size = generate_counter(true; incrementer=size_of_file)
-inlist = make_shared_list()
-outlist = make_shared_list()
+## SLURM needs lists of paths to process, let's build those
+inlist, outlist = [make_shared_list() for _ in 1:2]
+## Define where the output will be written
 outpath = mktempdir()
 
-template = Dict()
+## Define conditions and actions we want to take
 
-record_fail = x->log_to_file("errors.txt", x)
-record_correct = x->log_to_file("correct.txt", x)
+### Create a log for both failed entries and valid entries
+record_fail, record_correct = [x->log_to_file(X, x) for X in ["errors.txt", "correct.txt"]]
+
+### Invalid data : warn, count, log and delete
 onfail = x -> apply_all([warn_on_fail, count_error, record_fail, delete_file], x)
 
-on_input_dir = x -> apply_all([x->addentry!(inlist, x), x->addentry!(outlist, new_path(root, x, outpath))], x)
+### Create 2 lists of input directories and output directories for the pipeline
+on_input_dir = x -> apply_all([x->addentry!(inlist, x), x->addentry!(outlist, new_path(root, formatpath(x), outpath))], x)
 
-
+### On valid entries: Count nr and size, log
 onsuccess = x -> apply_all([count_correct, count_size, record_correct], x)
+
+
+## Template
+template = Dict()
 ## Verify dataset for MERCS
 
 # Default : if not specified, it's an error
