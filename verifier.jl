@@ -13,8 +13,8 @@ using Base.Threads
 ## Write a corresponding list of output directories
 
 root = mktempdir()
-for i in [1]
-    for s in [14]
+for i in [1,2,3]
+    for s in [14,25,28]
         pt = joinpath(root, "$i", "Type 2", "Serie $s")
         mkpath(pt)
         a = zeros(3, 3, 3)
@@ -63,7 +63,7 @@ file_check = x -> is_3d_img(x) & endswith(x, r"[1,2].tif")
 template[5] = [(x->~file_check(x), onsuccess),(file_check, onfail)]
 
 
-verify_template(root, template; traversalpolicy=topdown)
+verify_template(root, template; traversalpolicy=topdown, parallel_policy="parallel")
 @info "$(ec) failures with $(cc) correct files at total size of $(sc) bytes found"
 
 ## Write the collected input directories
