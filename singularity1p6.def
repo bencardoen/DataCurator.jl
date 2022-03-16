@@ -26,6 +26,7 @@ From: fedora:35
     julia --project=$LOCALPKG -e 'using Pkg; Pkg.update(); ENV["PYTHON"]=""; Pkg.build(); Pkg.instantiate()'
     julia --project=$LOCALPKG -e 'using DataCurator; using Pkg; Pkg.test("DataCurator")'
     rm -rf /opt/juliadepot/logs
+    rm -rf /opt/juliadepot/scratchspaces
     ln -s /dev/shm/ /opt/juliadepot/logs
     ln -s /dev/shm/ /opt/juliadepot/scratchspaces
 
