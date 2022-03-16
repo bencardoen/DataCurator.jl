@@ -87,4 +87,5 @@ verify_template(root, template; traversalpolicy=topdown, parallel_policy="parall
 shared_list_to_file(inlist, "test.in")
 ## And output directories
 @info inlist
+@info outlist
 shared_list_to_file(outlist, "test.out")

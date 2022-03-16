@@ -352,6 +352,7 @@ end
 
 
 function expand_threaded(node, expander, visitor, context)
+    @warn "Threaded"
     @threads for _node in expander(node)
         if isnothing(context)
             ncontext = context
@@ -458,18 +459,18 @@ end
     Will apply templater[-1] as default if it's given, else no-op.
 """
 function verifier(node, templater::Dict, level::Int; on_success=false)
-    @info "Level $level for $node"
+    @debug "Level $level for $node"
     if haskey(templater, level)
-        @info "Level key $level found for $node"
+        @debug "Level key $level found for $node"
         template = templater[level]
     else
-        @info "Level key $level NOT found for $node"
+        @debug "Level key $level NOT found for $node"
         if haskey(templater, -1)
-            @info "Default verification"
+            @debug "Default verification"
             template = templater[-1]
         else
             template = []
-            @info "No verification at level $level for $node"
+            @debug "No verification at level $level for $node"
         end
     end
     for (condition, action) in template
