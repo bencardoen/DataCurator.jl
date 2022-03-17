@@ -4,6 +4,7 @@ import Random
 import Images
 import Logging
 using LoggingExtras
+import TOML
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
@@ -14,12 +15,74 @@ is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list,
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
 copy_to, ends_with_integer, begins_with_integer, contains_integer,
-safe_match, read_type, read_int, read_float, read_prefix_float, read_prefix_int, read_postfix_float, read_postfix_int
+safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
+read_prefix_int, read_postfix_float, read_postfix_int, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
+validate_global, decode_level, create_template_from_toml, extract_template
 
 function read_counter(ct)
     return sum(ct.data)
 end
 
+
+
+function create_template_from_toml(tomlfile)
+    # TODO PROTECT
+    config = TOML.parsefile(tomlfile)
+    glob = validate_global(config)
+    if isnothing(glob)
+        @error "Invalid configuration"
+        return nothing
+    end
+    if glob["hierarchical"]
+        template = extract_template(config)
+    else
+        template = decode_level(config["any"])
+    end
+    if isnothing(template)
+        @error "Invalid configuration"
+        return
+    end
+    return glob, template
+end
+
+function extract_template(config)
+    template = Dict()
+    if haskey(config, "any")
+        def = decode_level(config["any"])
+        if isnothing(def)
+            return nothing
+        end
+        template[-1] = def
+    end
+    for k in keys(config)
+        m = match(r"^level_[0-9]+$", k)
+        if ~isnothing(m)
+            lk = m.match
+            level_nr = tryparse(Int, split(lk, '_')[2])
+            level_temp = decode_level(config[k])
+            if isnothing(level_temp)
+                return nothing
+            end
+            template[level_nr] = level_temp
+        end
+    end
+    return template
+end
+
+function decode_level(level_config)
+    actions = level_config["actions"]
+    conditions = level_config["conditions"]
+    level = []
+    for (action, condition) in zip(actions, conditions)
+        a = decode_symbol(action)
+        c = decode_symbol(condition)
+        if isnothing(a) | isnothing(c)
+            @error "Invalid conditions for $action or $condition"
+        end
+        push!(level, [c, a])
+    end
+    return level
+end
 
 """
     Make a count and counting functor that can be incremented by threads
@@ -40,9 +103,19 @@ function generate_counter(parallel=true; incrementer=x->1)
     return ct, x->increment_counter(ct; inc=incrementer(x))
 end
 
+function generate_size_counter(parallel=true)
+    ct = make_counter(parallel)
+    # counter = x->increment_counter(ct; inc=x->incrementer(x))
+    return ct, x->increment_counter(ct; inc=size_of_file(x))
+end
+
 FR = r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?"
 
 
+is_type_file = (x, t) -> isfile(x) & endswith(x, t)
+is_csv_file = x -> is_type_file(x, ".csv")
+is_tif_file = x -> is_type_file(x, ".tif")
+is_png_file = x -> is_type_file(x, ".png")
 whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
 is_lower = x -> any(islowercase(_x) for _x in x)
 is_upper = x -> any(isuppercase(_x) for _x in x)
@@ -81,6 +154,107 @@ read_postfix_float = x -> read_type(x,  r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?
 read_prefix_float = x -> read_type(x,  r"^[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?", Float64)
 read_float = x -> read_type(x, FR, Float64)
 # count_error = (ct, _) -> increment_counter(ct)
+
+
+function validate_global(config)
+    globkeys = Dict([("parallel", false), ("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    # glob = config["global"]
+    if haskey(config, "global")
+        glob_config = config["global"]
+        @debug glob_config
+        for key in keys(glob_config)
+            @debug "Checking $key"
+            if haskey(globkeys, key)
+                val = glob_config[key]
+                if key == "traversal"
+                    if val ∈ ["bottomup", "topdown"]
+                        globkeys[key]=val
+                    else
+                        @error "Invalid value for $key, $val"
+                        return nothing
+                    end
+                else
+                    if eltype(val) <: Bool
+                        globkeys[key] = val
+                    else
+                        if key == "inputdirectory"
+                            if isdir(val)
+                                globkeys[key] = val
+                            else
+                                @error "No such directory $val"
+                                return nothing
+                            end
+                        else
+                            @error "Invalid value for $key : $val"
+                            return nothing
+                        end
+                    end
+                end
+            else
+                @error "Key $key in global not valid."
+            end
+        end
+    else
+        @error "No global section defined"
+        return nothing
+    end
+    if isnothing(globkeys["inputdirectory"])
+        @error "Key inputdirectory not set in .toml file. Please add to global section : inputdirectory=your_dir_here "
+        return nothing
+    end
+    return globkeys
+end
+
+
+function lookup(sym)
+    try
+        return getfield(DataCurator, Symbol(sym))
+    catch
+        @error "No such symbol $sym"
+        return nothing
+    end
+end
+
+function guess_argument(str)
+    if integer_name(str)
+        return tryparse(Int, str)
+    end
+    fl = tryparse(Float64, str)
+    if isnothing(fl)
+        return str
+    else
+        return fl
+    end
+end
+
+
+function decode_symbol(s)
+    if contains(s, ' ')
+        parts = split(s, ' ')
+        if length(parts) != 2
+            @error "Error parsing $s"
+            return nothing
+        end
+        func, args = parts
+        @info func
+        @info args
+        symbol = lookup(func)
+        if ~isnothing(symbol)
+            return x->symbol(x, guess_argument(args))
+        else
+            @error "Error parsing $s"
+            return nothing
+        end
+    else
+        symbol = lookup(s)
+        if ~isnothing(symbol)
+            return x->symbol(x)
+        else
+            @error "Error parsing $s"
+            return nothing
+        end
+    end
+end
 
 function make_shared_list()
     return [[] for _ in 1:Base.Threads.nthreads()]
@@ -207,6 +381,8 @@ function send_to(root, node, newroot; op=cp, keeprelative=true)
     end
 end
 
+flatten_to = (root, x, newroot) -> copy_to(root, x, newroot; keeprelative=false)
+
 function copy_to(existing_root, node, target_root; keeprelative=true)
     send_to(existing_root, node, target_root; keeprelative=keeprelative, op=cp)
 end
@@ -278,8 +454,8 @@ struct ParallelCounter{T<:Number}
        data::Vector{T}
 end
 
-Base.show(io::IO, p::ParallelCounter) = print(io, "Counter = $(read_counter(p))")
-Base.string(p::ParallelCounter) = "Counter = $(read_counter(p))"
+Base.show(io::IO, p::ParallelCounter) = print(io, "$(read_counter(p))")
+Base.string(p::ParallelCounter) = "$(read_counter(p))"
 
 
 struct SequentialCounter{T<:Number}
@@ -433,7 +609,7 @@ end
 function verifier(node, template::Vector, level::Int; on_success=false)
     for (condition, action) in template
         if condition(node) == on_success
-            @warn "Condition failed on $node"
+            @debug "Condition failed on $node"
             rv = action(node)
             if rv == :quit
                 @debug "Early exit for $node at $level"

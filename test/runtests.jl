@@ -37,6 +37,11 @@ using Images
         global_logger(c)
     end
 
+    @testset "parser" begin
+        c = create_template_from_toml("test.toml")
+        @test ~isnothing(c)
+    end
+
     @testset "regex" begin
         T = "123 Serie"
         @test ~isnothing(read_prefix_int(T))
