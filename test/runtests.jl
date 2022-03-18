@@ -37,6 +37,12 @@ using Images
         global_logger(c)
     end
 
+    @testset "l2f" begin
+        r = mktempdir()
+        log_to_file("a", joinpath(r,"abc.txt"))
+        @test isfile(joinpath(r,"abc.txt"))
+    end
+
     @testset "sc" begin
         TF = "aBc"
         @test has_lower(TF)

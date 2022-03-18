@@ -127,8 +127,8 @@ is_png_file = x -> is_type_file(x, ".png")
 whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
 has_lower = x -> any(islowercase(_x) for _x in x)
 has_upper = x -> any(isuppercase(_x) for _x in x)
-is_lower = x -> all(islowercase(_x) for _x in x)
-is_upper = x -> all(isuppercase(_x) for _x in x)
+is_lower = x -> ~has_upper(x)
+is_upper = x -> ~has_lower(x)
 has_whitespace = x -> ~isnothing(match(r"[\s,\t]", x))
 quit = :quit
 proceed = :proceed
@@ -148,7 +148,7 @@ n_files_or_more = (x, k) -> isdir(x) & (length(files(x))>=k)
 less_than_n_files = (x, k) -> isdir(x) & (length(files(x))<k)
 subdirs = x -> [_x for _x in read_dir(x) if isdir(x)]
 has_n_subdirs = (x, k) -> (length(subdirs(x))==k)
-log_to_file = (fname, x) -> write_file(fname, x)
+log_to_file = (x, fname) -> write_file(fname, x)
 ignore = x -> nothing
 always = x->true
 never = x->false
@@ -250,7 +250,12 @@ function decode_symbol(s)
         @info args
         symbol = lookup(func)
         if ~isnothing(symbol)
-            return x->symbol(x, guess_argument(args))
+            if func ∈ ["startswith", "endswith"]
+                @info "Assuming Regex argument"
+                return x->symbol(x, Regex(args))
+            else
+                return x->symbol(x, guess_argument(args))
+            end
         else
             @error "Error parsing $s"
             return nothing
