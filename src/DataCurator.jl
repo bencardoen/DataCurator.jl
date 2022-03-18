@@ -42,6 +42,7 @@ function create_template_from_toml(tomlfile)
         @error "Invalid configuration"
         return
     end
+    @info "Decoded template to $template"
     return glob, template
 end
 
@@ -70,6 +71,10 @@ function extract_template(config)
 end
 
 function decode_level(level_config)
+    all_mode = false
+    if haskey(level_config, "all")
+        all_mode=level_config["all"]
+    end
     actions = level_config["actions"]
     conditions = level_config["conditions"]
     level = []
@@ -80,6 +85,9 @@ function decode_level(level_config)
             @error "Invalid conditions for $action or $condition"
         end
         push!(level, [c, a])
+    end
+    if all_mode
+        @error "FIXME"
     end
     return level
 end
@@ -662,7 +670,7 @@ end
 
 
 
-function all_of(x, fs)
+function all_of(fs, x)
     for f in fs
         if f(x) == false
             return false

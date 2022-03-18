@@ -28,10 +28,10 @@ using Images
         isint = x -> ~isnothing(tryparse(Int, splitpath(x)[end]))
         template[-1] = [(always, x-> quit_on_fail)]
         template[1] = [(x-> isdir(x), warn_on_fail)]
-        template[2] = [(x->all_of(x, [isdir, isint]), warn_on_fail)]
+        template[2] = [(x->all_of([isdir, isint],x), warn_on_fail)]
         template[3] = [(x->isdir(x), warn_on_fail)]
-        template[4] = [(x->all_of(x, [isdir, valid_cellnr]), warn_on_fail)]
-        template[5] = [(x->all_of(x, [isfile, valid_channel, is3d]), warn_on_fail)]
+        template[4] = [(x->all_of([isdir, valid_cellnr],x), warn_on_fail)]
+        template[5] = [(x->all_of([isfile, valid_channel, is3d],x), warn_on_fail)]
         @test verify_template(root, template; act_on_success=false)==:proceed
         rm(root, force=true, recursive=true)
         global_logger(c)
