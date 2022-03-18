@@ -17,12 +17,18 @@ shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file,
 copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
-validate_global, decode_level, create_template_from_toml, extract_template, has_lower, has_upper
+validate_global, decode_level, create_template_from_toml, delegate, extract_template, has_lower, has_upper
 
 function read_counter(ct)
     return sum(ct.data)
 end
 
+
+
+function delegate(config, template)
+    parallel = config["parallel"] ? "parallel" : "sequential"
+    return verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
+end
 
 
 function create_template_from_toml(tomlfile)
@@ -34,9 +40,9 @@ function create_template_from_toml(tomlfile)
         return nothing
     end
     if glob["hierarchical"]
-        template = extract_template(config)
+        template = extract_template(config, glob)
     else
-        template = decode_level(config["any"])
+        template = decode_level(config["any"], glob)
     end
     if isnothing(template)
         @error "Invalid configuration"
@@ -46,10 +52,10 @@ function create_template_from_toml(tomlfile)
     return glob, template
 end
 
-function extract_template(config)
+function extract_template(config, glob)
     template = Dict()
     if haskey(config, "any")
-        def = decode_level(config["any"])
+        def = decode_level(config["any"], glob)
         if isnothing(def)
             return nothing
         end
@@ -60,7 +66,7 @@ function extract_template(config)
         if ~isnothing(m)
             lk = m.match
             level_nr = tryparse(Int, split(lk, '_')[2])
-            level_temp = decode_level(config[k])
+            level_temp = decode_level(config[k], glob)
             if isnothing(level_temp)
                 return nothing
             end
@@ -70,14 +76,36 @@ function extract_template(config)
     return template
 end
 
-function decode_level(level_config)
+
+function decode_level(level_config, globalconfig)
+    @info level_config
+    @info globalconfig
     all_mode = false
     if haskey(level_config, "all")
+        # @info "All mode found"
+        if typeof(level_config["all"]) != Bool
+            @error "Invalid value for 'all' -> $(level_config["all"]), expecting true or false"
+            return nothing
+        end
         all_mode=level_config["all"]
+        # @info level_config["all"]
     end
+    @info "All mode --> $all_mode"
     actions = level_config["actions"]
+    @info actions
     conditions = level_config["conditions"]
+    @info conditions
+    if length(actions) != length(conditions)
+        if all_mode == false
+            @error "Action and conditions do not align to pairs."
+            @error "This is accepted only when all=true"
+            @error conditions
+            @error actions
+            return nothing
+        end
+    end
     level = []
+    @info "Parsing actions & conditions"
     for (action, condition) in zip(actions, conditions)
         a = decode_symbol(action)
         c = decode_symbol(condition)
@@ -87,8 +115,12 @@ function decode_level(level_config)
         push!(level, [c, a])
     end
     if all_mode
-        @error "FIXME"
+        @info "Fusing actions and conditions"
+        fused_c = [c for (c, _) in level]
+        fused_a = [a for (_, a) in level]
+        level = [(x->all_of(fused_c, x), x->apply_all(fused_a, x) )]
     end
+    @info "Level parsing complete"
     return level
 end
 
@@ -237,8 +269,8 @@ function guess_argument(str)
     end
 end
 
-
 function decode_symbol(s)
+    @debug "Decoding $s"
     if contains(s, ' ')
         parts = split(s, ' ')
         if length(parts) != 2
@@ -246,16 +278,10 @@ function decode_symbol(s)
             return nothing
         end
         func, args = parts
-        @info func
-        @info args
         symbol = lookup(func)
         if ~isnothing(symbol)
-            if func ∈ ["startswith", "endswith"]
-                @info "Assuming Regex argument"
-                return x->symbol(x, Regex(args))
-            else
-                return x->symbol(x, guess_argument(args))
-            end
+            @info "Symbol $s found, creating functor with arguments $args"
+            return x->symbol(x, guess_argument(args))
         else
             @error "Error parsing $s"
             return nothing
@@ -263,6 +289,7 @@ function decode_symbol(s)
     else
         symbol = lookup(s)
         if ~isnothing(symbol)
+            @info "Symbol $s found, creating functor"
             return x->symbol(x)
         else
             @error "Error parsing $s"
@@ -396,12 +423,12 @@ function send_to(root, node, newroot; op=cp, keeprelative=true)
     end
 end
 
-flatten_to = (root, x, newroot) -> copy_to(root, x, newroot; keeprelative=false)
+flatten_to = (x, root, newroot) -> copy_to(x, root, newroot; keeprelative=false)
 
-function copy_to(existing_root, node, target_root; keeprelative=true)
+function copy_to(node, existing_root, target_root; keeprelative=true)
     send_to(existing_root, node, target_root; keeprelative=keeprelative, op=cp)
 end
-function move_to(existing_root, node, target_root; keeprelative=true)
+function move_to(node, existing_root, target_root; keeprelative=true)
     send_to(existing_root, node, target_root; keeprelative=keeprelative, op=mv)
 end
 # copy_to = (root, node, newroot) -> send_to(root, node, newroot; op=cp)
@@ -678,11 +705,14 @@ end
 
 
 function all_of(fs, x)
+    @info "Applying all of $fs to $x"
     for f in fs
         if f(x) == false
+            @info "Failed"
             return false
         end
     end
+    @info "all passed"
     return true
 end
 

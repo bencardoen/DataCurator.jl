@@ -48,7 +48,7 @@ outpath = mktempdir()
 ## Define conditions and actions we want to take
 
 ### Create a log for both failed entries and valid entries
-record_fail, record_correct = [x->log_to_file(X, x) for X in ["errors.txt", "correct.txt"]]
+record_fail, record_correct = [x->log_to_file(x, X) for X in ["errors.txt", "correct.txt"]]
 
 ### Invalid data : warn, count, log and delete
 onfail = x -> apply_all([warn_on_fail, count_error, record_fail, delete_file], x)
