@@ -4,6 +4,7 @@ import Random
 import Images
 import Logging
 using LoggingExtras
+using Match
 import TOML
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
@@ -17,13 +18,101 @@ shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file,
 copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
-validate_global, decode_level, decode_function, create_template_from_toml, delegate, extract_template, has_lower, has_upper
+validate_global, decode_level, decode_function, handlecounters!, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper
 
 function read_counter(ct)
     return sum(ct.data)
 end
 
 
+function handlecounters!(val, key, glob_defaults)
+    counter_entries = val
+    cts = Dict()
+    @info counter_entries
+    for ce in counter_entries
+        d = decode_counter(ce)
+        if isnothing(d)
+            @error "Failed decoding counters"
+            throw(ErrorException("invalid counters"))
+        else
+            name, cpair = d
+            cts[name]=cpair
+        end
+    end
+    @info cts
+    glob_defaults["counters"] = cts
+    return cts
+end
+
+function decode_filelist(fe::AbstractString, glob)
+    lst = make_shared_list()
+    adder = x->add_to_file_list(x, lst)
+    writer = shared_list_to_file(lst, fe)
+    return (fe, (lst, adder))
+    @info "String"
+end
+
+function decode_filelist(fe::AbstractVector, glob)
+    @info fe
+    @info "VECTOR"
+    if length(fe) != 2
+        @error "Failed decoding filelists $fe"
+        raise(ErrorException("invalid lists"))
+    end
+    fn = fe[1]
+    alter_root = fe[2]
+    change_path = x->new_path(glob["inputdirectory"], node, alter_root)
+    lst = make_shared_list()
+    adder = x->add_to_file_list(change_path(x), lst)
+    return (fn, (lst, adder))
+end
+
+#file_lists = ["infiles", ["outfiles", "/dev/shm/outpath"]]
+function handlefilelists!(val, key, glob_defaults)
+    file_entries = val
+    cts = Dict()
+    @info file_entries
+    for ce in file_entries
+        d = decode_filelist(ce, glob_defaults)
+        if isnothing(d)
+            @error "Failed decoding filelists"
+            throw(ErrorException("invalid lists"))
+        else
+            name, cpair = d
+            cts[name]=cpair
+        end
+    end
+    @info cts
+    glob_defaults["file_lists"] = cts
+end
+
+
+function handle_default!(val, key, glob_defaults)
+    glob_defaults[key] = val
+end
+
+function decode_counter(c::AbstractString)
+    @info "Single counter"
+    return (c, generate_counter(true))
+end
+
+function decode_counter(c::AbstractVector)
+    @info "Found complex counter"
+    if length(c) != 2
+        @error "Failed decoding $c"
+        return nothing
+    end
+    name = c[1]
+    sym = c[2]
+    symbol = lookup(sym)
+    if isnothing(symbol)
+        @error "Failed decoding $c"
+        return nothing
+    else
+        @info "Counting with function $sym"
+    end
+    return (name, generate_counter(true;incrementer=symbol))
+end
 
 function decode_function(f::AbstractVector, glob::AbstractDict)
     if length(f) < 2
@@ -57,7 +146,16 @@ end
 
 function delegate(config, template)
     parallel = config["parallel"] ? "parallel" : "sequential"
-    return verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
+    rval =  verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
+    for counter in config["counters"]
+        # entry = (name, (count, counter))
+        @error "Process counter"
+    end
+    for filelist in config["file_lists"]
+        # entry = (name, (list, adder))
+        #shared_list_to_file(list, fname)
+        @error "Process filelist"
+    end
 end
 
 
@@ -228,54 +326,87 @@ read_prefix_float = x -> read_type(x,  r"^[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?
 read_float = x -> read_type(x, FR, Float64)
 # count_error = (ct, _) -> increment_counter(ct)
 
+#
+# function validate_global(config)
+#     globkeys = Dict([("parallel", false), ("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+#     # glob = config["global"]
+#     if haskey(config, "global")
+#         glob_config = config["global"]
+#         @debug glob_config
+#         for key in keys(glob_config)
+#             @debug "Checking $key"
+#             if haskey(globkeys, key)
+#                 val = glob_config[key]
+#                 if key == "traversal"
+#                     if val ∈ ["bottomup", "topdown"]
+#                         globkeys[key]=val
+#                     else
+#                         @error "Invalid value for $key, $val"
+#                         return nothing
+#                     end
+#                 else
+#                     if eltype(val) <: Bool
+#                         globkeys[key] = val
+#                     else
+#                         if key == "inputdirectory"
+#                             if isdir(val)
+#                                 globkeys[key] = val
+#                             else
+#                                 @error "No such directory $val"
+#                                 return nothing
+#                             end
+#                         else
+#                             @error "Invalid value for $key : $val"
+#                             return nothing
+#                         end
+#                     end
+#                 end
+#             else
+#                 @error "Key $key in global not valid."
+#             end
+#         end
+#     else
+#         @error "No global section defined"
+#         return nothing
+#     end
+#     if isnothing(globkeys["inputdirectory"])
+#         @error "Key inputdirectory not set in .toml file. Please add to global section : inputdirectory=your_dir_here "
+#         return nothing
+#     end
+#     return globkeys
+# end
+
 
 function validate_global(config)
-    globkeys = Dict([("parallel", false), ("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    @debug "TODO-->refactor with Match.jl"
+    glob_defaults = Dict([("parallel", false),  ("counters", Dict()), ("file_lists", Dict()),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     # glob = config["global"]
-    if haskey(config, "global")
-        glob_config = config["global"]
-        @debug glob_config
-        for key in keys(glob_config)
-            @debug "Checking $key"
-            if haskey(globkeys, key)
-                val = glob_config[key]
-                if key == "traversal"
-                    if val ∈ ["bottomup", "topdown"]
-                        globkeys[key]=val
-                    else
-                        @error "Invalid value for $key, $val"
-                        return nothing
-                    end
-                else
-                    if eltype(val) <: Bool
-                        globkeys[key] = val
-                    else
-                        if key == "inputdirectory"
-                            if isdir(val)
-                                globkeys[key] = val
-                            else
-                                @error "No such directory $val"
-                                return nothing
-                            end
-                        else
-                            @error "Invalid value for $key : $val"
-                            return nothing
-                        end
-                    end
-                end
-            else
-                @error "Key $key in global not valid."
-            end
-        end
+    glob_default_types = Dict([("parallel", Bool), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
+    ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
+    glob_config = config["global"]
+    @debug glob_config
+    if ~haskey(glob_config, "inputdirectory")
+        @error "No data directory given, please define 'inputdirectory=your/data/dir'"
+        return nothing
     else
-        @error "No global section defined"
-        return nothing
+        glob_defaults["inputdirectory"] = glob_config["inputdirectory"]
     end
-    if isnothing(globkeys["inputdirectory"])
-        @error "Key inputdirectory not set in .toml file. Please add to global section : inputdirectory=your_dir_here "
-        return nothing
+    for key in keys(glob_config)
+        @debug "Checking $key"
+        val = glob_config[key]
+        if haskey(glob_defaults, key)
+            @match key begin
+                "counters" => handlecounters!(val, key, glob_defaults)
+                "file_lists" => handlefilelists!(val, key, glob_defaults)
+                "inputdirectory" => nothing
+                _ => handle_default!(val, key, glob_defaults)
+            end
+        else
+            @error "Key $key in global not valid."
+            return nothing
+        end
     end
-    return globkeys
+    return glob_defaults
 end
 
 
@@ -337,6 +468,8 @@ end
 function addentry!(sharedlist, entry)
     push!(sharedlist[threadid()], entry)
 end
+
+add_to_file_list= (x, list) -> addentry(list, x)
 
 function ends_with_integer(x)
     ~isnothing(match(r"[0-9]+$", x))
