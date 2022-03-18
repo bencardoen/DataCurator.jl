@@ -43,6 +43,14 @@ using Images
         @test isfile(joinpath(r,"abc.txt"))
     end
 
+
+    @testset "decoding" begin
+        s = decode_symbol("warn_on_fail", Dict())
+        @test ~isnothing(s)
+        s = decode_symbol("abc", Dict())
+        @test isnothing(s)
+    end
+
     @testset "sc" begin
         TF = "aBc"
         @test has_lower(TF)

@@ -17,12 +17,42 @@ shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file,
 copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
-validate_global, decode_level, create_template_from_toml, delegate, extract_template, has_lower, has_upper
+validate_global, decode_level, decode_function, create_template_from_toml, delegate, extract_template, has_lower, has_upper
 
 function read_counter(ct)
     return sum(ct.data)
 end
 
+
+
+function decode_function(f::AbstractVector, glob::AbstractDict)
+    if length(f) < 2
+        @error "$f is not a valid function"
+        return nothing
+    end
+    fname = f[1]
+    fs = lookup(fname)
+    if isnothing(fs)
+        @error "$fname is not a valid function"
+        return nothing
+    end
+    completers = ["copy_to", "flatten_to", "move_to"]
+    if fname ∈ completers
+        @info "Prefixing root directory for $fname"
+        return x -> fs(x, glob["inputdirectory"], f[2:end]...)
+    else
+        return x -> fs(x, f[2:end]...)
+    end
+end
+
+function decode_function(f::AbstractString, glob::AbstractDict)
+    fs = lookup(f)
+    if isnothing(fs)
+        @error "$f is not a valid function"
+        return nothing
+    end
+    return x -> fs(x)
+end
 
 
 function delegate(config, template)
@@ -107,10 +137,11 @@ function decode_level(level_config, globalconfig)
     level = []
     @info "Parsing actions & conditions"
     for (action, condition) in zip(actions, conditions)
-        a = decode_symbol(action)
-        c = decode_symbol(condition)
+        a = decode_symbol(action, globalconfig)
+        c = decode_symbol(condition, globalconfig)
         if isnothing(a) | isnothing(c)
             @error "Invalid conditions for $action or $condition"
+            return nothing
         end
         push!(level, [c, a])
     end
@@ -269,33 +300,34 @@ function guess_argument(str)
     end
 end
 
-function decode_symbol(s)
+function decode_symbol(s, glob)
     @debug "Decoding $s"
-    if contains(s, ' ')
-        parts = split(s, ' ')
-        if length(parts) != 2
-            @error "Error parsing $s"
-            return nothing
-        end
-        func, args = parts
-        symbol = lookup(func)
-        if ~isnothing(symbol)
-            @info "Symbol $s found, creating functor with arguments $args"
-            return x->symbol(x, guess_argument(args))
-        else
-            @error "Error parsing $s"
-            return nothing
-        end
-    else
-        symbol = lookup(s)
-        if ~isnothing(symbol)
-            @info "Symbol $s found, creating functor"
-            return x->symbol(x)
-        else
-            @error "Error parsing $s"
-            return nothing
-        end
-    end
+    return decode_function(s, glob)
+    # if contains(s, ' ')
+    #     parts = split(s, ' ')
+    #     if length(parts) != 2
+    #         @error "Error parsing $s"
+    #         return nothing
+    #     end
+    #     func, args = parts
+    #     symbol = lookup(func)
+    #     if ~isnothing(symbol)
+    #         @info "Symbol $s found, creating functor with arguments $args"
+    #         return x->symbol(x, guess_argument(args))
+    #     else
+    #         @error "Error parsing $s"
+    #         return nothing
+    #     end
+    # else
+    #     symbol = lookup(s)
+    #     if ~isnothing(symbol)
+    #         @info "Symbol $s found, creating functor"
+    #         return x->symbol(x)
+    #     else
+    #         @error "Error parsing $s"
+    #         return nothing
+    #     end
+    # end
 end
 
 function make_shared_list()
