@@ -37,6 +37,14 @@ using Images
         global_logger(c)
     end
 
+    @testset "sc" begin
+        TF = "aBc"
+        @test has_lower(TF)
+        @test has_upper(TF)
+        @test ~is_lower(TF)
+        @test ~is_upper(TF)
+    end
+
     @testset "parser" begin
         c = create_template_from_toml("test.toml")
         @test ~isnothing(c)

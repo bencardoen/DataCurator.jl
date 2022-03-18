@@ -17,7 +17,7 @@ shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file,
 copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
-validate_global, decode_level, create_template_from_toml, extract_template
+validate_global, decode_level, create_template_from_toml, extract_template, has_lower, has_upper
 
 function read_counter(ct)
     return sum(ct.data)
@@ -125,8 +125,10 @@ is_csv_file = x -> is_type_file(x, ".csv")
 is_tif_file = x -> is_type_file(x, ".tif")
 is_png_file = x -> is_type_file(x, ".png")
 whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
-is_lower = x -> any(islowercase(_x) for _x in x)
-is_upper = x -> any(isuppercase(_x) for _x in x)
+has_lower = x -> any(islowercase(_x) for _x in x)
+has_upper = x -> any(isuppercase(_x) for _x in x)
+is_lower = x -> all(islowercase(_x) for _x in x)
+is_upper = x -> all(isuppercase(_x) for _x in x)
 has_whitespace = x -> ~isnothing(match(r"[\s,\t]", x))
 quit = :quit
 proceed = :proceed
