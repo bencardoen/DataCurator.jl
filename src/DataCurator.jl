@@ -47,7 +47,6 @@ end
 function decode_filelist(fe::AbstractString, glob)
     lst = make_shared_list()
     adder = x->add_to_file_list(x, lst)
-    writer = shared_list_to_file(lst, fe)
     return (fe, (lst, adder))
     @info "String"
 end
@@ -61,7 +60,7 @@ function decode_filelist(fe::AbstractVector, glob)
     end
     fn = fe[1]
     alter_root = fe[2]
-    change_path = x->new_path(glob["inputdirectory"], node, alter_root)
+    change_path = x->new_path(glob["inputdirectory"], x, alter_root)
     lst = make_shared_list()
     adder = x->add_to_file_list(change_path(x), lst)
     return (fn, (lst, adder))
@@ -93,6 +92,7 @@ end
 
 function decode_counter(c::AbstractString)
     @info "Single counter"
+    # (name, (count, counter))
     return (c, generate_counter(true))
 end
 
@@ -111,8 +111,45 @@ function decode_counter(c::AbstractVector)
     else
         @info "Counting with function $sym"
     end
+    # (name, (count, counter))
     return (name, generate_counter(true;incrementer=symbol))
 end
+#
+# function decode_function(f::AbstractVector, glob::AbstractDict)
+#     if length(f) < 2
+#         @error "$f is not a valid function"
+#         return nothing
+#     end
+#     fname = f[1]
+#     fs = lookup(fname)
+#     if isnothing(fs)
+#         @error "$fname is not a valid function"
+#         return nothing
+#     end
+#     completers = ["copy_to", "flatten_to", "move_to"]
+#     if fname ∈ completers
+#         @info "Prefixing root directory for $fname"
+#         return x -> fs(x, glob["inputdirectory"], f[2:end]...)
+#     else
+#         if fname == "count"
+#             @error "Dealing with cout"
+#         end
+#         return x -> fs(x, f[2:end]...)
+#     end
+# end
+
+
+
+function decode_function(f::AbstractString, glob::AbstractDict)
+    fs = lookup(f)
+    @info "No argument function lookup for $f"
+    if isnothing(fs)
+        @error "$f is not a valid function"
+        return nothing
+    end
+    return x -> fs(x)
+end
+
 
 function decode_function(f::AbstractVector, glob::AbstractDict)
     if length(f) < 2
@@ -130,18 +167,64 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
         @info "Prefixing root directory for $fname"
         return x -> fs(x, glob["inputdirectory"], f[2:end]...)
     else
+        if fname == "count"
+            @info "Resolving counter $f"
+            counting_functor = lookup_counter(f, glob)
+            return counting_functor
+        end
+        if fname == "add_to_file_list"
+            @info "Resolving file_writer $f"
+            file_adder = lookup_filelists(f, glob)
+            return file_adder
+        end
         return x -> fs(x, f[2:end]...)
     end
 end
 
-function decode_function(f::AbstractString, glob::AbstractDict)
-    fs = lookup(f)
-    if isnothing(fs)
-        @error "$f is not a valid function"
-        return nothing
+function lookup_filelists(tpl, glob)
+    ac, fn = tpl
+    @info "Looking up FL on keyword $ac with name  $fn"
+    if haskey(glob, "file_lists")
+        @info "Checking file list table"
+        fl_table = glob["file_lists"]
+        @info fl_table
+        if haskey(fl_table, fn)
+            fl_object = fl_table[fn]
+            _, fl_adder = fl_object
+            @info "Success!"
+            return fl_adder
+        end
     end
-    return x -> fs(x)
+    @error "failed decoding filelists"
+    return nothing
 end
+
+function lookup_counter(tpl, glob)
+    ac, fn = tpl
+    @info "Looking up counter on keyword $ac with name  $fn"
+    if haskey(glob, "counters")
+        @info "Checking counter table"
+        counter_table = glob["counters"]
+        @info counter_table
+        if haskey(counter_table, fn)
+            counter_object = counter_table[fn]
+            count, counter = counter_object
+            @info "Success!"
+            return counter
+        end
+    end
+    @error "failed decoding counter"
+    return nothing
+end
+
+# function decode_function(f::AbstractString, glob::AbstractDict)
+#     fs = lookup(f)
+#     if isnothing(fs)
+#         @error "$f is not a valid function"
+#         return nothing
+#     end
+#     return x -> fs(x)
+# end
 
 
 function delegate(config, template)
@@ -204,31 +287,76 @@ function extract_template(config, glob)
     return template
 end
 
+#
+# function decode_level(level_config, globalconfig)
+#     @info level_config
+#     @info globalconfig
+#     all_mode = false
+#     if haskey(level_config, "all")
+#         # @info "All mode found"
+#         if typeof(level_config["all"]) != Bool
+#             @error "Invalid value for 'all' -> $(level_config["all"]), expecting true or false"
+#             return nothing
+#         end
+#         all_mode=level_config["all"]
+#         # @info level_config["all"]
+#     end
+#     @info "All mode --> $all_mode"
+#     actions = level_config["actions"]
+#     @info actions
+#     conditions = level_config["conditions"]
+#     @info conditions
+#     if length(actions) != length(conditions)
+#         if all_mode == false
+#             @error "Action and conditions do not align to pairs."
+#             @error "This is accepted only when all=true"
+#             @error conditions
+#             @error actions
+#             return nothing
+#         end
+#     end
+#     level = []
+#     @info "Parsing actions & conditions"
+#     for (action, condition) in zip(actions, conditions)
+#         a = decode_symbol(action, globalconfig)
+#         c = decode_symbol(condition, globalconfig)
+#         if isnothing(a) | isnothing(c)
+#             @error "Invalid conditions for $action or $condition"
+#             return nothing
+#         end
+#         push!(level, [c, a])
+#     end
+#     if all_mode
+#         @info "Fusing actions and conditions"
+#         fused_c = [c for (c, _) in level]
+#         fused_a = [a for (_, a) in level]
+#         level = [(x->all_of(fused_c, x), x->apply_all(fused_a, x) )]
+#     end
+#     @info "Level parsing complete"
+#     return level
+# end
+
 
 function decode_level(level_config, globalconfig)
     @info level_config
     @info globalconfig
     all_mode = false
     if haskey(level_config, "all")
-        # @info "All mode found"
         if typeof(level_config["all"]) != Bool
             @error "Invalid value for 'all' -> $(level_config["all"]), expecting true or false"
             return nothing
         end
         all_mode=level_config["all"]
-        # @info level_config["all"]
     end
     @info "All mode --> $all_mode"
     actions = level_config["actions"]
-    @info actions
+    @info "Actions --> $actions"
     conditions = level_config["conditions"]
-    @info conditions
+    @info "Conditions --> $conditions"
     if length(actions) != length(conditions)
         if all_mode == false
             @error "Action and conditions do not align to pairs."
             @error "This is accepted only when all=true"
-            @error conditions
-            @error actions
             return nothing
         end
     end
@@ -252,6 +380,7 @@ function decode_level(level_config, globalconfig)
     @info "Level parsing complete"
     return level
 end
+
 
 """
     Make a count and counting functor that can be incremented by threads
@@ -431,34 +560,10 @@ function guess_argument(str)
     end
 end
 
+
 function decode_symbol(s, glob)
     @debug "Decoding $s"
     return decode_function(s, glob)
-    # if contains(s, ' ')
-    #     parts = split(s, ' ')
-    #     if length(parts) != 2
-    #         @error "Error parsing $s"
-    #         return nothing
-    #     end
-    #     func, args = parts
-    #     symbol = lookup(func)
-    #     if ~isnothing(symbol)
-    #         @info "Symbol $s found, creating functor with arguments $args"
-    #         return x->symbol(x, guess_argument(args))
-    #     else
-    #         @error "Error parsing $s"
-    #         return nothing
-    #     end
-    # else
-    #     symbol = lookup(s)
-    #     if ~isnothing(symbol)
-    #         @info "Symbol $s found, creating functor"
-    #         return x->symbol(x)
-    #     else
-    #         @error "Error parsing $s"
-    #         return nothing
-    #     end
-    # end
 end
 
 function make_shared_list()
@@ -469,7 +574,7 @@ function addentry!(sharedlist, entry)
     push!(sharedlist[threadid()], entry)
 end
 
-add_to_file_list= (x, list) -> addentry(list, x)
+add_to_file_list= (x, list) -> addentry!(list, x)
 
 function ends_with_integer(x)
     ~isnothing(match(r"[0-9]+$", x))
