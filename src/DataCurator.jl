@@ -18,7 +18,7 @@ shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file,
 copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
-validate_global, decode_level, decode_function, handlecounters!, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper
+validate_global, decode_level, decode_function, tolowercase, handlecounters!, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper
 
 function read_counter(ct)
     return sum(ct.data)
@@ -114,35 +114,10 @@ function decode_counter(c::AbstractVector)
     # (name, (count, counter))
     return (name, generate_counter(true;incrementer=symbol))
 end
-#
-# function decode_function(f::AbstractVector, glob::AbstractDict)
-#     if length(f) < 2
-#         @error "$f is not a valid function"
-#         return nothing
-#     end
-#     fname = f[1]
-#     fs = lookup(fname)
-#     if isnothing(fs)
-#         @error "$fname is not a valid function"
-#         return nothing
-#     end
-#     completers = ["copy_to", "flatten_to", "move_to"]
-#     if fname ∈ completers
-#         @info "Prefixing root directory for $fname"
-#         return x -> fs(x, glob["inputdirectory"], f[2:end]...)
-#     else
-#         if fname == "count"
-#             @error "Dealing with cout"
-#         end
-#         return x -> fs(x, f[2:end]...)
-#     end
-# end
-
-
 
 function decode_function(f::AbstractString, glob::AbstractDict)
     fs = lookup(f)
-    @info "No argument function lookup for $f"
+    @info "0 argument function lookup for $f"
     if isnothing(fs)
         @error "$f is not a valid function"
         return nothing
@@ -157,6 +132,9 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
         return nothing
     end
     fname = f[1]
+    if fname == "chain"
+        return handlechain(f, glob)
+    end
     fs = lookup(fname)
     if isnothing(fs)
         @error "$fname is not a valid function"
@@ -287,56 +265,6 @@ function extract_template(config, glob)
     return template
 end
 
-#
-# function decode_level(level_config, globalconfig)
-#     @info level_config
-#     @info globalconfig
-#     all_mode = false
-#     if haskey(level_config, "all")
-#         # @info "All mode found"
-#         if typeof(level_config["all"]) != Bool
-#             @error "Invalid value for 'all' -> $(level_config["all"]), expecting true or false"
-#             return nothing
-#         end
-#         all_mode=level_config["all"]
-#         # @info level_config["all"]
-#     end
-#     @info "All mode --> $all_mode"
-#     actions = level_config["actions"]
-#     @info actions
-#     conditions = level_config["conditions"]
-#     @info conditions
-#     if length(actions) != length(conditions)
-#         if all_mode == false
-#             @error "Action and conditions do not align to pairs."
-#             @error "This is accepted only when all=true"
-#             @error conditions
-#             @error actions
-#             return nothing
-#         end
-#     end
-#     level = []
-#     @info "Parsing actions & conditions"
-#     for (action, condition) in zip(actions, conditions)
-#         a = decode_symbol(action, globalconfig)
-#         c = decode_symbol(condition, globalconfig)
-#         if isnothing(a) | isnothing(c)
-#             @error "Invalid conditions for $action or $condition"
-#             return nothing
-#         end
-#         push!(level, [c, a])
-#     end
-#     if all_mode
-#         @info "Fusing actions and conditions"
-#         fused_c = [c for (c, _) in level]
-#         fused_a = [a for (_, a) in level]
-#         level = [(x->all_of(fused_c, x), x->apply_all(fused_a, x) )]
-#     end
-#     @info "Level parsing complete"
-#     return level
-# end
-
-
 function decode_level(level_config, globalconfig)
     @info level_config
     @info globalconfig
@@ -415,6 +343,7 @@ is_csv_file = x -> is_type_file(x, ".csv")
 is_tif_file = x -> is_type_file(x, ".tif")
 is_png_file = x -> is_type_file(x, ".png")
 whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
+tolowercase = x -> lowercase(x)
 has_lower = x -> any(islowercase(_x) for _x in x)
 has_upper = x -> any(isuppercase(_x) for _x in x)
 is_lower = x -> ~has_upper(x)
@@ -455,59 +384,24 @@ read_prefix_float = x -> read_type(x,  r"^[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?
 read_float = x -> read_type(x, FR, Float64)
 # count_error = (ct, _) -> increment_counter(ct)
 
-#
-# function validate_global(config)
-#     globkeys = Dict([("parallel", false), ("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
-#     # glob = config["global"]
-#     if haskey(config, "global")
-#         glob_config = config["global"]
-#         @debug glob_config
-#         for key in keys(glob_config)
-#             @debug "Checking $key"
-#             if haskey(globkeys, key)
-#                 val = glob_config[key]
-#                 if key == "traversal"
-#                     if val ∈ ["bottomup", "topdown"]
-#                         globkeys[key]=val
-#                     else
-#                         @error "Invalid value for $key, $val"
-#                         return nothing
-#                     end
-#                 else
-#                     if eltype(val) <: Bool
-#                         globkeys[key] = val
-#                     else
-#                         if key == "inputdirectory"
-#                             if isdir(val)
-#                                 globkeys[key] = val
-#                             else
-#                                 @error "No such directory $val"
-#                                 return nothing
-#                             end
-#                         else
-#                             @error "Invalid value for $key : $val"
-#                             return nothing
-#                         end
-#                     end
-#                 end
-#             else
-#                 @error "Key $key in global not valid."
-#             end
-#         end
-#     else
-#         @error "No global section defined"
-#         return nothing
-#     end
-#     if isnothing(globkeys["inputdirectory"])
-#         @error "Key inputdirectory not set in .toml file. Please add to global section : inputdirectory=your_dir_here "
-#         return nothing
-#     end
-#     return globkeys
-# end
+
+"""
+    apply_to(x, f; base=true)
+
+        Where x is a path, if base=false, return f(x), otherwise works on the last part of the path
+"""
+function apply_to(x, f; base=true)
+    if ~base
+        return f(x)
+    else
+        p = splitpath(x)
+        p[end] = f(p[end])
+        return joinpath(p...)
+    end
+end
 
 
 function validate_global(config)
-    @debug "TODO-->refactor with Match.jl"
     glob_defaults = Dict([("parallel", false),  ("counters", Dict()), ("file_lists", Dict()),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     # glob = config["global"]
     glob_default_types = Dict([("parallel", Bool), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
