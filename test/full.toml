@@ -1,0 +1,17 @@
+[global]
+act_on_success=true
+## Define a counter that increments for each file, and one that increments by filesize in bytes
+# counters = ["c1", ["c2", "size_of_file"]]
+counters = [["c1", "size_of_file"]]
+## If you want to collect files in a pattern for batch processing
+## The first will collect files with their full path, the second will change path to 'outpath'
+## This is ideal for e.g. HPC/SLURM processing
+file_lists = ["infiles", ["outfiles", "/dev/shm/outpath"]]
+inputdirectory = "/dev/shm/inpath"
+[any]
+all=false
+# conditions=[["endswith", "*.tif"]]
+conditions = ["isfile"]
+# actions=[["count", "c1"]]
+actions=[["add_to_file_list", "outfiles"]]
+#actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]

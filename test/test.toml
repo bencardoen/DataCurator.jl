@@ -1,0 +1,50 @@
+[global]
+# Default values
+
+# If true, work multithreaded
+parallel = false
+# If you want to abort early, topdown is better
+traversal = "bottomup"
+
+# Validation mode
+# false : conditions == false --> fire action
+# Transformation mode
+# true : conditions == true --> fire action
+act_on_success = false
+
+# If true, expects keys like [any], [level_1], [level_2] and so on
+# If false, expacts 1 key : [any]
+hierarchical = true
+inputdirectory = "/dev/shm"
+counters = ["c1"]
+file_lists = ["inlist.txt"]
+[template]
+
+# Example entry
+# [any]
+# negate = false
+# conditions = ["isfile"]
+# actions = ["delete_file"]
+
+# [level_x or any]  x should be integer > 0, root directory = 1
+# uses only "any" if hierarchical = false
+# conditions = ["check_1", "check_2"]
+
+# actions = ["action_1", "action_2"]
+# see documentation for 'shortcode' conditions and actions
+
+# if a condition needs an argument, add it separated by space:
+# conditons = ["has_n_files 2", "has_n_subdirs 3"]
+
+[any]
+conditions = ["always"]
+actions = ["warn_on_fail"]
+inputdirectory="/dev/shm"
+[level_1]
+all=true
+conditions = ["isdir", "lowercase", "ends_with_integer", ["has_n_files", 2]]
+actions = ["warn_on_fail"]
+[level_2]
+all=true
+conditions = ["is_tif_file", "is_3d_img", ["endswith", "[0,1].tif"], ["startswith", "channel"]]
+actions = [["flatten_to", "/dev/shm"]]
