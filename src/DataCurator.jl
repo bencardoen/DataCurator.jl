@@ -217,33 +217,31 @@ function lookup_counter(tpl, glob)
     return nothing
 end
 
-# function decode_function(f::AbstractString, glob::AbstractDict)
-#     fs = lookup(f)
-#     if isnothing(fs)
-#         @error "$f is not a valid function"
-#         return nothing
-#     end
-#     return x -> fs(x)
-# end
-
-
+"""
+    delegate(config, template)
+    Uses the configuration, and template create by `create_template_from_toml', to execute the verifier as specified.
+    Returns the counters and file lists, if any are defined.
+"""
 function delegate(config, template)
     parallel = config["parallel"] ? "parallel" : "sequential"
     rval =  verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
-    for counter in config["counters"]
-        # entry = (name, (count, counter))
-        @error "Process counter"
+    counters, lists = [], []
+    for c in config["counters"]
+        name, (count, counter) = c
+        @info "Counter named $name has value $count"
+        push!(counters, read_counter(count))
     end
-    for filelist in config["file_lists"]
-        # entry = (name, (list, adder))
-        #shared_list_to_file(list, fname)
-        @error "Process filelist"
+    for f in config["file_lists"]
+        name, (list, _) = f
+        @info "Saving list to $(name).txt"
+        shared_list_to_file(list, "$(name).txt")
+        push!(lists, vcat(list...))
     end
+    return counters, lists
 end
 
 
 function create_template_from_toml(tomlfile)
-    # TODO PROTECT
     config = TOML.parsefile(tomlfile)
     glob = validate_global(config)
     if isnothing(glob)
@@ -251,8 +249,10 @@ function create_template_from_toml(tomlfile)
         return nothing
     end
     if glob["hierarchical"]
+        @info "Hierarchical"
         template = extract_template(config, glob)
     else
+        @info "Flat hierarchy"
         template = decode_level(config["any"], glob)
     end
     if isnothing(template)

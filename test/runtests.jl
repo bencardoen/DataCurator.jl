@@ -5,6 +5,19 @@ using Random
 using Images
 
 @testset "DataCurator.jl" begin
+
+    @testset "delegate" begin
+        mkpath("/dev/shm/inpath")
+        touch("/dev/shm/inpath/test.tif")
+        res = create_template_from_toml("full.toml")
+        @test ~isnothing(res)
+        cs, ls = delegate(res...)
+        # @error cs ls
+        @test sum(cs) == 0
+        @test length(vcat(ls...)) > 0
+        @test isfile("outfiles.txt")
+    end
+
     @testset "validate_dataset_hierarchy" begin
         c = global_logger()
         global_logger(NullLogger())
