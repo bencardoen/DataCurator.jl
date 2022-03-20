@@ -7,6 +7,8 @@ A multithreaded package to validate, curate, and transform large heterogenous da
 - Enable expressive conditional actions to remedy issues with datasets
 - Enable conditional pre-processing
 - Do not require expertise on the user, make templates interpretable
+- Do not require the user to write or change code, recipes can be TOML files designed to be human readable
+- Enable reproducible data processing (pre and post)
 
 ## Why not use ...?
 - Shell scripts / Linux tools
@@ -14,18 +16,119 @@ A multithreaded package to validate, curate, and transform large heterogenous da
 - GLOST / Gnu Parallel
   - Both can execute large amount of jobs in parallel, but creating the jobs would require extra tools
 - Python
-  - Julia has a definitive advantage in its typing inference for safety and with JIT has a near C-like speed
+  - Julia has a definitive advantage in its typing inference for safety and with JIT has a near C-like speed. Python lacks multiple dispatch, or typed dispatch, which is leveraged heavily in this package
 
-## Parallel execution
-All recipes can be executed in parallel. Counters are protected so they are threadsafe, yet need no locks.
-```julia
-count, counter = generate_counter(true; incrementer=size_of_file)
-verify_template("rootdirectory", [(condition, counter)]; parallel_policy="parallel", act_on_success=true)
-@info "Size of matched files = $(count) bytes"
-```
 
 
 ## Quickstart recipes
+### Using TOML recipes
+Our package does not require you to write code, so as long as you understand what you want to happen to your data, and you can read and write a text file, that's all it takes.
+
+For example, extract all .txt files from a deep filesystem into a single flat directory
+```toml
+[global]
+act_on_success = true
+inputdirectory = "your/very/deep/directory/structure"
+[any]
+all=true
+conditions = ["isfile", ["endswith", ".txt"]]
+actions = [["flatten_to", "/dev/shm/flattened_path"]]
+```
+
+
+Check the directory example_recipes for examples on how to achieve a whole range of tasks:
+- Find all csvs and fuse them into 1 large table, called table.csv
+  ```toml
+  [global]
+  act_on_success=true
+  inputdirectory = "/dev/shm/inputtables"
+  file_lists = ["table"]
+  [any]
+  conditions = ["is_csv_file"]
+  actions=[["add_to_file_list", "table"]]
+  ```
+- Rename only tif (image) files, replacing spaces with _ and uppercase to lowercase
+  ```toml
+  [global]
+  act_on_success=true
+  inputdirectory = "/dev/shm/input_spaces_upper"
+  [any]
+  all=true
+  conditions = ["has_whitespace", "is_tif_file"]
+  actions=[["transform_inplace", ["whitespace_to", '_'], "tolowercase"]]
+  ```
+- Create lists of files to process, and an equivalent list where to save the corresponding output. This is common for cluster/HPC schedulers, where you'd give the scheduler an input and output lists of 100s if not 1000s of input/output pairs. While we're at it, compute the size in bytes of all target files.
+  ```toml
+  [global]
+  act_on_success=true
+  counters = [["c1", "size_of_file"]]
+  file_lists = ["infiles", ["outfiles", "/my/outpath"]]
+  inputdirectory = "/data/directory"
+  [any]
+  all=false
+  conditions = ["is_3d_img"]
+  actions=[["count", "c1"]]
+  actions=[["add_to_file_list", "outfiles"]]
+  ```
+  This will generate an **infiles.txt** and **outfiles.txt** containing e.g. "/a/b/c/e.tif" and "/my/outpath/e.tif". The advantage over doing this with your own for loops/scripts, is that you only need the recipe, it'll run in parallel without you having to worry about synchronization/data races, and it'll just work, so you get to do something more interesting.
+
+- Verify a complex, deep dataset layout. This is the same as the Julia API equivalent below, but then in toml recipe
+  ```toml
+  [global]
+  act_on_success=false
+  hierarchical=true
+  inputdirectory = "inputdirectory"
+  ## Suppose we expect 2 3D channels (tif) for each cell, and we have a dataset like
+  ## Root
+  ###  Replicatenr
+  ####  Celltype
+  #####  Series cellnr
+  ######  ...[1,2].tif
+
+  # For now we just want a warning when the data does not like it should be
+
+  ## If we see anything else than the structure below, complain
+  [any]
+  conditions=["never"]
+  actions = ["warn_on_fail"]
+  ## Top directory, only sub directories
+  [level_1]
+  conditions=["isdir"]
+  actions = ["warn_on_fail"]
+  ## Replicate directory, should be an integer
+  [level_2]
+  all=true
+  conditions=["isdir", "integer_name"]
+  actions = ["warn_on_fail"]
+  ## We don't care what cell types are named, as long as there's not unexpected data
+  [level_3]
+  conditions=["isdir"]
+  actions = ["warn_on_fail"]
+  ## Final level, directory with 2 files, and should end with cell nr
+  [level_4]
+  all=true
+  conditions=["isdir", ["has_n_files", 2], ["ends_with_integer"]]
+  actions = ["warn_on_fail"]
+  ## The actual files, we complain if there's any subdirectories, or if the files are not 3D
+  [level_5]
+  all=true
+  conditions=["is_3d_img", ["endswith", "[1,2].tif"]]
+  actions = ["warn_on_fail"]
+  ```
+
+#### Usage
+Assuming you have the singularity image (does not require Julia, nor installation of dependencies)
+
+```bash
+singularity exec image.sif julia --project=/opt/DataCurator.jl opt/DataCurator.jl/src/curator.jl --recipe "my_recipe.toml"
+```
+
+If you have the package cloned in this directory
+```julia
+julia --project=. src/curator.jl --recipe "my_recipe.toml"
+```
+
+### Using Julia API
 ### Replace whitespace and uppercase
 Rename all files/directories with ' ' in them to '_' and switch any uppercase to lowercase.
 ```julia
@@ -133,6 +236,15 @@ template[y] = [(x->~is_tif_file(x), delete_file), (is_csv_file, onfail)]
 If it's hard to define conditions that should succeed, you can reverse the firing conditions, but more easily readable is just asking the verifier to do so for you
 ```julia
 verify_template(root, template; act_on_succes=true)
+```
+
+
+### Parallel execution
+All recipes can be executed in parallel. Counters are protected so they are threadsafe, yet need no locks.
+```julia
+count, counter = generate_counter(true; incrementer=size_of_file)
+verify_template("rootdirectory", [(condition, counter)]; parallel_policy="parallel", act_on_success=true)
+@info "Size of matched files = $(count) bytes"
 ```
 
 ## Targets

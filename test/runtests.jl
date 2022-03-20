@@ -3,6 +3,8 @@ using Test
 using Logging
 using Random
 using Images
+using CSV
+using DataFrames
 
 @testset "DataCurator.jl" begin
 
@@ -18,6 +20,33 @@ using Images
         @test isfile("outfiles.txt")
     end
 
+    @testset "example_transform_chained" begin
+        IN = "/dev/shm/input_spaces_upper"
+        rm(IN, recursive=true)
+        mkpath("/dev/shm/input_spaces_upper")
+        f1 = joinpath(IN, "aB c.txt")
+        touch(f1)
+        res = create_template_from_toml("../example_recipes/spaces_to_.toml")
+        c, t = res
+        cts, cls = delegate(c, t)
+        @test ~isfile(f1)
+        @test isfile(joinpath(IN, "ab_c.txt"))
+    end
+
+    @testset "example_hierarchical" begin
+
+        IN = "/dev/shm/input_hierarchical"
+        isdir(IN) ? rm(IN, recursive=true) : nothing
+        mkpath(IN)
+        f1 = joinpath(IN, "test.txt")
+        touch(f1)
+        res = create_template_from_toml("../example_recipes/hierarchical_validation.toml")
+        c, t = res
+        t[1][2]
+        cts, cls = delegate(c, t)
+        @test isfile(f1)
+    end
+
     @testset "example_csv" begin
         IN = "/dev/shm/inputtables"
         mkpath("/dev/shm/inputtables")
@@ -27,11 +56,11 @@ using Images
         # touch("/dev/shm/inputspaces/2/3/4 .txt")
         # touch("/dev/shm/inputspaces/top .txt")
         # mkpath("/dev/shm/flattened_path")
-        res = create_template_from_toml("example_recipes/collect_csvs_in_table.toml")
+        res = create_template_from_toml("../example_recipes/collect_csvs_in_table.toml")
         c, t = res
         t[1][2]
         cts, cls = delegate(c, t)
-        df = CSV.read("table.csv")
+        df = CSV.read("table.csv", DataFrame)
         @test size(df) == (6, 3)
     end
 

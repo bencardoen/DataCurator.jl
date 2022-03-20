@@ -151,7 +151,7 @@ function handle_chained(f::AbstractVector, glob::AbstractDict)
         for candidate in remainder
             @info "Decoding $candidate"
             cfs = decode_function(candidate, glob)
-            isnothing(cfs) ? raise(ArgumentError) : nothing
+            isnothing(cfs) ? throw(ArgumentError) : nothing
             push!(chain, cfs)
         end
         functor = collapse_functions(chain; left_to_right=true)
@@ -273,7 +273,7 @@ function shared_list_to_table(list)
                 push!(tables, tb)
             catch e
                 @error "Reading $csv_file failed because of $e"
-                raise(e)
+                throw(e)
             end
         end
     end

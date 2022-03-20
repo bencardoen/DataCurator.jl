@@ -8,4 +8,4 @@ conditions = ["has_whitespace"]
 # --> f(g(h(x, ha)))
 # For example
 # ["chain", ["transform_inplace", ["whitespace_to", '_'], ["lowercase"]]]
-actions=[["transform_inplace", ["whitespace_to", '_'], ["tolowercase"]]]
+actions=[["transform_inplace", ["whitespace_to", '_'], "tolowercase"]]
