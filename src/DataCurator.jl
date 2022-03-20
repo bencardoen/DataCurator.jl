@@ -142,6 +142,7 @@ function collapse_functions(fs; left_to_right=false)
     return reduce(reduc, fs)
 end
 
+
 function handle_chained(f::AbstractVector, glob::AbstractDict)
     fuser = f[1]
     remainder = f[2:end]
@@ -162,6 +163,7 @@ function handle_chained(f::AbstractVector, glob::AbstractDict)
 end
 
 function decode_function(f::AbstractVector, glob::AbstractDict)
+    @debug "TODO REFACTOR"
     if length(f) < 2
         @error "$f is not a valid function"
         return nothing
@@ -169,7 +171,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     fname = f[1]
     if startswith(fname, "transform_")
         @info "Chained transform detected"
-        return handlechain(f, glob)
+        return handle_chained(f, glob)
     end
     fs = lookup(fname)
     if isnothing(fs)
