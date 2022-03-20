@@ -1,0 +1,11 @@
+[global]
+act_on_success=true
+inputdirectory = "/dev/shm/input"
+[any]
+conditions = ["has_whitespace"]
+# Any action beginning with "chain"
+# ["chain", "f", "g", [h, ha]]
+# --> f(g(h(x, ha)))
+# For example
+# ["chain", ["transform_inplace", ["whitespace_to", '_'], ["lowercase"]]]
+actions=[["transform_inplace", ["whitespace_to", '_'], ["tolowercase"]]]]
