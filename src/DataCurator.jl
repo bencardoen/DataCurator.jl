@@ -132,7 +132,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
         return nothing
     end
     fname = f[1]
-    if fname == "chain"
+    if startswith(fname, "transform_")
         return handlechain(f, glob)
     end
     fs = lookup(fname)
@@ -211,11 +211,35 @@ function delegate(config, template)
     end
     for f in config["file_lists"]
         name, (list, _) = f
-        @info "Saving list to $(name).txt"
-        shared_list_to_file(list, "$(name).txt")
+        if contains("name", "table")
+            @info "Table fusing"
+            df = shared_list_to_table(list)
+            @info "Writing to $name.csv"
+            CSV.write("$name.csv", df)
+        else
+            @info "Saving list to $(name).txt"
+            shared_list_to_file(list, "$(name).txt")
+        end
         push!(lists, vcat(list...))
     end
     return counters, lists
+end
+
+
+function shared_list_to_table(list)
+    tables = []
+    for sublist in list
+        for csv_file in sublist
+            try
+                tb = CSV.read(csv_file, DataFrame)
+            catch e
+                @error "Reading $csv_file failed because of $e"
+                raise(e)
+            end
+            push!(tables, tb)
+        end
+    end
+    return vcat(tb...)
 end
 
 
