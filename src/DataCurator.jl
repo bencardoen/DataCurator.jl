@@ -5,6 +5,8 @@ import Images
 import Logging
 using LoggingExtras
 using Match
+using CSV
+using DataFrames
 import TOML
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
@@ -17,7 +19,7 @@ apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
 copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
-read_prefix_int, read_postfix_float, read_postfix_int, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
+read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper
 
 function read_counter(ct)
@@ -126,6 +128,19 @@ function decode_function(f::AbstractString, glob::AbstractDict)
 end
 
 
+"""
+
+    collapse_functions(fs; left_to_right=false)
+
+    Generalization of (f, g) --> x->(f(g(x))) for any set of functions
+    left_to_right : g(f(x)), otherwise f(g(x))
+"""
+function collapse_functions(fs; left_to_right=false)
+    reduc = (f, g) -> x->f(g(x))
+    fs = left_to_right ? reverse(fs) : fs
+    return reduce(reduc, fs)
+end
+
 function decode_function(f::AbstractVector, glob::AbstractDict)
     if length(f) < 2
         @error "$f is not a valid function"
@@ -133,6 +148,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     end
     fname = f[1]
     if startswith(fname, "transform_")
+        @info "Chained transform detected"
         return handlechain(f, glob)
     end
     fs = lookup(fname)

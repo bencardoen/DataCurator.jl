@@ -18,6 +18,13 @@ using Images
         @test isfile("outfiles.txt")
     end
 
+    @testset "collapse" begin
+        XF = collapse_functions([sin, cos]; left_to_right=true)
+        @test XF(2) == cos(sin(2))
+        XF = collapse_functions([sin, cos]; left_to_right=false)
+        @test XF(2) == sin(cos(2))
+    end
+
     @testset "example_flatten" begin
         mkpath("/dev/shm/input")
         mkpath("/dev/shm/input/2/3/4/5")
