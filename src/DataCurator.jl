@@ -20,7 +20,7 @@ shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file,
 copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
-validate_global, decode_level, decode_function, tolowercase, handlecounters!, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper
+validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper
 
 function read_counter(ct)
     return sum(ct.data)
@@ -136,9 +136,29 @@ end
     left_to_right : g(f(x)), otherwise f(g(x))
 """
 function collapse_functions(fs; left_to_right=false)
+    @info "Collapsing chained functions L->R? $(left_to_right)"
     reduc = (f, g) -> x->f(g(x))
     fs = left_to_right ? reverse(fs) : fs
     return reduce(reduc, fs)
+end
+
+function handle_chained(f::AbstractVector, glob::AbstractDict)
+    fuser = f[1]
+    remainder = f[2:end]
+    chain = []
+    if fuser ∈ ["transform_inplace", "transform_copy"]
+        for candidate in remainder
+            @info "Decoding $candidate"
+            cfs = decode_function(candidate, glob)
+            isnothing(cfs) ? raise(ArgumentError) : nothing
+            push!(chain, cfs)
+        end
+        functor = collapse_functions(chain; left_to_right=true)
+        fsym = lookup(fuser)
+        return x -> fsym(x, functor)
+    else
+        throw(ArgumentError("Invalid chain $f"))
+    end
 end
 
 function decode_function(f::AbstractVector, glob::AbstractDict)
@@ -227,8 +247,8 @@ function delegate(config, template)
     end
     for f in config["file_lists"]
         name, (list, _) = f
-        if contains("name", "table")
-            @info "Table fusing"
+        if contains(name, "table")
+            @info "Found a list of csv's to fuse into 1 table for $name"
             df = shared_list_to_table(list)
             @info "Writing to $name.csv"
             CSV.write("$name.csv", df)
@@ -248,14 +268,14 @@ function shared_list_to_table(list)
         for csv_file in sublist
             try
                 tb = CSV.read(csv_file, DataFrame)
+                push!(tables, tb)
             catch e
                 @error "Reading $csv_file failed because of $e"
                 raise(e)
             end
-            push!(tables, tb)
         end
     end
-    return vcat(tb...)
+    return vcat(tables...)
 end
 
 
@@ -581,6 +601,16 @@ end
 """
 function transform_copy(x, f)
     return transform_action(x, f; action=cp)
+end
+
+function transform_copy_to(x, f, oldroot, newroot)
+    @warn "WIP"
+    return transform_action(x, y->f(newpath(oldroot, y, newroot)))
+end
+
+function transform_flatten_to(x, f, newroot)
+    @warn "WIP"
+    error(-1)
 end
 
 function new_path(root, node, newroot)
