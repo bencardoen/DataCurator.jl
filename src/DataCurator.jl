@@ -209,19 +209,24 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     if fname ∈ completers
         @info "Prefixing root directory for $fname"
         return x -> fs(x, glob["inputdirectory"], f[2:end]...)
-    else
-        if fname == "count"
-            @info "Resolving counter $f"
-            counting_functor = lookup_counter(f, glob)
-            return counting_functor
-        end
-        if fname == "add_to_file_list"
-            @info "Resolving file_writer $f"
-            file_adder = lookup_filelists(f, glob)
-            return file_adder
-        end
-        return x -> fs(x, f[2:end]...)
     end
+    if fname == "count"
+        @info "Resolving counter $f"
+        counting_functor = lookup_counter(f, glob)
+        return counting_functor
+    end
+    if fname == "add_to_file_list"
+        @info "Resolving file_writer $f"
+        file_adder = lookup_filelists(f, glob)
+        return file_adder
+    end
+    if glob["regex"]
+        if fname ∈ ["startswith", "endswith"]
+            @info "Using Regex conversion"
+            return x-> fs(x, Regex(f[2]))
+        end
+    end
+    return x -> fs(x, f[2:end]...)
 end
 
 function lookup_filelists(tpl, glob)
@@ -498,7 +503,7 @@ end
 
 
 function validate_global(config)
-    glob_defaults = Dict([("parallel", false),  ("counters", Dict()), ("file_lists", Dict()),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    glob_defaults = Dict([("parallel", false),  ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     # glob = config["global"]
     glob_default_types = Dict([("parallel", Bool), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
