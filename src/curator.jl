@@ -12,7 +12,15 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # Copyright 2022, Ben Cardoen
 using ArgParse
-using DataCurator
+using DataCurator, Images, TOML
+using Match
+using CSV, DataFrames
+using Logging, LoggingExtras, Dates
+date_format = "yyyy-mm-dd HH:MM:SS"
+timestamp_logger(logger) = TransformerLogger(logger) do log
+    merge(log, (; message = "$(Dates.format(now(), date_format)) $(basename(log.file)):$(log.line): $(log.message)"))
+end
+ConsoleLogger(stdout, Logging.Info) |> timestamp_logger |> global_logger
 
 
 function parse_commandline()
@@ -20,7 +28,7 @@ function parse_commandline()
 
     @add_arg_table! s begin
         "--recipe", "-r"
-            help = "Recipe in TOML format"
+            help = "Recipe in TOML format, see example_recipes/ for example configurations"
             arg_type = String
             required = true
     end

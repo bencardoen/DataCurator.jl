@@ -18,6 +18,7 @@ using DataFrames
         @test sum(cs) == 0
         @test length(vcat(ls...)) > 0
         @test isfile("outfiles.txt")
+        rm("outfiles.txt")
     end
 
     @testset "example_transform_chained" begin

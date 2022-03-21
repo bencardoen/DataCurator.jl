@@ -1,0 +1,68 @@
+## We start with a global section
+
+[global]
+# Where we start
+inputdirectory="your/directory"
+# if condition --> action
+# For validation it"s easier to revert this, to only specify "x, y, and z should be true"
+# So then you"d do act_on_success=false, condition[...], action=[warn_on_fail]
+act_on_success=true
+
+#If you're going to modify files in place, or delete, then this is the safest.
+traversal="bottomup" # or topdown
+
+# Parallel: if true, will use as many threads as $JULIA_NUM_THREADS (usually nr of HT cores)
+parallel=true
+
+# If true, your template is more precise, because you know what to look for at certain levels [level_i]
+# If false, define your template in [any]
+hierarchical=true
+
+# Set global counters you will refer to later
+counters = ["C1", ["C2", "function to apply to file when counting"]]
+
+## Collect visited files/directories
+## Use in actions by an action = ["add_to_file_list", "infiles"]
+## Lists with "table" in them are assumed to contain csvs to be fused into 1 table
+file_lists = ["infiles", ["outfiles", "/dev/shm/outpath"], "table_x"]
+
+#Next we describe what to do, and when
+# [any, level_1, level_...]
+# If all = false, expects 1 action per condition. If all = true, will fuse all conditions using logical AND, and apply all actions left to right
+# BE CAREFUL, if the first action = delete_file, the rest will likely crash, because you just deleted the file.
+# all=false
+# conditions = [list of conditions]
+# actions = [list of actions]
+
+## Example
+
+## In hierarchical, this will match whatever level you do NOT specify, aka default.
+
+# For example, to delete any file at a level you"ve not specified below, but to ignore directories:
+[any]
+# Assume action_on_success=true
+all=true
+conditions=["isfile"]
+actions=["warn_on_fail", "delete_file"]
+
+# Root directory
+[level_1]
+# Let"s say you only expect sub directories
+conditions=["isfile"]
+actions=["warn_on_fail"]
+
+
+[level_2]
+# We know there's some csv files, with a pattern "July*.csv", that should be collected and merged. We also want to know just how large they are, and how many
+all=true
+conditions=["is_csv_file", ["startswith", "July"]]
+actions=[["count", "C1"], ["count", "C2"], ["add_to_file_list", "table"]]
+# This will give you at the end a count of files found, a size in bytes of all, and generate a fused table "table.csv"
+# It's up to you to ensure those csv's can be merged, e.g. their columns are the same.
+
+[level_3]
+# Let"s say this is the deepest part, and you only expect 3D tif files, and they"re 3-channel RGB
+# And let"s assume your collaborators have agreed to use the cell name as an integer at the beginning
+all=true
+conditions=["isfile", "is_img", "is_3d_img", "is_tif_file", "is_rgb"]
+actions=[["flatten_to", "my/special/flat/directory"]]

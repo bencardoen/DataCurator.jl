@@ -43,7 +43,7 @@ end
 function handlecounters!(val, key, glob_defaults)
     counter_entries = val
     cts = Dict()
-    @info counter_entries
+    @info "Processing counters $(counter_entries)"
     for ce in counter_entries
         d = decode_counter(ce)
         if isnothing(d)
@@ -54,7 +54,7 @@ function handlecounters!(val, key, glob_defaults)
             cts[name]=cpair
         end
     end
-    @info cts
+    # @info cts
     glob_defaults["counters"] = cts
     return cts
 end
@@ -63,12 +63,9 @@ function decode_filelist(fe::AbstractString, glob)
     lst = make_shared_list()
     adder = x->add_to_file_list(x, lst)
     return (fe, (lst, adder))
-    @info "String"
 end
 
 function decode_filelist(fe::AbstractVector, glob)
-    @info fe
-    @info "VECTOR"
     if length(fe) != 2
         @error "Failed decoding filelists $fe"
         raise(ErrorException("invalid lists"))
@@ -81,7 +78,7 @@ function decode_filelist(fe::AbstractVector, glob)
     return (fn, (lst, adder))
 end
 
-#file_lists = ["infiles", ["outfiles", "/dev/shm/outpath"]]
+
 function handlefilelists!(val, key, glob_defaults)
     file_entries = val
     cts = Dict()
@@ -302,17 +299,22 @@ function create_template_from_toml(tomlfile)
         return nothing
     end
     if glob["hierarchical"]
-        @info "Hierarchical"
+        @info "Hierarchical template"
         template = extract_template(config, glob)
     else
-        @info "Flat hierarchy"
+        @info "Flat template"
+        if ~haskey(config, "any")
+            @error "No section with conditions/actions specified, please add a section [any] with conditions, actions."
+            return nothing
+        end
         template = decode_level(config["any"], glob)
     end
     if isnothing(template)
         @error "Invalid configuration"
-        return
+        return nothing
     end
-    @info "Decoded template to $template"
+    @info "Succesfully decoded your template."
+    @debug "Decoded template to $template"
     return glob, template
 end
 
@@ -341,8 +343,8 @@ function extract_template(config, glob)
 end
 
 function decode_level(level_config, globalconfig)
-    @info level_config
-    @info globalconfig
+    # @info level_config
+    # @info globalconfig
     all_mode = false
     if haskey(level_config, "all")
         if typeof(level_config["all"]) != Bool
