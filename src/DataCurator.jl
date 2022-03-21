@@ -37,6 +37,16 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going
 
 
+function delete_if_exists(f)
+    if isdir(f)
+        rm(f; recursive=true)
+    else
+        if isfile(f)
+            rm(f)
+        end
+    end
+end
+
 """
     read_counter(counter)
 
@@ -979,14 +989,14 @@ end
 
 
 function all_of(fs, x)
-    @info "Applying all of $fs to $x"
+    @debug "Applying all of $fs to $x"
     for f in fs
         if f(x) == false
-            @info "Condition in sequence failed"
+            @debug "Condition in sequence failed"
             return false
         end
     end
-    @info "all passed"
+    @info "All passed"
     return true
 end
 
