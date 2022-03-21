@@ -22,14 +22,31 @@ using DataFrames
 
     @testset "example_transform_chained" begin
         IN = "/dev/shm/input_spaces_upper"
-        rm(IN, recursive=true)
-        mkpath("/dev/shm/input_spaces_upper")
+        if isdir(IN)
+            rm(IN, recursive=true)
+        end
+        mkpath(IN)
         f1 = joinpath(IN, "aB c.txt")
         touch(f1)
         res = create_template_from_toml("../example_recipes/spaces_to_.toml")
         c, t = res
         cts, cls = delegate(c, t)
         @test ~isfile(f1)
+        @test isfile(joinpath(IN, "ab_c.txt"))
+    end
+
+    @testset "example_transform_chained" begin
+        IN = "/dev/shm/input_spaces_upper"
+        if isdir(IN)
+            rm(IN, recursive=true)
+        end
+        mkpath(IN)
+        f1 = joinpath(IN, "aB c.txt")
+        touch(f1)
+        res = create_template_from_toml("../example_recipes/spaces_to_0.toml")
+        c, t = res
+        cts, cls = delegate(c, t)
+        @test isfile(f1)
         @test isfile(joinpath(IN, "ab_c.txt"))
     end
 
