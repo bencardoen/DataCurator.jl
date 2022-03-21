@@ -48,7 +48,8 @@ function run()
         return DataCurator.:proceed
     end
     cfg, template = res
-    return delegate(cfg, template)
+    c, l, r = delegate(cfg, template)
+    @info "Exit status $r"
 end
 
 run()

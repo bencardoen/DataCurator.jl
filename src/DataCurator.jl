@@ -33,7 +33,8 @@ shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file,
 copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
-validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper
+validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
+halt, keep_going
 
 
 """
@@ -432,8 +433,10 @@ has_upper = x -> any(isuppercase(_x) for _x in x)
 is_lower = x -> ~has_upper(x)
 is_upper = x -> ~has_lower(x)
 has_whitespace = x -> ~isnothing(match(r"[\s,\t]", x))
-quit = :quit
-proceed = :proceed
+show_warning = x -> @warn x
+halt = x -> begin @info "Triggered early exit"; return :quit; end
+quit = x -> return :quit
+keep_going = x-> :proceed
 filename = x->basename(x)
 integer_name = x->~isnothing(tryparse(Int, filename(x)))
 warn_on_fail = x -> @warn "$x"
@@ -575,8 +578,12 @@ end
 
 function apply_all(fs, x)
     for f in fs
-        f(x)
+        _rv = f(x)
+        if _rv == :quit
+            return :quit
+        end
     end
+    return :proceed
 end
 
 function delete_file(x)
@@ -958,7 +965,9 @@ function verifier(node, templater::Dict, level::Int; on_success=false)
     end
     for (condition, action) in template
         if condition(node) == on_success
+            @info "Condition fired for $node --> action"
             rv = action(node)
+            @info "Return value $rv"
             if rv == :quit
                 return :quit
             end
@@ -973,7 +982,7 @@ function all_of(fs, x)
     @info "Applying all of $fs to $x"
     for f in fs
         if f(x) == false
-            @info "Failed"
+            @info "Condition in sequence failed"
             return false
         end
     end
