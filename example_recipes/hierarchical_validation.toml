@@ -1,0 +1,12 @@
+[global]
+act_on_success=false
+inputdirectory = "/dev/shm/input_hierarchical"
+[any]
+conditions = ["never"]
+actions=["warn_on_fail"]
+[1]
+conditions = ["isdir"]
+actions = ["warn_on_fail"]
+[2]
+conditions = ["is_file"]
+actions = ["warn_on_fail"]
