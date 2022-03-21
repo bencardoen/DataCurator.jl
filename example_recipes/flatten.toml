@@ -1,6 +1,6 @@
 [global]
 act_on_success = true
-inputdirectory = "/dev/shm/input"
+inputdirectory = "testdir"
 [any]
 ## Given
 ### /inputdirectory/a/b/c/q.txt
@@ -9,4 +9,4 @@ inputdirectory = "/dev/shm/input"
 ### /outputdirectory/q.txt, outputdirectory/z.txt
 all=true
 conditions = ["isfile", ["endswith", "*.txt"]]
-actions = [["flatten_to", "/dev/shm/flattened_path"]]
+actions = [["flatten_to", "outdir"]]

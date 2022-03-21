@@ -21,6 +21,9 @@ hierarchical=true
 # Set global counters you will refer to later
 counters = ["C1", ["C2", "function to apply to file when counting"]]
 
+# If true, functions accepting patterns (endswith, startswith), will have their argument converted to a regular expression (using PRCE syntax)
+regex = false
+
 ## Collect visited files/directories
 ## Use in actions by an action = ["add_to_file_list", "infiles"]
 ## Lists with "table" in them are assumed to contain csvs to be fused into 1 table

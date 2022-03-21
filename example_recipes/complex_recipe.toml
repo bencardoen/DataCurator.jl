@@ -1,7 +1,7 @@
 [global]
 act_on_success=false
 hierarchical=true
-inputdirectory = "inputdirectory"
+inputdirectory = "testdir"
 
 ## Suppose we expect 2 3D channels (tif) for each cell, and we have a dataset like
 ## Root
@@ -15,27 +15,27 @@ inputdirectory = "inputdirectory"
 ## If we see anything else than the structure below, complain
 [any]
 conditions=["never"]
-actions = ["warn_on_fail"]
+actions = ["show_warning"]
 ## Top directory, only sub directories
 [level_1]
 conditions=["isdir"]
-actions = ["warn_on_fail"]
+actions = ["show_warning"]
 ## Replicate directory, should be an integer
 [level_2]
 all=true
 conditions=["isdir", "integer_name"]
-actions = ["warn_on_fail"]
+actions = ["show_warning"]
 ## We don't care what cell types are named, as long as there's not unexpected data
 [level_3]
 conditions=["isdir"]
-actions = ["warn_on_fail"]
+actions = ["show_warning"]
 ## Final level, directory with 2 files, and should end with cell nr
 [level_4]
 all=true
 conditions=["isdir", ["has_n_files", 2], ["ends_with_integer"]]
-actions = ["warn_on_fail"]
+actions = ["show_warning"]
 ## The actual files, we complain if there's any subdirectories, or if the files are not 3D
 [level_5]
 all=true
 conditions=["is_3d_img", ["endswith", "[1,2].tif"]]
-actions = ["warn_on_fail"]
+actions = ["show_warning"]

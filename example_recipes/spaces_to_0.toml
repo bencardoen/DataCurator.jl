@@ -1,6 +1,6 @@
 [global]
 act_on_success=true
-inputdirectory = "/dev/shm/input_spaces_upper"
+inputdirectory = "testdir"
 [any]
 conditions = ["has_whitespace"]
 actions=[["transform_copy", ["whitespace_to", '_'], "tolowercase"]]

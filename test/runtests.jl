@@ -22,7 +22,7 @@ using DataFrames
     end
 
     @testset "example_transform_chained" begin
-        IN = "/dev/shm/input_spaces_upper"
+        IN = "testdir/input_spaces_upper"
         if isdir(IN)
             rm(IN, recursive=true)
         end
@@ -37,7 +37,7 @@ using DataFrames
     end
 
     @testset "example_transform_chained" begin
-        IN = "/dev/shm/input_spaces_upper"
+        IN = "tesdir/input_spaces_upper"
         if isdir(IN)
             rm(IN, recursive=true)
         end

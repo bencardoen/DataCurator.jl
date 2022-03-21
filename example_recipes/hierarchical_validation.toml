@@ -1,12 +1,12 @@
 [global]
 act_on_success=false
-inputdirectory = "/dev/shm/input_hierarchical"
+inputdirectory = "testdir"
 [any]
 conditions = ["never"]
-actions=["warn_on_fail"]
+actions=["show_warning"]
 [1]
 conditions = ["isdir"]
-actions = ["warn_on_fail"]
+actions = ["show_warning"]
 [2]
 conditions = ["is_file"]
-actions = ["warn_on_fail"]
+actions = ["show_warning"]
