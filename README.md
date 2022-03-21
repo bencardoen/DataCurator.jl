@@ -115,6 +115,24 @@ Check the directory example_recipes for examples on how to achieve a whole range
   conditions=["is_3d_img", ["endswith", "[1,2].tif"]]
   actions = ["warn_on_fail"]
   ```
+- Early exit: sometimes you want the validation or processing to stop immediately based on a condition, e.g. finding corrupt data, or because you're just looking for 1 specific type of conditions. This can be achieved fairly easily, illustrated with a trivial example that stops after finding something else than .txt files.
+  ```toml
+  [global]
+  act_on_success = false
+  inputdirectory = "testdir"
+  [any]
+  all = true
+  conditions = ["isfile", ["endswith", ".txt"]]
+  actions = ["halt"]
+  ```
+- Regular expression: for more advanced users, when you write "startswith" "*.txt", it will not match anything, because by default regular expressions are disabled. Enabling them is easy though
+  ```toml
+  [global]
+  regex=true
+  ...
+  condition = ["startswith", "[0-9]+"]
+  ```
+  This will now match files with 1 or more integers at the beginning of the file name.
 
 #### Usage
 Assuming you have the singularity image (does not require Julia, nor installation of dependencies)
