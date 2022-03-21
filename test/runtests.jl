@@ -37,7 +37,7 @@ using DataFrames
     end
 
     @testset "example_transform_chained" begin
-        IN = "tesdir/input_spaces_upper"
+        IN = "testdir/input_spaces_upper"
         if isdir(IN)
             rm(IN, recursive=true)
         end
@@ -90,19 +90,20 @@ using DataFrames
     end
 
     @testset "example_flatten" begin
-        mkpath("/dev/shm/input")
-        mkpath("/dev/shm/input/2/3/4/5")
-        touch("/dev/shm/input/2/3/4.txt")
-        touch("/dev/shm/input/top.txt")
-        if isdir("/dev/shm/flattened_path")
-            rm("/dev/shm/flattened_path", recursive=true)
+        mkpath("outdir")
+        mkpath("testdir/input")
+        mkpath("testdir/input/2/3/4/5")
+        touch("testdir/input/2/3/4.txt")
+        touch("testdir/input/top.txt")
+        if isdir("outdir")
+            rm("outdir", recursive=true)
         end
-        mkpath("/dev/shm/flattened_path")
+        mkpath("outdir")
         res = create_template_from_toml("../example_recipes/flatten.toml")
         c, t = res
         cts, cls, rv = delegate(c, t)
-        @test isfile("/dev/shm/flattened_path/top.txt")
-        @test isfile("/dev/shm/flattened_path/4.txt")
+        @test isfile("outdir/top.txt")
+        @test isfile("outdir/4.txt")
     end
 
     @testset "validate_dataset_hierarchy" begin
