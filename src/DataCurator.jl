@@ -35,6 +35,12 @@ safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper
 
+
+"""
+    read_counter(counter)
+
+    Sum a parallel or sequential counter where counter.data[threadid()]
+"""
 function read_counter(ct)
     return sum(ct.data)
 end
