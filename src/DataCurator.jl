@@ -273,7 +273,7 @@ function delegate(config, template)
         end
         push!(lists, vcat(list...))
     end
-    return counters, lists
+    return counters, lists, rval
 end
 
 

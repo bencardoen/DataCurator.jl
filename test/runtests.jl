@@ -13,7 +13,7 @@ using DataFrames
         touch("/dev/shm/inpath/test.tif")
         res = create_template_from_toml("full.toml")
         @test ~isnothing(res)
-        cs, ls = delegate(res...)
+        cs, ls, rv = delegate(res...)
         # @error cs ls
         @test sum(cs) == 0
         @test length(vcat(ls...)) > 0
@@ -30,7 +30,7 @@ using DataFrames
         touch(f1)
         res = create_template_from_toml("../example_recipes/spaces_to_.toml")
         c, t = res
-        cts, cls = delegate(c, t)
+        cts, cls, rv = delegate(c, t)
         @test ~isfile(f1)
         @test isfile(joinpath(IN, "ab_c.txt"))
     end
@@ -45,7 +45,7 @@ using DataFrames
         touch(f1)
         res = create_template_from_toml("../example_recipes/spaces_to_0.toml")
         c, t = res
-        cts, cls = delegate(c, t)
+        cts, cls, rv = delegate(c, t)
         @test isfile(f1)
         @test isfile(joinpath(IN, "ab_c.txt"))
     end
@@ -60,7 +60,7 @@ using DataFrames
         res = create_template_from_toml("../example_recipes/hierarchical_validation.toml")
         c, t = res
         t[1][2]
-        cts, cls = delegate(c, t)
+        cts, cls, rv = delegate(c, t)
         @test isfile(f1)
     end
 
@@ -76,7 +76,7 @@ using DataFrames
         res = create_template_from_toml("../example_recipes/collect_csvs_in_table.toml")
         c, t = res
         t[1][2]
-        cts, cls = delegate(c, t)
+        cts, cls, rv = delegate(c, t)
         df = CSV.read("table.csv", DataFrame)
         @test size(df) == (6, 3)
     end
@@ -97,7 +97,7 @@ using DataFrames
         mkpath("/dev/shm/flattened_path")
         res = create_template_from_toml("../example_recipes/flatten.toml")
         c, t = res
-        cts, cls = delegate(c, t)
+        cts, cls, rv = delegate(c, t)
         @test isfile("/dev/shm/flattened_path/top.txt")
         @test isfile("/dev/shm/flattened_path/4.txt")
     end

@@ -40,8 +40,6 @@ function run()
         return DataCurator.:proceed
     end
     cfg, template = res
-    @info template
-    @info cfg
     return delegate(cfg, template)
 end
 
