@@ -94,7 +94,9 @@ using DataFrames
         mkpath("/dev/shm/input/2/3/4/5")
         touch("/dev/shm/input/2/3/4.txt")
         touch("/dev/shm/input/top.txt")
-        rm("/dev/shm/flattened_path", recursive=true)
+        if isdir("/dev/shm/flattened_path")
+            rm("/dev/shm/flattened_path", recursive=true)
+        end
         mkpath("/dev/shm/flattened_path")
         res = create_template_from_toml("../example_recipes/flatten.toml")
         c, t = res
