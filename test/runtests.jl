@@ -36,7 +36,21 @@ using DataFrames
         @test isfile(joinpath(IN, "ab_c.txt"))
     end
 
-    @testset "example_transform_chained" begin
+    @testset "example_early_exit" begin
+        IN = "testdir/void"
+        if isdir(IN)
+            rm(IN, recursive=true)
+        end
+        mkpath(IN)
+        f1 = joinpath(IN, "c.txt")
+        touch(f1)
+        res = create_template_from_toml("../example_recipes/early_exit.toml")
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        @test rv == :quit
+    end
+
+    @testset "example_transform_chained_2" begin
         IN = "testdir/input_spaces_upper"
         if isdir(IN)
             rm(IN, recursive=true)
