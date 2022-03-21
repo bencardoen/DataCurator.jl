@@ -495,7 +495,15 @@ function validate_global(config)
         @error "No data directory given, please define 'inputdirectory=your/data/dir'"
         return nothing
     else
-        glob_defaults["inputdirectory"] = glob_config["inputdirectory"]
+        indir = glob_config["inputdirectory"]
+        isdir(indir) ? nothing : throw(ArgumentError("$indir is not a valid directory"))
+        if ~isabspath(indir)
+            @warn "Input directory is not an absolute path, resolving..."
+            ab = abspath(indir)
+            @warn "...$indir -> $ab"
+            indir = ab
+        end
+        glob_defaults["inputdirectory"] = indir
     end
     for key in keys(glob_config)
         @debug "Checking $key"
