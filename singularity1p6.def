@@ -52,6 +52,7 @@ From: fedora:35
 %labels
     Author Ben Cardoen, bcardoen@sfu.ca
     Version v0.0.1
+    License AGPLv3
 
 %help
     This is a container to offer DataCurator without altering the local user environment, for testing purposes.
