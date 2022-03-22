@@ -1,5 +1,5 @@
 [global]
-act_on_success = false
+act_on_success = true
 inputdirectory = "testdir"
 [any]
 all = true

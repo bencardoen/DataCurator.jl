@@ -48,6 +48,7 @@ using DataFrames
         c, t = res
         cts, cls, rv = delegate(c, t)
         @test rv == :quit
+
     end
 
     @testset "example_transform_chained_2" begin

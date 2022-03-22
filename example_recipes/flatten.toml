@@ -1,6 +1,7 @@
 [global]
 act_on_success = true
 inputdirectory = "testdir"
+regex=true
 [any]
 ## Given
 ### /inputdirectory/a/b/c/q.txt
@@ -8,5 +9,5 @@ inputdirectory = "testdir"
 ### Make it into
 ### /outputdirectory/q.txt, outputdirectory/z.txt
 all=true
-conditions = ["isfile", ["endswith", "*.txt"]]
+conditions = ["isfile", ["endswith", ".*.txt"]]
 actions = [["flatten_to", "outdir"]]
