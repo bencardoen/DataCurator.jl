@@ -1,9 +1,10 @@
 [global]
 act_on_success = true
-inputdirectory = "testdir"
+inputdirectory = "/home/bcardoen/SFUVault/repositories/DataCurator.jl/testdir"
+traversal = "topdown"
 [any]
 all = true
-conditions = ["isfile", ["endswith", ".txt"]]
+conditions = ["isdir", ["endswith", "void"]]
 #If we see anything we don't expect, abort immediately.
 #For parallel applications this can be a delayed abort, because other threads are dealing with different parts.
 actions = ["halt"]

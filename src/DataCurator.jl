@@ -307,6 +307,7 @@ end
 function delegate(config, template)
     parallel = config["parallel"] ? "parallel" : "sequential"
     rval =  verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
+    @info "Return value == $rval"
     counters, lists = [], []
     for c in config["counters"]
         name, (count, counter) = c
@@ -350,6 +351,7 @@ end
 function create_template_from_toml(tomlfile)
     config = TOML.parsefile(tomlfile)
     glob = validate_global(config)
+    @info "Global config $glob"
     if isnothing(glob)
         @error "Invalid configuration"
         return nothing
@@ -660,10 +662,12 @@ function apply_all(fs, x)
         _rv = f(x)
         @info "Ret val is $(_rv)"
         if _rv == :quit
+            @info "Returning :quit"
             return :quit
         end
         @info "Not quit, proceeding"
     end
+    @info "Returning proceed"
     return :proceed
 end
 
@@ -884,7 +888,9 @@ function verify_template(start, template; expander=expand_filesystem, traversalp
     verify_dispatch_flipped = x -> verify_dispatch(x;on_success=true)
     vf = act_on_success ? verify_dispatch_flipped : verify_dispatch
     if typeof(template) <: Vector || typeof(template) <: Dict
-        return traversalpolicy(start, expander, vf; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
+        rv =  traversalpolicy(start, expander, vf; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
+        @info "Return value = $rv"
+        return rv
     else
         @error "Unsupported template"
         throw(ArgumentError("Template is of type $(typeof(template)) which is neither Vector, nor Dict"))
@@ -914,11 +920,13 @@ function expand_sequential(node, expander, visitor, context)
             ncontext["node"] = _node
         end
         rv = bottomup(_node, expander, visitor; context=ncontext, inner=expand_sequential)
+        @info "Return value bottomup $rv for $node"
         if rv == :quit
-            @debug "Early exit triggered"
+            @info "Early exit triggered for $node"
             return :quit
         end
     end
+    return :proceed
 end
 
 
@@ -934,10 +942,11 @@ function expand_threaded(node, expander, visitor, context)
         end
         rv = bottomup(_node, expander, visitor; context=ncontext, inner=expand_threaded)
         if rv == :quit
-            @debug "Early exit triggered"
+            @info "Early exit triggered for $node"
             return :quit
         end
     end
+    return :proceed
 end
 
 _expand_table = Dict([("parallel", expand_threaded), ("sequential", expand_sequential)])
@@ -956,9 +965,10 @@ function bottomup(node, expander, visitor; context=nothing, inner=expand_sequent
     inner(node, expander, visitor, context)
     early_exit = visitor(isnothing(context) ? node : context)
     if early_exit == :quit
-        @debug "Early exit triggered"
+        @info "Early exit triggered for $node"
         return :quit
     else
+        @info "Returning proceed for $node"
         return :proceed
     end
 end
