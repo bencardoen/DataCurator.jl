@@ -2,13 +2,16 @@
 
 A multithreaded package to validate, curate, and transform large heterogenous datasets using reproducible recipes, that can be created both in TOML human readable format, or in Julia.
 
-## Aims
-- Enable fast expressive recipes to validate datasets
-- Enable expressive conditional actions to remedy issues with datasets
-- Enable conditional pre-processing
-- Do not require expertise on the user, make templates interpretable
-- Do not require the user to write or change code, recipes can be TOML files designed to be human readable
-- Enable reproducible data processing (pre and post)
+## Motivation
+A computational pipeline will spend a significant amount of its code and development time in hardening against unexpected data, in pre and post-processing, and in dealing effectively with massive datasets (on clusters).
+Often this results in a mix of scripts in different programming languages, created by people who may have moved on, and did not document why data was reorganized or processed in a given way. Reproduction, and adaptation to new datasets, is near impossible, compromising the scientific contributions it underlies.
+To complicate matters, in interdisciplinary work, people designing and implementing the algorithms are not always those who curate datasets, nor those who actually acquire the data and have research questions to answer. Yet, as an example, few biologists know how to write a bash script on a cluster, let alone write one that will be robust and correct. Reviewers with access to the code will be hard pressed to reproduce or validate the used approach either.
+In short, what is needed is an approach that
+- validates large complex datasets
+- transforms such datasets
+- does it fast
+- requires 0 coding expertise
+- runs on without brittle dependencies, portably
 
 ## Why not use ...?
 - Shell scripts / Linux tools
@@ -18,6 +21,15 @@ A multithreaded package to validate, curate, and transform large heterogenous da
 - Python
   - Julia has a definitive advantage in its typing inference for safety and with JIT has a near C-like speed. Python lacks multiple dispatch, or typed dispatch, which is leveraged heavily in this package
 
+
+## Our approach
+- Uses Julia for speed without compromising on high level features
+- Ensures portability by packaging everything in a single Singularity image so
+  - it runs everywhere
+  - it runs the same everywhere
+  - no dependencies, nor even Julia are needed
+- Uses TOML configuration files, designed to be human readable, as **recipes**
+- Runs in parallel, with a large set of predefined operations common to dataset processing
 
 
 ## Quickstart recipes
@@ -32,9 +44,10 @@ inputdirectory = "your/very/deep/directory/structure"
 [any]
 all=true
 conditions = ["isfile", ["endswith", ".txt"]]
-actions = [["flatten_to", "/dev/shm/flattened_path"]]
+actions = [["flatten_to", "your/flattened_path"]]
 ```
 
+Check example_recipes/documented_example.toml for all possible options in a single example.
 
 Check the directory example_recipes for examples on how to achieve a whole range of tasks:
 - Find all csvs and fuse them into 1 large table, called table.csv

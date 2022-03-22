@@ -18,29 +18,32 @@ parallel=true
 # If false, define your template in [any]
 hierarchical=true
 
-# Set global counters you will refer to later
+# Set global counters you can refer to later
+# Without an extra function, just adds 1.
+# Counters are threadsafe
+# Format : counters = [name, [name, function_to_count]]
+# Reference by action ["count", "name"]
 counters = ["C1", ["C2", "function to apply to file when counting"]]
 
 # If true, functions accepting patterns (endswith, startswith), will have their argument converted to a regular expression (using PRCE syntax)
 regex = false
 
-## Collect visited files/directories
-## Use in actions by an action = ["add_to_file_list", "infiles"]
-## Lists with "table" in them are assumed to contain csvs to be fused into 1 table
+# Build lists of files, written to file at the end.
+# Use in actions by an action = ["add_to_file_list", "infiles"]
+# Lists with "table" in them are assumed to contain csvs to be fused into 1 table
 file_lists = ["infiles", ["outfiles", "/dev/shm/outpath"], "table_x"]
 
-#Next we describe what to do, and when
-# [any, level_1, level_...]
-# If all = false, expects 1 action per condition. If all = true, will fuse all conditions using logical AND, and apply all actions left to right
-# BE CAREFUL, if the first action = delete_file, the rest will likely crash, because you just deleted the file.
-# all=false
-# conditions = [list of conditions]
-# actions = [list of actions]
+#Next we describe what to do, and when, in other words, a template
+# Format
+# [any, level_1, level_...]  # When you set hierarchical to false, only 'any' is checked. Otherwise, list 'any' + level_i
+# all=false,true # if false, 1 action per condition, else, all conditions are fused in a logical and, and all actions applied in sequence
+# BE CAREFUL, if the first action = delete_file, the rest will likely crash, because you just deleted the file
+# conditions = ["condition 1", ["condition with argument", "argument"], ...]
+# actions = ["action", ["action with argument", "argument"]]
 
 ## Example
 
 ## In hierarchical, this will match whatever level you do NOT specify, aka default.
-
 # For example, to delete any file at a level you"ve not specified below, but to ignore directories:
 [any]
 # Assume action_on_success=true
@@ -69,3 +72,7 @@ actions=[["count", "C1"], ["count", "C2"], ["add_to_file_list", "table"]]
 all=true
 conditions=["isfile", "is_img", "is_3d_img", "is_tif_file", "is_rgb"]
 actions=[["flatten_to", "my/special/flat/directory"]]
+
+
+## To run this
+## singularity exec image.sif julia --project=/opt/DataCurator.jl /opt/DataCurator.jl/src/curator.jl --recipe <your_recipe.toml>

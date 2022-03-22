@@ -3,6 +3,7 @@ From: fedora:35
 
 %files
     DataCurator.jl.zip /opt/DataCurator.jl.zip
+    runjulia.sh        /opt/runjulia.sh
 
 %post
     ## Get the tools we'll need
@@ -17,7 +18,7 @@ From: fedora:35
     export PATH=/opt/julia/julia-$JLV/bin:$PATH
     export JULIA_DEPOT_PATH=/opt/juliadepot
     mkdir -p $JULIA_DEPOT_PATH
-
+    chmod 755 /opt/runjulia.sh
     ## Setup local package
     export PKGNAME="DataCurator"
     cd /opt && unzip $PKGNAME.jl.zip
