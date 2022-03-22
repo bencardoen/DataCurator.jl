@@ -43,7 +43,10 @@ using DataFrames
         end
         mkpath(IN)
         f1 = joinpath(IN, "c.txt")
+        mkpath(joinpath(IN, "deeper"))
+        f2 = joinpath(IN, "deeper", "cd.txt")
         touch(f1)
+        touch(f2)
         res = create_template_from_toml("../example_recipes/early_exit.toml")
         c, t = res
         cts, cls, rv = delegate(c, t)

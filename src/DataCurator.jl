@@ -511,7 +511,7 @@ is_lower = x -> ~has_upper(x)
 is_upper = x -> ~has_lower(x)
 has_whitespace = x -> ~isnothing(match(r"[\s,\t]", x))
 show_warning = x -> @warn x
-halt = x -> begin @info "Triggered early exit"; return :quit; end
+halt = x -> begin @info "Triggered early exit for $x"; return :quit; end
 quit = x -> return :quit
 keep_going = x-> :proceed
 filename = x->basename(x)
@@ -660,7 +660,7 @@ function apply_all(fs, x)
     for f in fs
         @info "Applying $f to $x"
         _rv = f(x)
-        @info "Ret val is $(_rv)"
+        @info "Short circuit break with rv is $(_rv)"
         if _rv == :quit
             @info "Returning :quit"
             return :quit
@@ -889,7 +889,7 @@ function verify_template(start, template; expander=expand_filesystem, traversalp
     vf = act_on_success ? verify_dispatch_flipped : verify_dispatch
     if typeof(template) <: Vector || typeof(template) <: Dict
         rv =  traversalpolicy(start, expander, vf; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
-        @info "Return value = $rv"
+        @info "Return value = $rv for $start and $traversalpolicy"
         return rv
     else
         @error "Unsupported template"
@@ -926,6 +926,7 @@ function expand_sequential(node, expander, visitor, context)
             return :quit
         end
     end
+    @info "Returning proceed for $node"
     return :proceed
 end
 
@@ -946,10 +947,12 @@ function expand_threaded(node, expander, visitor, context)
             return :quit
         end
     end
+    @info "Returning proceed for $node"
     return :proceed
 end
 
 _expand_table = Dict([("parallel", expand_threaded), ("sequential", expand_sequential)])
+
 
 """
     topdown(node, expander, visitor; context=nothing, inner=expand_sequential)
@@ -962,15 +965,18 @@ _expand_table = Dict([("parallel", expand_threaded), ("sequential", expand_seque
 """
 function bottomup(node, expander, visitor; context=nothing, inner=expand_sequential)
     # nodes = expander(node)
-    inner(node, expander, visitor, context)
+    rv_inner = inner(node, expander, visitor, context)
+    if rv_inner == :quit
+        @info "Early exit triggered for $node by expander"
+        return :quit
+    end
     early_exit = visitor(isnothing(context) ? node : context)
     if early_exit == :quit
-        @info "Early exit triggered for $node"
+        @info "Early exit triggered for $node by visitor"
         return :quit
-    else
-        @info "Returning proceed for $node"
-        return :proceed
     end
+    @info "Returning proceed for $node"
+    return :proceed
 end
 
 """
@@ -983,12 +989,20 @@ end
     Traversal is done in a pre-order way, e.g. visit before expanding.
 """
 function topdown(node, expander, visitor; context=nothing, inner=expand_sequential)
+    @info "Topdown @ $node"
     early_exit = visitor(isnothing(context) ? node : context)
+    @info "Visitor for $node -> $(early_exit)"
     if early_exit == :quit
-        @debug "Early exit triggered"
+        @info "Early exit triggered for $node"
         return :quit
     end
-    inner(node, expander, visitor, context)
+    @info "Expanding for $node"
+    rv_inner = inner(node, expander, visitor, context)
+    if rv_inner == :quit
+        @info "Expander returned quit for $node"
+        return :quit
+    end
+    @info "Returning proceed"
     return :proceed
 end
 
