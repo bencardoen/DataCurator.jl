@@ -332,6 +332,9 @@ read_int
 read_postfix_float
 read_prefix_float
 read_float
+is_8bit_img
+is_16bit_img
+column_names
 ```
 If you're not familiar with Julia, the following are builtin
 ```julia

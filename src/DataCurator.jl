@@ -34,8 +34,11 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, less_than_n_subdirs
 
+is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
+is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
+column_names = x -> names(CSV.read(x, DataFrame))
 
 function delete_if_exists(f)
     if isdir(f)
@@ -471,6 +474,7 @@ n_files_or_more = (x, k) -> isdir(x) & (length(files(x))>=k)
 less_than_n_files = (x, k) -> isdir(x) & (length(files(x))<k)
 subdirs = x -> [_x for _x in read_dir(x) if isdir(x)]
 has_n_subdirs = (x, k) -> (length(subdirs(x))==k)
+less_than_n_subdirs = (x, k) -> (length(subdirs(x))<k)
 log_to_file = (x, fname) -> write_file(fname, x)
 ignore = x -> nothing
 always = x->true
