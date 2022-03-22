@@ -46,9 +46,7 @@ From: fedora:35
 %runscript
     echo "Container was created $NOW"
     echo "Arguments received: $*"
-    echo pwd
-    exec echo "$@"
-    exec julia --project=/opt/DataCurator.jl /opt/DataCurator.jl/src/curator.jl --recipe $1
+    /opt/runjulia.sh $1
 
 %labels
     Author Ben Cardoen, bcardoen@sfu.ca
