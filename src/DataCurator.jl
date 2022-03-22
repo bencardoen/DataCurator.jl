@@ -34,11 +34,12 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, less_than_n_subdirs
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, less_than_n_subdirs, has_n_columns
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
 column_names = x -> names(CSV.read(x, DataFrame))
+has_n_columns = (x, k) -> length(CSV.read(x, DataFrame))
 
 function delete_if_exists(f)
     if isdir(f)
@@ -193,10 +194,15 @@ function handle_chained(f::AbstractVector, glob::AbstractDict)
 end
 
 function decode_function(f::AbstractVector, glob::AbstractDict)
-    @debug "TODO REFACTOR"
-    if length(f) < 2
+    negate = f[1] == "not"
+    minlength = negate ? 3 : 2
+    if length(f) < minlength
         @error "$f is not a valid function"
         return nothing
+    end
+    if negate
+        "Negation mode active"
+        f = f[2:end]
     end
     fname = f[1]
     if startswith(fname, "transform_")
@@ -226,10 +232,16 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     if glob["regex"]
         if fname ∈ ["startswith", "endswith"]
             @info "Using Regex conversion"
-            return x-> fs(x, Regex(f[2]))
+            functor = x-> fs(x, Regex(f[2]))
+            return negate ? flipfunctor(functor) : functor
         end
     end
-    return x -> fs(x, f[2:end]...)
+    functor = x -> fs(x, f[2:end]...)
+    return negate ? flipfunctor(functor) : functor
+end
+
+function flipfunctor(f)
+    return x -> ~f(x)
 end
 
 function lookup_filelists(tpl, glob)
