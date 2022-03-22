@@ -37,17 +37,17 @@ using DataFrames
     end
 
     @testset "example_early_exit" begin
-        # IN = "testdir/void"
-        # if isdir(IN)
-        #     rm(IN, recursive=true)
-        # end
-        # mkpath(IN)
-        # f1 = joinpath(IN, "c.txt")
-        # touch(f1)
-        # res = create_template_from_toml("../example_recipes/early_exit.toml")
-        # c, t = res
-        # cts, cls, rv = delegate(c, t)
-        # @test rv == :quit
+        IN = "testdir/void"
+        if isdir(IN)
+            rm(IN, recursive=true)
+        end
+        mkpath(IN)
+        f1 = joinpath(IN, "c.txt")
+        touch(f1)
+        res = create_template_from_toml("../example_recipes/early_exit.toml")
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        @test rv == :quit
 
     end
 
