@@ -361,7 +361,9 @@ function extract_template(config, glob)
             template[level_nr] = level_temp
         end
     end
-    length(template) == 0 ? @error "Your template is empty !!" : nothing
+    if length(template) == 0
+        @error "Your template is empty !!"
+    end
     return template
 end
 
