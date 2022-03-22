@@ -7,4 +7,4 @@ all = true
 conditions = ["isfile", ["endswith", ".txt"]]
 #If we see anything we don't expect, abort immediately.
 #For parallel applications this can be a delayed abort, because other threads are dealing with different parts.
-actions = ["halt"]
+actions = ["warn_on_fail", "halt",]
