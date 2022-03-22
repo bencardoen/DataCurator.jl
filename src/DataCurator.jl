@@ -208,7 +208,7 @@ function handle_chained(f::AbstractVector, glob::AbstractDict)
 end
 
 function decode_function(f::AbstractVector, glob::AbstractDict)
-    @info f
+    # @info f
     negate = false
     if f[1] == "not"
         @info "Negate switched on"
