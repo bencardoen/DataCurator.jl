@@ -1,4 +1,4 @@
-# This program is free software: you can redistribute it and/or modify
+@debug# This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -99,7 +99,7 @@ end
 function handlefilelists!(val, key, glob_defaults)
     file_entries = val
     cts = Dict()
-    @info file_entries
+    @debug file_entries
     for ce in file_entries
         d = decode_filelist(ce, glob_defaults)
         if isnothing(d)
@@ -110,7 +110,7 @@ function handlefilelists!(val, key, glob_defaults)
             cts[name]=cpair
         end
     end
-    @info cts
+    @debug cts
     glob_defaults["file_lists"] = cts
 end
 
@@ -126,7 +126,7 @@ function decode_counter(c::AbstractString)
 end
 
 function decode_counter(c::AbstractVector)
-    @info "Found complex counter"
+    @debug "Found complex counter"
     if length(c) != 2
         @error "Failed decoding $c"
         return nothing
@@ -163,7 +163,7 @@ end
     left_to_right : g(f(x)), otherwise f(g(x))
 """
 function collapse_functions(fs; left_to_right=false)
-    @info "Collapsing chained functions L->R? $(left_to_right)"
+    @debug "Collapsing chained functions L->R? $(left_to_right)"
     reduc = (f, g) -> x->f(g(x))
     fs = left_to_right ? reverse(fs) : fs
     return reduce(reduc, fs)
@@ -176,7 +176,7 @@ function handle_chained(f::AbstractVector, glob::AbstractDict)
     chain = []
     if fuser ∈ ["transform_inplace", "transform_copy"]
         for candidate in remainder
-            @info "Decoding $candidate"
+            @debug "Decoding $candidate"
             cfs = decode_function(candidate, glob)
             isnothing(cfs) ? throw(ArgumentError) : nothing
             push!(chain, cfs)
@@ -197,7 +197,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     end
     fname = f[1]
     if startswith(fname, "transform_")
-        @info "Chained transform detected"
+        @debug "Chained transform detected"
         return handle_chained(f, glob)
     end
     fs = lookup(fname)
@@ -231,15 +231,15 @@ end
 
 function lookup_filelists(tpl, glob)
     ac, fn = tpl
-    @info "Looking up FL on keyword $ac with name  $fn"
+    @debug "Looking up FL on keyword $ac with name  $fn"
     if haskey(glob, "file_lists")
-        @info "Checking file list table"
+        @debug "Checking file list table"
         fl_table = glob["file_lists"]
-        @info fl_table
+        @debug fl_table
         if haskey(fl_table, fn)
             fl_object = fl_table[fn]
             _, fl_adder = fl_object
-            @info "Success!"
+            @debug "Success!"
             return fl_adder
         end
     end
@@ -249,15 +249,15 @@ end
 
 function lookup_counter(tpl, glob)
     ac, fn = tpl
-    @info "Looking up counter on keyword $ac with name  $fn"
+    @debug "Looking up counter on keyword $ac with name  $fn"
     if haskey(glob, "counters")
-        @info "Checking counter table"
+        @debug "Checking counter table"
         counter_table = glob["counters"]
-        @info counter_table
+        @debug counter_table
         if haskey(counter_table, fn)
             counter_object = counter_table[fn]
             count, counter = counter_object
-            @info "Success!"
+            @debug "Success!"
             return counter
         end
     end
@@ -361,6 +361,7 @@ function extract_template(config, glob)
             template[level_nr] = level_temp
         end
     end
+    length(template) == 0 ? @error "Your template is empty !!" : nothing
     return template
 end
 
