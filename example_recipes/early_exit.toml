@@ -1,7 +1,7 @@
 [global]
 act_on_success = true
 inputdirectory = "testdir"
-traversal = "topdown"
+traversal = "bottomup"
 [any]
 all = true
 conditions = ["isfile", ["endswith", ".txt"]]
