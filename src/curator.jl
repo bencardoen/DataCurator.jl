@@ -45,7 +45,7 @@ function run()
     res = create_template_from_toml(c)
     if isnothing(res)
         @error "Failed reading $c"
-        return DataCurator.:proceed
+        return :proceed
     end
     cfg, template = res
     c, l, r = delegate(cfg, template)

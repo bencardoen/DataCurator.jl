@@ -146,15 +146,18 @@ Check the directory example_recipes for examples on how to achieve a whole range
   ...
   condition = ["startswith", "[0-9]+"]
   ```
-  This will now match files with 1 or more integers at the beginning of the file name.
+  This will now match files with 1 or more integers at the beginning of the file name. **Note** If you try to pass a regex such as *.txt, you'll get an error complaining about PCRE not being able to compile your Regex. The reason for this is the lookahead/lookback functionality in the Regex engine not allowing such wildcards at the beginning of a regex. When you write *.txt, what you probably meant was 'anything with extension txt', but not the name ".txt", which " *.txt " will also match. Instead, use "\.\*.txt". When in doubt, don't use a regex if you can avoid it. Similar to Kruger-Dunning, those who believe they can wield a regex with confidence, probably shouldn't.
 
 - **Negating conditions**: By default your conditions are 'OR'ed, and by setting all=yes, you have 'AND'. By flipping action_on_succes you can negate all conditions. So in essence you don't need more than that for all combinations, but if you need to specifically flip 1 condition, this will get messy. Instead, you can negate any condition by giving it a prefix argumet of "not".
   ```toml
   [global]
-  act_on_success=true
-  [level_42]
+  act_on_success = true
+  inputdirectory = "testdir"
+  regex=true
+  [any]
   all=true
-  condition = ["isfile", ["not", "is_2d_img"]]
+  conditions = ["isfile", ["not", "endswith", ".*.txt"]]
+  actions = [["flatten_to", "outdir"], "warn_on_fail"]
   ```
 
 #### Usage
@@ -364,3 +367,21 @@ length
 sum
 isnothing
 ```
+
+
+## Troubleshooting
+
+#### Conditions not working as expected
+- Check if you used regex syntax without setting regex=true
+- Check the log to see if your conditions are being recognized
+#### I'm getting weird non-deterministic results
+- If you use parallel=true, and global variables, and no locks, then that is expected, use the lists to aggregate anything in a threadsafe way
+#### Things are slower with parallel=true
+- If you have small data on a fast filesystem, the gain of using threads is minimal, and so overhead begins to dominate. Use parallel=true if you have a lot of files, need to read/check large files, a slow filesystem, and/or deep hierarchies. By default, the nr of threads = JULIA_NUM_THREADS = nr of cores. So on a cluster, think if that makes sense for you. For small to medium datasets I'd be surprised if you gain from more than 16 threads. On the other hand, for large (>1TB, 1e6 files) datasets, 24+ has worked for me.
+#### I told your code to quit, but it kept going
+- With parallel=true, it can take time before all other threads get the message that they too should quit, not just the thread that's doing work. Without a locked global that is continuously checked, in which case performance drops extremely, there's no way to avoid this. If you need a brusque "drop everything" exit, then use a function like
+
+    ```julia
+    end_times = x -> exit(-1)
+    ```
+Don't expect counters, filelists etc to be in a usable state if you do this.

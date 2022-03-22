@@ -1,0 +1,8 @@
+[global]
+act_on_success = true
+inputdirectory = "testdir"
+regex=true
+[any]
+all=true
+conditions = ["isfile", ["not", "endswith", ".*.txt"]]
+actions = [["flatten_to", "outdir"], "warn_on_fail"]

@@ -34,12 +34,14 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, less_than_n_subdirs, has_n_columns
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
 column_names = x -> names(CSV.read(x, DataFrame))
 has_n_columns = (x, k) -> length(CSV.read(x, DataFrame))
+path_only = x -> splitdir(x)[1]
+remove = x -> delete_if_exists(x)
 
 function delete_if_exists(f)
     if isdir(f)
@@ -120,6 +122,18 @@ end
 
 
 function handle_default!(val, key, glob_defaults)
+    if key == "traversal"
+        if val ∈ ["topdown", "bottomup"]
+            glob_defaults[key] = Symbol(val)
+            return
+        else
+            throw(ArgumentError("Invalid key $key - $val"))
+        end
+    end
+    if typeof(glob_defaults[key]) != typeof(val)
+        @error "Value $val for key $key in global section has the incorrect type. Check if you entered e.g. 'true' instead of true."
+        throw(ArgumentError("Invalid key $key - $val"))
+    end
     glob_defaults[key] = val
 end
 
@@ -194,14 +208,18 @@ function handle_chained(f::AbstractVector, glob::AbstractDict)
 end
 
 function decode_function(f::AbstractVector, glob::AbstractDict)
-    negate = f[1] == "not"
-    minlength = negate ? 3 : 2
-    if length(f) < minlength
-        @error "$f is not a valid function"
+    @info f
+    negate = false
+    if f[1] == "not"
+        @info "Negate switched on"
+        negate=true
+    end
+    # minlength = negate ? 3 : 2
+    if length(f) < 2
+        @error "$f is not a valid function, too few arguments"
         return nothing
     end
     if negate
-        "Negation mode active"
         f = f[2:end]
     end
     fname = f[1]
@@ -597,6 +615,8 @@ function addentry!(sharedlist, entry)
 end
 
 add_to_file_list= (x, list) -> addentry!(list, x)
+
+add_path_to_file_list = (x, list) -> addentry!(list, splitdir(x)[1])
 
 function ends_with_integer(x)
     ~isnothing(match(r"[0-9]+$", x))
