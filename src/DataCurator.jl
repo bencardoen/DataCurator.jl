@@ -271,10 +271,11 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     if f[1] == "all"
         @info "Nested actions"
         rem = f[2:end]
-        fs = [decode_symbol(_f) for _f in rem]
+        _fs = [decode_symbol(_f) for _f in rem]
         @info fs
-        throw(42)
+        throw(ArgumentError("Work in progress"))
         # return x->apply_all(decode_symbol(f))
+        return x->apply_all(_fs, x)
     end
     # minlength = negate ? 3 : 2
     if length(f) < 2
