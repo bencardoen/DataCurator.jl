@@ -257,6 +257,25 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
         @info "Negate switched on"
         negate=true
     end
+    if typeof(f[1])<:AbstractVector
+        @info "Nested actions"
+        if f[1][1] == "all"
+            rem_f = f[1][2:end]
+            subfs = [decode_function(_f, glob) for _f in rem_f]
+            return x->apply_all(sub_fs, x)
+        else
+            @error "$f is not valid nested function"
+            throw(ArgumentError("$f"))
+        end
+    end
+    if f[1] == "all"
+        @info "Nested actions"
+        rem = f[2:end]
+        fs = [decode_symbol(_f) for _f in rem]
+        @info fs
+        throw(42)
+        # return x->apply_all(decode_symbol(f))
+    end
     # minlength = negate ? 3 : 2
     if length(f) < 2
         @error "$f is not a valid function, too few arguments"
