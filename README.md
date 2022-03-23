@@ -160,6 +160,20 @@ Check the directory example_recipes for examples on how to achieve a whole range
   actions = [["flatten_to", "outdir"], "warn_on_fail"]
   ```
 
+- **Counteractions** : When you're validating you'll want to warn/log invalid files/folders. But at the same time, you may want to do the actual preprocessing as well. This is where counteractions come in, they allow you to specify
+  - Do x when condition = true
+  - Do y when condition = false
+  A simple example, filtering by file type:
+  ```toml
+  [global]
+  act_on_success=true
+  inputdirectory = "testdir"
+  [any]
+  conditions=["is_csv_file"]
+  actions=[["log_to_file", "csvs.txt"]]
+  counter_actions = [["log_to_file", "non_csvs.txt"]]
+  ```
+
 #### Usage
 Assuming you have the singularity image (does not require Julia, nor installation of dependencies)
 ```bash

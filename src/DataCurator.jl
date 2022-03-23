@@ -504,7 +504,7 @@ function decode_level(level_config, globalconfig)
     @info "Conditions --> $conditions"
     coas = []
     if haskey(level_config, "counter_actions")
-        coas = level_config["counter_actions"]
+        counteractions = level_config["counter_actions"]
         @warn "Enabling Counter Action mode"
         if (length(actions) != length(conditions)) || (length(actions) != length(conditions))
             if all_mode ==false
