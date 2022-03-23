@@ -45,8 +45,9 @@ remove = x -> delete_if_exists(x)
 
 
 function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}, on_success::Bool)
+    @info "Do-step for 2-tuple c/a for $node on_success=$(on_success)"
     if t.condition(node) == on_success
-        @debug "Condition fired for $node with on_success == $(on_success)"
+        @info "Condition fired for $node with on_success == $(on_success)"
         rv = t.action(node)
         if rv == :quit
             @debug "Early exit for $node"
@@ -376,6 +377,7 @@ function shared_list_to_table(list)
     tables = []
     for sublist in list
         for csv_file in sublist
+            @info "Reading $csv_file"
             try
                 tb = CSV.read(csv_file, DataFrame)
                 push!(tables, tb)
@@ -469,7 +471,7 @@ function to_level(actions, conditions, counteractions; all=false)
         co_all = x->all_of(conditions, x)
         return [make_tuple(co_all, a_all, ca_all)]
     else
-        return [make_tuple(condition, action, counteraction) for (condition, action, counteraction) in zip(actions, conditions, counteractions)]
+        return [make_tuple(condition, action, counteraction) for (condition, action, counteraction) in zip(conditions, actions, counteractions)]
     end
 end
 
@@ -479,7 +481,7 @@ function to_level(actions, conditions; all=false)
         co_all = x->all_of(conditions, x)
         return [make_tuple(co_all, a_all)]
     else
-        return [make_tuple(condition, action) for (condition, action) in zip(actions, conditions)]
+        return [make_tuple(condition, action) for (condition, action) in zip(conditions, actions)]
     end
 end
 

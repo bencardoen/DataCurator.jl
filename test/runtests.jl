@@ -84,10 +84,10 @@ using DataFrames
 
     @testset "tolevel" begin
 
-        a=to_level([iseven], [sin], [cos];all=true)
-        b=to_level([iseven], [sin], [cos];all=false)
-        c=to_level([iseven], [sin];all=true)
-        d=to_level([iseven], [sin];all=false)
+        a=to_level([sin], [iseven], [cos];all=true)
+        b=to_level([sin],[iseven] ,[cos];all=false)
+        c=to_level([sin],[iseven];all=true)
+        d=to_level([sin],[iseven];all=false)
         @test a[1].condition(2) == b[1].condition(2)
         @test b[1].condition(2) == d[1].condition(2)
         @test a[1].condition(2) == d[1].condition(2)
