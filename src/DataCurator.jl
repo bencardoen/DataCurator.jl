@@ -1116,11 +1116,12 @@ function verifier(node, template::Vector, level::Int; on_success=false)
     # for t in template
     # rv = dostep(t)
     for step in template
-        rv = dostep(node, step, on_succes)
+        rv = dostep(node, step, on_success)
         if rv == :quit
             @debug "Early exit for $node at $level"
             return :quit
         end
+    end
     return :proceed
 
     # for (condition, action) in template

@@ -479,8 +479,9 @@ using DataFrames
         action = x -> transform_inplace(x, no_space)
         has_whitespace = condition
         space_to_ = action
-        @test transform_template(root, [(has_whitespace, space_to_)]) == :proceed
-        verify_template(root, [(has_whitespace, space_to_)]) == :proceed
+        X = make_tuple(has_whitespace, space_to)
+        @test transform_template(root, [X]) == :proceed
+        verify_template(root, [X]) == :proceed
         rm(root, recursive=true, force=true)
         global_logger(c)
     end
@@ -609,11 +610,13 @@ using DataFrames
                 touch(joinpath(root, ["$i" for i in 1:i]..., "$i.txt"))
             end
             # i = Threads.Atomic{Int}(0);
-            q=verify_template(root, [(x->false, quit_on_fail)])
+            X = make_tuple(x->false, quit_on_fail)
+            q=verify_template(root, [X])
             @test q == :quit
-            q=verify_template(root, [(x->false, warn_on_fail)])
+            Y= make_tuple(x->false, warn_on_fail)
+            q=verify_template(root, [Y])
             @test q == :proceed
-            template = [(x->false, warn_on_fail)]
+            template = [Y]
             templater = Dict([(-1, template), (1, template)])
             z=verify_template(root, templater; traversalpolicy=topdown)
             @test z == :proceed
