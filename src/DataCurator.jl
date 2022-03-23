@@ -510,7 +510,7 @@ function decode_level(level_config, globalconfig)
                 return nothing
             end
         end
-        lvl = to_level(actions, conditions, counteractions;all=all_mode)
+        lvl = to_level(parse_all(actions,globalconfig) , parse_all(conditions,globalconfig) , parse_all(counteractions,globalconfig) ;all=all_mode)
         @info "decode level successful"
         return lvl
     else
@@ -520,7 +520,7 @@ function decode_level(level_config, globalconfig)
                 return nothing
             end
         end
-        lvl = to_level(actions, conditions;all=all_mode)
+        lvl = to_level(parse_all(actions, globalconfig) , parse_all(conditions, globalconfig) ;all=all_mode)
         @info "Decode level success"
         return lvl
     end
