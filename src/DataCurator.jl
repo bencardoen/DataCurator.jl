@@ -517,8 +517,8 @@ function decode_level(level_config, globalconfig)
                 @error "Action and conditions do not align, this is accepted only when all=true"
                 return nothing
             end
-            lvl = to_level(actions, conditions;all=all_mode)
         end
+        lvl = to_level(actions, conditions;all=all_mode)
     end
     ### If counteractions
     ### tolevel(a,b,c)
@@ -1111,17 +1111,25 @@ function verifier(node, template::Vector, level::Int; on_success=false)
     #
     # for t in template
     # rv = dostep(t)
-    for (condition, action) in template
-        if condition(node) == on_success
-            @debug "Condition failed on $node"
-            rv = action(node)
-            if rv == :quit
-                @debug "Early exit for $node at $level"
-                return :quit
-            end
+    for step in template
+        rv = dostep(node, step, on_succes)
+        if rv == :quit
+            @debug "Early exit for $node at $level"
+            return :quit
         end
-    end
     return :proceed
+
+    # for (condition, action) in template
+    #     if condition(node) == on_success
+    #         @debug "Condition failed on $node"
+    #         rv = action(node)
+    #         if rv == :quit
+    #             @debug "Early exit for $node at $level"
+    #             return :quit
+    #         end
+    #     end
+    # end
+    # return :proceed
 end
 
 
@@ -1162,16 +1170,24 @@ function verifier(node, templater::Dict, level::Int; on_success=false)
             @debug "No verification at level $level for $node"
         end
     end
-    for (condition, action) in template
-        if condition(node) == on_success
-            @debug "Condition fired for $node --> action"
-            rv = action(node)
-            @debug "Return value $rv"
-            if rv == :quit
-                return :quit
-            end
+    for step in template
+        # MARK 2
+        rv = dostep(node, step, on_success)
+        @debug "Return value $rv"
+        if rv == :quit
+            return :quit
         end
     end
+    # for (condition, action) in template
+    #     if condition(node) == on_success
+    #         @debug "Condition fired for $node --> action"
+    #         rv = action(node)
+    #         @debug "Return value $rv"
+    #         if rv == :quit
+    #             return :quit
+    #         end
+    #     end
+    # end
     return :proceed
 end
 
