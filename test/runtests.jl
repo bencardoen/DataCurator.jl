@@ -203,11 +203,11 @@ using DataFrames
         template = Dict()
         isint = x -> ~isnothing(tryparse(Int, splitpath(x)[end]))
         template[-1] = [(always, x-> quit_on_fail)]
-        template[1] = [(x-> isdir(x), warn_on_fail)]
-        template[2] = [(x->all_of([isdir, isint],x), warn_on_fail)]
-        template[3] = [(x->isdir(x), warn_on_fail)]
-        template[4] = [(x->all_of([isdir, valid_cellnr],x), warn_on_fail)]
-        template[5] = [(x->all_of([isfile, valid_channel, is3d],x), warn_on_fail)]
+        template[1] = [make_tuple(x-> isdir(x), warn_on_fail)]
+        template[2] = [make_tuple(x->all_of([isdir, isint],x), warn_on_fail)]
+        template[3] = [make_tuple(x->isdir(x), warn_on_fail)]
+        template[4] = [make_tuple(x->all_of([isdir, valid_cellnr],x), warn_on_fail)]
+        template[5] = [make_tuple(x->all_of([isfile, valid_channel, is3d],x), warn_on_fail)]
         @test verify_template(root, template; act_on_success=false)==:proceed
         rm(root, force=true, recursive=true)
         global_logger(c)
@@ -442,7 +442,8 @@ using DataFrames
         @test valid_cellnr("Serie 040")
         Q = make_counter()#ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
         countsize = x -> increment_counter(Q; inc=filesize(x))
-        template = [(isfile, countsize)]
+        template = [make_tuple(isfile, countsize)]
+        # template = [(isfile, countsize)]
         verify_template(root, template; act_on_success=true)
         @test sum(Q.data) == 1648
         Q = make_counter(true)
@@ -482,7 +483,7 @@ using DataFrames
         action = x -> transform_inplace(x, no_space)
         has_whitespace = condition
         space_to_ = action
-        X = make_tuple(has_whitespace, space_to)
+        X = make_tuple(has_whitespace, space_to_)
         @test transform_template(root, [X]) == :proceed
         verify_template(root, [X]) == :proceed
         rm(root, recursive=true, force=true)
