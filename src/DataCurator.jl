@@ -511,6 +511,8 @@ function decode_level(level_config, globalconfig)
             end
         end
         lvl = to_level(actions, conditions, counteractions;all=all_mode)
+        @info "decode level successful"
+        return lvl
     else
         if length(actions) != length(conditions)
             if all_mode == false
@@ -519,26 +521,28 @@ function decode_level(level_config, globalconfig)
             end
         end
         lvl = to_level(actions, conditions;all=all_mode)
+        @info "Decode level success"
+        return lvl
     end
-    ### If counteractions
-    ### tolevel(a,b,c)
-    ### else
-    ### tolevel(a,b)
-    level = []
-    @info "Parsing actions & conditions"
-    # If actions < conditions, is this dropping things if all=true
-    if all_mode == false
-        parsed_conditions = parse_all(conditions, globalconfig)
-        parsed_actions = parse_all(actions, globalconfig)
-        level = [[c,a] for (c,a) in zip(parsed_conditions, parsed_actions)]
-        return level
-    else
-        cs = parse_all(conditions, globalconfig)
-        cas = parse_all(actions, globalconfig)
-        @info "Fusing actions and conditions"
-        level = [(x->all_of(cs, x), x->apply_all(cas, x) )]
-        return level
-    end
+    # ### If counteractions
+    # ### tolevel(a,b,c)
+    # ### else
+    # ### tolevel(a,b)
+    # level = []
+    # @info "Parsing actions & conditions"
+    # # If actions < conditions, is this dropping things if all=true
+    # if all_mode == false
+    #     parsed_conditions = parse_all(conditions, globalconfig)
+    #     parsed_actions = parse_all(actions, globalconfig)
+    #     level = [[c,a] for (c,a) in zip(parsed_conditions, parsed_actions)]
+    #     return level
+    # else
+    #     cs = parse_all(conditions, globalconfig)
+    #     cas = parse_all(actions, globalconfig)
+    #     @info "Fusing actions and conditions"
+    #     level = [(x->all_of(cs, x), x->apply_all(cas, x) )]
+    #     return level
+    # end
 end
 
 
