@@ -462,28 +462,28 @@ function decode_level(level_config, globalconfig)
         end
         return level
     else
-        cs=[]
-        for condition in conditions
-            @info "Checking $condition"
-            c = decode_symbol(condition, globalconfig)
-            if isnothing(c)
-                @error "Invalid conditions for $action or $condition"
-                return nothing
-            end
-            push!(cs, c)
-        end
-        cas=[]
-        for action in actions
-            @info "Checking $action"
-            c = decode_symbol(action, globalconfig)
-            if isnothing(c)
-                @error "Invalid conditions for $action or $condition"
-                return nothing
-            end
-            push!(cas, c)
-        end
-        # cs = parse_all(conditions, globalconfig)
-        # cas = parse_all(actions, globalconfig)
+        # cs=[]
+        # for condition in conditions
+        #     @info "Checking $condition"
+        #     c = decode_symbol(condition, globalconfig)
+        #     if isnothing(c)
+        #         @error "Invalid conditions for $action or $condition"
+        #         return nothing
+        #     end
+        #     push!(cs, c)
+        # end
+        # cas=[]
+        # for action in actions
+        #     @info "Checking $action"
+        #     c = decode_symbol(action, globalconfig)
+        #     if isnothing(c)
+        #         @error "Invalid conditions for $action or $condition"
+        #         return nothing
+        #     end
+        #     push!(cas, c)
+        # end
+        cs = parse_all(conditions, globalconfig)
+        cas = parse_all(actions, globalconfig)
         @info "Fusing actions and conditions"
         level = [(x->all_of(cs, x), x->apply_all(cas, x) )]
         return level
