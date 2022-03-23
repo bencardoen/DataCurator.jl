@@ -307,22 +307,22 @@ end
 function delegate(config, template)
     parallel = config["parallel"] ? "parallel" : "sequential"
     rval =  verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
-    @info "Return value == $rval"
+    @debug "Return value == $rval"
     counters, lists = [], []
     for c in config["counters"]
         name, (count, counter) = c
-        @info "Counter named $name has value $count"
+        @debug "Counter named $name has value $count"
         push!(counters, read_counter(count))
     end
     for f in config["file_lists"]
         name, (list, _) = f
         if contains(name, "table")
-            @info "Found a list of csv's to fuse into 1 table for $name"
+            @debug "Found a list of csv's to fuse into 1 table for $name"
             df = shared_list_to_table(list)
-            @info "Writing to $name.csv"
+            @debug "Writing to $name.csv"
             CSV.write("$name.csv", df)
         else
-            @info "Saving list to $(name).txt"
+            @debug "Saving list to $(name).txt"
             shared_list_to_file(list, "$(name).txt")
         end
         push!(lists, vcat(list...))
@@ -403,6 +403,19 @@ function extract_template(config, glob)
     return template
 end
 
+function parse_acsym(a, glob)
+    @info "Parsing $a"
+    parsed = decode_symbol(a, glob)
+    if isnothing(parsed)
+        throw(ArgumentError("Not a valid action of condition : $a"))
+    end
+    return parsed
+end
+
+function parse_all(acs, glob)
+    return [parse_acsym(ac, glob) for ac in acs]
+end
+
 function decode_level(level_config, globalconfig)
     # @info level_config
     # @info globalconfig
@@ -419,10 +432,14 @@ function decode_level(level_config, globalconfig)
     @info "Actions --> $actions"
     conditions = level_config["conditions"]
     @info "Conditions --> $conditions"
+    coas = []
+    if haskey(level_config, "counter_actions")
+        coas = level_config["counter_actions"]
+        @warn "Enabling Counter Action mode"
+    end
     if length(actions) != length(conditions)
         if all_mode == false
-            @error "Action and conditions do not align to pairs."
-            @error "This is accepted only when all=true"
+            @error "Action and conditions do not align, this is accepted only when all=true"
             return nothing
         end
     end
@@ -432,12 +449,13 @@ function decode_level(level_config, globalconfig)
     if all_mode == false
         for (action, condition) in zip(actions, conditions)
             @info "Checking $action and $condition"
-            a = decode_symbol(action, globalconfig)
-            c = decode_symbol(condition, globalconfig)
-            if isnothing(a) | isnothing(c)
-                @error "Invalid conditions for $action or $condition"
-                return nothing
-            end
+            a, c = parse_acsym(action, globalconfig), parse_acsym(condition, globalconfig)
+            # a = decode_symbol(action, globalconfig)
+            # c = decode_symbol(condition, globalconfig)
+            # # if isnothing(a) | isnothing(c)
+            # #     @error "Invalid conditions for $action or $condition"
+            # #     return nothing
+            # # end
             push!(level, [c, a])
         end
         return level
@@ -658,16 +676,16 @@ end
 
 function apply_all(fs, x)
     for f in fs
-        @info "Applying $f to $x"
+        @debug "Applying $f to $x"
         _rv = f(x)
-        @info "Short circuit break with rv is $(_rv)"
+        @debug "Short circuit break with rv is $(_rv)"
         if _rv == :quit
-            @info "Returning :quit"
+            @debug "Returning :quit"
             return :quit
         end
-        @info "Not quit, proceeding"
+        @debug "Not quit, proceeding"
     end
-    @info "Returning proceed"
+    @debug "Returning proceed"
     return :proceed
 end
 
@@ -889,7 +907,7 @@ function verify_template(start, template; expander=expand_filesystem, traversalp
     vf = act_on_success ? verify_dispatch_flipped : verify_dispatch
     if typeof(template) <: Vector || typeof(template) <: Dict
         rv =  traversalpolicy(start, expander, vf; context=Dict([("node", start), ("template", template), ("level",1)]),  inner=_expand_table[parallel_policy])
-        @info "Return value = $rv for $start and $traversalpolicy"
+        @debug "Return value = $rv for $start and $traversalpolicy"
         return rv
     else
         @error "Unsupported template"
@@ -920,13 +938,13 @@ function expand_sequential(node, expander, visitor, context)
             ncontext["node"] = _node
         end
         rv = bottomup(_node, expander, visitor; context=ncontext, inner=expand_sequential)
-        @info "Return value bottomup $rv for $node"
+        @debug "Return value bottomup $rv for $node"
         if rv == :quit
-            @info "Early exit triggered for $node"
+            @debug "Early exit triggered for $node"
             return :quit
         end
     end
-    @info "Returning proceed for $node"
+    @debug "Returning proceed for $node"
     return :proceed
 end
 
@@ -943,11 +961,11 @@ function expand_threaded(node, expander, visitor, context)
         end
         rv = bottomup(_node, expander, visitor; context=ncontext, inner=expand_threaded)
         if rv == :quit
-            @info "Early exit triggered for $node"
+            @debug "Early exit triggered for $node"
             return :quit
         end
     end
-    @info "Returning proceed for $node"
+    @debug "Returning proceed for $node"
     return :proceed
 end
 
@@ -967,15 +985,15 @@ function bottomup(node, expander, visitor; context=nothing, inner=expand_sequent
     # nodes = expander(node)
     rv_inner = inner(node, expander, visitor, context)
     if rv_inner == :quit
-        @info "Early exit triggered for $node by expander"
+        @debug "Early exit triggered for $node by expander"
         return :quit
     end
     early_exit = visitor(isnothing(context) ? node : context)
     if early_exit == :quit
-        @info "Early exit triggered for $node by visitor"
+        @debug "Early exit triggered for $node by visitor"
         return :quit
     end
-    @info "Returning proceed for $node"
+    @debug "Returning proceed for $node"
     return :proceed
 end
 
@@ -989,20 +1007,20 @@ end
     Traversal is done in a pre-order way, e.g. visit before expanding.
 """
 function topdown(node, expander, visitor; context=nothing, inner=expand_sequential)
-    @info "Topdown @ $node"
+    @debug "Topdown @ $node"
     early_exit = visitor(isnothing(context) ? node : context)
-    @info "Visitor for $node -> $(early_exit)"
+    @debug "Visitor for $node -> $(early_exit)"
     if early_exit == :quit
-        @info "Early exit triggered for $node"
+        @debug "Early exit triggered for $node"
         return :quit
     end
-    @info "Expanding for $node"
+    @debug "Expanding for $node"
     rv_inner = inner(node, expander, visitor, context)
     if rv_inner == :quit
-        @info "Expander returned quit for $node"
+        @debug "Expander returned quit for $node"
         return :quit
     end
-    @info "Returning proceed"
+    @debug "Returning proceed"
     return :proceed
 end
 
@@ -1070,9 +1088,9 @@ function verifier(node, templater::Dict, level::Int; on_success=false)
     end
     for (condition, action) in template
         if condition(node) == on_success
-            @info "Condition fired for $node --> action"
+            @debug "Condition fired for $node --> action"
             rv = action(node)
-            @info "Return value $rv"
+            @debug "Return value $rv"
             if rv == :quit
                 return :quit
             end
@@ -1091,7 +1109,7 @@ function all_of(fs, x)
             return false
         end
     end
-    @info "All passed"
+    @debug "All passed"
     return true
 end
 
