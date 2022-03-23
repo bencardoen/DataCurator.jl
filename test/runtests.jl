@@ -296,13 +296,16 @@ using DataFrames
             end
         end
         s, ct = generate_counter(true)
-        template = [( x -> endswith(x, "0.tif"), x->apply_all([ct, delete_file],x))]
+        X = make_tuple(x -> endswith(x, "0.tif"), x->apply_all([ct, delete_file],x) )
+        # template = [( x -> endswith(x, "0.tif"), x->apply_all([ct, delete_file],x))]
+        template = [X]
         @test isfile(joinpath(root, "1", "Type 2", "Serie 14", "channel_0.tif"))
         verify_template(root, template; act_on_success=true)
         @test ~isfile(joinpath(root, "1", "Type 2", "Serie 14", "channel_0.tif"))
         @test read_counter(s) == 1
         s, ct = generate_counter(true)
-        template = [( x -> endswith(x, "0.tif"), x->apply_all([ct, delete_file],x))]
+        template = [X]
+        # template = [( x -> endswith(x, "0.tif"), x->apply_all([ct, delete_file],x))]
         verify_template(root, template; act_on_success=true)
         @test ~isfile(joinpath(root, "1", "Type 2", "Serie 14", "channel_0.tif"))
         @test read_counter(s) == 0
@@ -585,9 +588,11 @@ using DataFrames
                 touch(joinpath(root, ["$i" for i in 1:i]..., "$i.txt"))
             end
             # i = Threads.Atomic{Int}(0);
-            q=verify_template(root, [(x->false, quit_on_fail)])
+            X = make_tuple(x->false, quit_on_fail)
+            Y = make_tuple(x->false, warn_on_fail)
+            q=verify_template(root, [X])
             @test q == :quit
-            q=verify_template(root, [(x->false, warn_on_fail)])
+            q=verify_template(root, [Y])
             @test q == :proceed
             rm(root, force=true, recursive=true)
         end
