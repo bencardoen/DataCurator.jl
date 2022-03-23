@@ -403,6 +403,10 @@ function extract_template(config, glob)
     return template
 end
 
+
+"""
+    Helper function to parse all functions
+"""
 function parse_acsym(a, glob)
     @info "Parsing $a"
     parsed = decode_symbol(a, glob)
@@ -415,6 +419,8 @@ end
 function parse_all(acs, glob)
     return [parse_acsym(ac, glob) for ac in acs]
 end
+
+
 
 function decode_level(level_config, globalconfig)
     # @info level_config
@@ -447,19 +453,20 @@ function decode_level(level_config, globalconfig)
     @info "Parsing actions & conditions"
     # If actions < conditions, is this dropping things if all=true
     if all_mode == false
-        # cs = parse_all(conditions, globalconfig)
-        # cas = parse_all(actions, globalconfig)
-        for (action, condition) in zip(actions, conditions)
-            @info "Checking $action and $condition"
-            a, c = parse_acsym(action, globalconfig), parse_acsym(condition, globalconfig)
-            # a = decode_symbol(action, globalconfig)
-            # c = decode_symbol(condition, globalconfig)
-            # # if isnothing(a) | isnothing(c)
-            # #     @error "Invalid conditions for $action or $condition"
-            # #     return nothing
-            # # end
-            push!(level, [c, a])
-        end
+        parsed_conditions = parse_all(conditions, globalconfig)
+        parsed_actions = parse_all(actions, globalconfig)
+        level = [[c,a] for (c,a) in zip(parsed_conditions, parsed_actions)]
+        # for (action, condition) in zip(actions, conditions)
+        #     @info "Checking $action and $condition"
+        #     a, c = parse_acsym(action, globalconfig), parse_acsym(condition, globalconfig)
+        #     # a = decode_symbol(action, globalconfig)
+        #     # c = decode_symbol(condition, globalconfig)
+        #     # # if isnothing(a) | isnothing(c)
+        #     # #     @error "Invalid conditions for $action or $condition"
+        #     # #     return nothing
+        #     # # end
+        #     push!(level, [c, a])
+        # end
         return level
     else
         # cs=[]
@@ -1045,6 +1052,7 @@ end
     Dispatched function to verify at recursion level with conditions set in template for node.
     Level is ignored for now, except to debug
 """
+# Todo : change to Vector[namedtuple]  and use dispatch
 function verifier(node, template::Vector, level::Int; on_success=false)
     for (condition, action) in template
         if condition(node) == on_success
