@@ -30,11 +30,11 @@ any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list,
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
-copy_to, ends_with_integer, begins_with_integer, contains_integer,
+copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, dostep, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -42,6 +42,47 @@ column_names = x -> names(CSV.read(x, DataFrame))
 has_n_columns = (x, k) -> length(CSV.read(x, DataFrame))
 path_only = x -> splitdir(x)[1]
 remove = x -> delete_if_exists(x)
+
+
+function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}, on_success::Bool)
+    if t.condition(node) == on_success
+        @debug "Condition fired for $node with on_success == $(on_success)"
+        rv = t.action(node)
+        if rv == :quit
+            @debug "Early exit for $node"
+            return :quit
+        end
+        return :proceed
+    else
+        # rv = t.action(node)
+        # if rv == :quit
+        #     @debug "Early exit for $node"
+        #     return :quit
+        # end
+        return :proceed
+    end
+end
+
+
+function dostep(node::Any, t::NamedTuple{(:condition, :action, :counteraction), Tuple{Any, Any, Any}}, on_success::Bool)
+    if t.condition(node) == on_success
+        @debug "Condition fired for $node with on_success == $(on_success)"
+        rv = t.action(node)
+        if rv == :quit
+            @debug "Early exit for $node"
+            return :quit
+        end
+        return :proceed
+    else
+        @info "Executing counteraction for $node"
+        rv = t.counteraction(node)
+        if rv == :quit
+            @debug "Early exit for $node"
+            return :quit
+        end
+        return :proceed
+    end
+end
 
 function delete_if_exists(f)
     @warn "Removing $f"
@@ -421,6 +462,27 @@ function parse_all(acs, glob)
 end
 
 
+function to_level(actions, conditions, counteractions; all=false)
+    if all
+        a_all = x->apply_all(actions, x)
+        ca_all = x->apply_all(counteractions, x)
+        co_all = x->all_of(conditions, x)
+        return [make_tuple(co_all, a_all, ca_all)]
+    else
+        return [make_tuple(condition, action, counteraction) for (condition, action, counteraction) in zip(actions, conditions, counteractions)]
+    end
+end
+
+function to_level(actions, conditions; all=false)
+    if all
+        a_all = x->apply_all(actions, x)
+        co_all = x->all_of(conditions, x)
+        return [make_tuple(co_all, a_all)]
+    else
+        return [make_tuple(condition, action) for (condition, action) in zip(actions, conditions)]
+    end
+end
+
 
 function decode_level(level_config, globalconfig)
     # @info level_config
@@ -442,13 +504,26 @@ function decode_level(level_config, globalconfig)
     if haskey(level_config, "counter_actions")
         coas = level_config["counter_actions"]
         @warn "Enabling Counter Action mode"
-    end
-    if length(actions) != length(conditions)
-        if all_mode == false
-            @error "Action and conditions do not align, this is accepted only when all=true"
-            return nothing
+        if (length(actions) != length(conditions)) || (length(actions) != length(conditions))
+            if all_mode ==false
+                @error "Action and conditions do not align, this is accepted only when all=true"
+                return nothing
+            end
+        end
+        lvl = to_level(actions, conditions, counteractions;all=all_mode)
+    else
+        if length(actions) != length(conditions)
+            if all_mode == false
+                @error "Action and conditions do not align, this is accepted only when all=true"
+                return nothing
+            end
+            lvl = to_level(actions, conditions;all=all_mode)
         end
     end
+    ### If counteractions
+    ### tolevel(a,b,c)
+    ### else
+    ### tolevel(a,b)
     level = []
     @info "Parsing actions & conditions"
     # If actions < conditions, is this dropping things if all=true

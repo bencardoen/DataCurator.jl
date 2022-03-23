@@ -51,10 +51,50 @@ using DataFrames
         @test i==0
         nt.action(2)
         @test i==3
+        i = 0
+        nt = make_tuple(iseven, f, h)
+        nt.action(1)
+        @test i == 1
+        nt.counteraction(1)
+        @test i == 0
+    end
+
+    @testset "tupledispatch" begin
+        f = x->1
+        g = x->2
+        e = iseven
+        nt = make_tuple([e,f,g]...)
+        mt = make_tuple([e,f]...)
+        @test mt.action(2) == 1
+        @test nt.condition(2) == mt.condition(2)
+        @test nt.counteraction(2) == 2
+    end
+
+    @testset "dostep" begin
+        f = x->1
+        g = x->2
+        e = iseven
+        nt = make_tuple([e,f,g]...)
+        mt = make_tuple([e,f]...)
+        @test dostep(2, nt, true) == :proceed
+        @test dostep(2, mt, true) == :proceed
+        @test dostep(2, nt, false) == :proceed
+        @test dostep(2, mt, false) == :proceed
+    end
+
+    @testset "tolevel" begin
+
+        a=to_level([iseven], [sin], [cos];all=true)
+        b=to_level([iseven], [sin], [cos];all=false)
+        c=to_level([iseven], [sin];all=true)
+        d=to_level([iseven], [sin];all=false)
+        @test a[1].condition(2) == b[1].condition(2)
+        @test b[1].condition(2) == d[1].condition(2)
+        @test a[1].condition(2) == d[1].condition(2)
     end
 
     @testset "example_early_exit" begin
-        IN = "testdir/void"
+        IN = joinpath("testdir", "void")
         if isdir(IN)
             rm(IN, recursive=true)
         end
@@ -72,7 +112,7 @@ using DataFrames
     end
 
     @testset "example_transform_chained_2" begin
-        IN = "testdir/input_spaces_upper"
+        IN = joinpath("testdir","input_spaces_upper")
         if isdir(IN)
             rm(IN, recursive=true)
         end
