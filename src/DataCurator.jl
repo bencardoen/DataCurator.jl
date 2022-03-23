@@ -447,6 +447,8 @@ function decode_level(level_config, globalconfig)
     @info "Parsing actions & conditions"
     # If actions < conditions, is this dropping things if all=true
     if all_mode == false
+        # cs = parse_all(conditions, globalconfig)
+        # cas = parse_all(actions, globalconfig)
         for (action, condition) in zip(actions, conditions)
             @info "Checking $action and $condition"
             a, c = parse_acsym(action, globalconfig), parse_acsym(condition, globalconfig)
@@ -480,9 +482,9 @@ function decode_level(level_config, globalconfig)
             end
             push!(cas, c)
         end
+        # cs = parse_all(conditions, globalconfig)
+        # cas = parse_all(actions, globalconfig)
         @info "Fusing actions and conditions"
-        # fused_c = [c for c in level]
-        # fused_a = [a for (_, a) in level]
         level = [(x->all_of(cs, x), x->apply_all(cas, x) )]
         return level
     end
