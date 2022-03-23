@@ -34,7 +34,7 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -456,39 +456,8 @@ function decode_level(level_config, globalconfig)
         parsed_conditions = parse_all(conditions, globalconfig)
         parsed_actions = parse_all(actions, globalconfig)
         level = [[c,a] for (c,a) in zip(parsed_conditions, parsed_actions)]
-        # for (action, condition) in zip(actions, conditions)
-        #     @info "Checking $action and $condition"
-        #     a, c = parse_acsym(action, globalconfig), parse_acsym(condition, globalconfig)
-        #     # a = decode_symbol(action, globalconfig)
-        #     # c = decode_symbol(condition, globalconfig)
-        #     # # if isnothing(a) | isnothing(c)
-        #     # #     @error "Invalid conditions for $action or $condition"
-        #     # #     return nothing
-        #     # # end
-        #     push!(level, [c, a])
-        # end
         return level
     else
-        # cs=[]
-        # for condition in conditions
-        #     @info "Checking $condition"
-        #     c = decode_symbol(condition, globalconfig)
-        #     if isnothing(c)
-        #         @error "Invalid conditions for $action or $condition"
-        #         return nothing
-        #     end
-        #     push!(cs, c)
-        # end
-        # cas=[]
-        # for action in actions
-        #     @info "Checking $action"
-        #     c = decode_symbol(action, globalconfig)
-        #     if isnothing(c)
-        #         @error "Invalid conditions for $action or $condition"
-        #         return nothing
-        #     end
-        #     push!(cas, c)
-        # end
         cs = parse_all(conditions, globalconfig)
         cas = parse_all(actions, globalconfig)
         @info "Fusing actions and conditions"
@@ -1054,6 +1023,19 @@ end
 """
 # Todo : change to Vector[namedtuple]  and use dispatch
 function verifier(node, template::Vector, level::Int; on_success=false)
+    # ### MARK
+    # # for step in template
+    #     if step.condition(node) == on_success
+    #         @debug "Condition triggered on $node"
+    #         rv = step.action(node)
+    #         if rv == :quit
+    #             @debug "Early exit for $node at $level"
+    #             return :quit
+    #         end
+    #     else
+    #
+    # for t in template
+    # rv = dostep(t)
     for (condition, action) in template
         if condition(node) == on_success
             @debug "Condition failed on $node"
@@ -1065,6 +1047,15 @@ function verifier(node, template::Vector, level::Int; on_success=false)
         end
     end
     return :proceed
+end
+
+
+function make_tuple(co, ac, ca)
+    return @NamedTuple{condition,action, counteraction}((co,ac,ca))
+end
+
+function make_tuple(co, ac)
+    return @NamedTuple{condition,action}((co, ac))
 end
 
 """

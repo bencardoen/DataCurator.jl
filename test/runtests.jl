@@ -36,6 +36,23 @@ using DataFrames
         @test isfile(joinpath(IN, "ab_c.txt"))
     end
 
+    @testset "tupletypes" begin
+        i = 1
+        f = x-> begin; i= i+1;end
+        g = x-> begin; i= i+2;end
+        h = x-> begin; i=0; end
+        nt = make_tuple(iseven, x->apply_all([f,g], x))
+        @test nt.condition(2) == true
+        nt.action(2)
+        @test i == 4
+        i = 0
+        nt = make_tuple(iseven, x->apply_all([f,g], x), h)
+        nt.counteraction(2)
+        @test i==0
+        nt.action(2)
+        @test i==3
+    end
+
     @testset "example_early_exit" begin
         IN = "testdir/void"
         if isdir(IN)
