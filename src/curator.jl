@@ -35,7 +35,6 @@ function parse_commandline()
             help = "If set, in --decon mode use channel normalization after background removal."
             action = :store_true
             default = false
-            required = false
     end
 
     return parse_args(s)

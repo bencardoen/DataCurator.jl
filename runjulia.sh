@@ -6,4 +6,4 @@ export JLMJV=1.6
 export JLV=$JLMJV.2
 export PATH=/opt/julia/julia-$JLV/bin:$PATH
 export JULIA_DEPOT_PATH=/opt/juliadepot
-julia --project=/opt/DataCurator.jl /opt/DataCurator.jl/src/curator.jl --recipe $1
+julia --project=/opt/DataCurator.jl /opt/DataCurator.jl/src/curator.jl "$@"
