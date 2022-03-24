@@ -56,13 +56,17 @@ function run()
     if ~ isfile(c)
         @error "Failed reading $c, file does not exist"
     end
+    @info "Reading template recipe $c"
     res = create_template_from_toml(c)
     if isnothing(res)
         @error "Failed reading $c"
         return :proceed
     end
+    @info "Reading complete "
     cfg, template = res
+    @info "Running recipe on $(cfg["inputdirectory"])"
     c, l, r = delegate(cfg, template)
+    @info "Complete"
     @info "Exit status $r"
 end
 

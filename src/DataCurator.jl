@@ -546,7 +546,7 @@ function decode_level(level_config, globalconfig)
             end
         end
         lvl = to_level(parse_all(actions, globalconfig) , parse_all(conditions, globalconfig) ;all=all_mode)
-        @info "Decode level success"
+        @debug "Decode level success"
         return lvl
     end
     # ### If counteractions
