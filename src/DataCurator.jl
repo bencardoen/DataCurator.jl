@@ -34,7 +34,7 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, dostep, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, mt, dostep, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -311,9 +311,9 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
         return file_adder
     end
     if glob["regex"]
-        if fname ∈ ["startswith", "endswith"]
+        if fname ∈ ["startswith", "endswith", "contains"]
             @info "Using Regex conversion"
-            functor = x-> fs(x, Regex(f[2]))
+            functor = x-> fs(basename(x), Regex(f[2]))
             return negate ? flipfunctor(functor) : functor
         end
     end
@@ -594,7 +594,6 @@ function generate_size_counter(parallel=true)
 end
 
 FR = r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?"
-
 
 is_type_file = (x, t) -> isfile(x) & endswith(x, t)
 is_csv_file = x -> is_type_file(x, ".csv")
@@ -1167,6 +1166,8 @@ end
 function make_tuple(co, ac)
     return @NamedTuple{condition,action}((co, ac))
 end
+
+mt = x->make_tuple(x...)
 
 """
     verify_dispatch(context)
