@@ -45,9 +45,9 @@ remove = x -> delete_if_exists(x)
 
 
 function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}, on_success::Bool)
-    @info "Do-step for 2-tuple c/a for $node on_success=$(on_success)"
+    @debug "Do-step for 2-tuple c/a for $node on_success=$(on_success)"
     if t.condition(node) == on_success
-        @info "Condition fired for $node with on_success == $(on_success)"
+        @debug "Condition fired for $node with on_success == $(on_success)"
         rv = t.action(node)
         if rv == :quit
             @debug "Early exit for $node"
@@ -75,7 +75,7 @@ function dostep(node::Any, t::NamedTuple{(:condition, :action, :counteraction), 
         end
         return :proceed
     else
-        @info "Executing counteraction for $node"
+        @debug "Executing counteraction for $node"
         rv = t.counteraction(node)
         if rv == :quit
             @debug "Early exit for $node"
@@ -181,7 +181,7 @@ function handle_default!(val, key, glob_defaults)
 end
 
 function decode_counter(c::AbstractString)
-    @info "Single counter"
+    @debug "Single counter"
     # (name, (count, counter))
     return (c, generate_counter(true))
 end
@@ -199,7 +199,7 @@ function decode_counter(c::AbstractVector)
         @error "Failed decoding $c"
         return nothing
     else
-        @info "Counting with function $sym"
+        @debug "Counting with function $sym"
     end
     # (name, (count, counter))
     return (name, generate_counter(true;incrementer=symbol))
@@ -207,7 +207,7 @@ end
 
 function decode_function(f::AbstractString, glob::AbstractDict)
     fs = lookup(f)
-    @info "0 argument function lookup for $f"
+    @debug "0 argument function lookup for $f"
     if isnothing(fs)
         @error "$f is not a valid function"
         return nothing
@@ -254,11 +254,11 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     # @info f
     negate = false
     if f[1] == "not"
-        @info "Negate switched on"
+        @debug "Negate switched on"
         negate=true
     end
     if typeof(f[1])<:AbstractVector
-        @info "Nested actions"
+        @debug "Nested actions"
         if f[1][1] == "all"
             rem_f = f[1][2:end]
             subfs = [decode_function(_f, glob) for _f in rem_f]
@@ -269,10 +269,10 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
         end
     end
     if f[1] == "all"
-        @info "Nested actions"
+        @debug "Nested actions"
         rem = f[2:end]
         _fs = [decode_symbol(_f) for _f in rem]
-        @info fs
+        @debug fs
         throw(ArgumentError("Work in progress"))
         # return x->apply_all(decode_symbol(f))
         return x->apply_all(_fs, x)
@@ -297,22 +297,22 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     end
     completers = ["copy_to", "flatten_to", "move_to"]
     if fname ∈ completers
-        @info "Prefixing root directory for $fname"
+        @debug "Prefixing root directory for $fname"
         return x -> fs(x, glob["inputdirectory"], f[2:end]...)
     end
     if fname == "count"
-        @info "Resolving counter $f"
+        @debug "Resolving counter $f"
         counting_functor = lookup_counter(f, glob)
         return counting_functor
     end
     if fname == "add_to_file_list"
-        @info "Resolving file_writer $f"
+        @debug "Resolving file_writer $f"
         file_adder = lookup_filelists(f, glob)
         return file_adder
     end
     if glob["regex"]
         if fname ∈ ["startswith", "endswith", "contains"]
-            @info "Using Regex conversion"
+            @debug "Using Regex conversion"
             functor = x-> fs(basename(x), Regex(f[2]))
             return negate ? flipfunctor(functor) : functor
         end
@@ -397,7 +397,7 @@ function shared_list_to_table(list)
     tables = []
     for sublist in list
         for csv_file in sublist
-            @info "Reading $csv_file"
+            @debug "Reading $csv_file"
             try
                 tb = CSV.read(csv_file, DataFrame)
                 push!(tables, tb)
@@ -414,7 +414,10 @@ end
 function create_template_from_toml(tomlfile)
     config = TOML.parsefile(tomlfile)
     glob = validate_global(config)
-    @info "Global config $glob"
+    @info "Global configuration"
+    for key in keys(glob)
+        @info "$key --> $(glob[key])"
+    end
     if isnothing(glob)
         @error "Invalid configuration"
         return nothing
@@ -471,7 +474,7 @@ end
     Helper function to parse all functions
 """
 function parse_acsym(a, glob)
-    @info "Parsing $a"
+    @debug "Parsing $a"
     parsed = decode_symbol(a, glob)
     if isnothing(parsed)
         throw(ArgumentError("Not a valid action of condition : $a"))
@@ -517,11 +520,11 @@ function decode_level(level_config, globalconfig)
         end
         all_mode=level_config["all"]
     end
-    @info "All mode --> $all_mode"
+    @debug "All mode --> $all_mode"
     actions = level_config["actions"]
-    @info "Actions --> $actions"
+    @debug "Actions --> $actions"
     conditions = level_config["conditions"]
-    @info "Conditions --> $conditions"
+    @debug "Conditions --> $conditions"
     coas = []
     if haskey(level_config, "counter_actions")
         counteractions = level_config["counter_actions"]
@@ -533,7 +536,7 @@ function decode_level(level_config, globalconfig)
             end
         end
         lvl = to_level(parse_all(actions,globalconfig) , parse_all(conditions,globalconfig) , parse_all(counteractions,globalconfig) ;all=all_mode)
-        @info "decode level successful"
+        @debug "decode level successful"
         return lvl
     else
         if length(actions) != length(conditions)
@@ -551,7 +554,7 @@ function decode_level(level_config, globalconfig)
     # ### else
     # ### tolevel(a,b)
     # level = []
-    # @info "Parsing actions & conditions"
+    # @debug "Parsing actions & conditions"
     # # If actions < conditions, is this dropping things if all=true
     # if all_mode == false
     #     parsed_conditions = parse_all(conditions, globalconfig)
@@ -899,7 +902,7 @@ function transform_action(x, f=x->x; action=mv)
             return x
         else
             action(x, newfile)
-            @info "$x -> $newfile"
+            @debug "Transforming $x -> $newfile"
             return newfile
         end
     else
@@ -919,7 +922,7 @@ function transform_action(x, f=x->x; action=mv)
                 return x
             else
                 action(x, newdir)
-                @info "$x -> $newdir"
+                @debug "$x -> $newdir"
                 return newdir
             end
         else

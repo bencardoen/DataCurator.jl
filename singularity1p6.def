@@ -44,9 +44,10 @@ From: fedora:35
     export JULIA_DEPOT_PATH=/opt/juliadepot
 
 %runscript
-    echo "Container was created $NOW"
-    echo "Arguments received: $*"
-    /opt/runjulia.sh $1
+    echo "Starting DataCurator.jl"
+    echo "Version 0.1"
+    echo "Expected usage : ./image.sif --recipe your_recipe.toml [--verbose]"
+    /opt/runjulia.sh "$@"
 
 %labels
     Author Ben Cardoen, bcardoen@sfu.ca

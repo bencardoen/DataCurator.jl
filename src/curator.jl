@@ -16,11 +16,11 @@ using DataCurator, Images, TOML
 using Match
 using CSV, DataFrames
 using Logging, LoggingExtras, Dates
-date_format = "yyyy-mm-dd HH:MM:SS"
-timestamp_logger(logger) = TransformerLogger(logger) do log
-    merge(log, (; message = "$(Dates.format(now(), date_format)) $(basename(log.file)):$(log.line): $(log.message)"))
-end
-ConsoleLogger(stdout, Logging.Info) |> timestamp_logger |> global_logger
+# date_format = "yyyy-mm-dd HH:MM:SS"
+# timestamp_logger(logger) = TransformerLogger(logger) do log
+#     merge(log, (; message = "$(Dates.format(now(), date_format)) $(basename(log.file)):$(log.line): $(log.message)"))
+# end
+# ConsoleLogger(stdout, Logging.Info) |> timestamp_logger |> global_logger
 
 
 function parse_commandline()
@@ -31,6 +31,11 @@ function parse_commandline()
             help = "Recipe in TOML format, see example_recipes/ for example configurations"
             arg_type = String
             required = true
+        "--verbose"
+            help = "If set, in --decon mode use channel normalization after background removal."
+            action = :store_true
+            default = false
+            required = false
     end
 
     return parse_args(s)
@@ -38,6 +43,16 @@ end
 
 function run()
     parsed_args = parse_commandline()
+    defl = Logging.Info
+    v = parsed_args["verbose"]
+    if v
+        defl = Logging.Debug
+    end
+    date_format = "yyyy-mm-dd HH:MM:SS"
+    timestamp_logger(logger) = TransformerLogger(logger) do log
+        merge(log, (; message = "$(Dates.format(now(), date_format)) $(basename(log.file)):$(log.line): $(log.message)"))
+    end
+    ConsoleLogger(stdout, defl) |> timestamp_logger |> global_logger
     c = parsed_args["recipe"]
     if ~ isfile(c)
         @error "Failed reading $c, file does not exist"
