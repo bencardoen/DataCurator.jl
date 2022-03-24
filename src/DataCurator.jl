@@ -741,15 +741,15 @@ add_to_file_list= (x, list) -> addentry!(list, x)
 add_path_to_file_list = (x, list) -> addentry!(list, splitdir(x)[1])
 
 function ends_with_integer(x)
-    ~isnothing(match(r"[0-9]+$", x))
+    ~isnothing(match(r"[0-9]+$", basename(x)))
 end
 
 function begins_with_integer(x)
-    ~isnothing(match(r"^[0-9]+", x))
+    ~isnothing(match(r"^[0-9]+", basename(x)))
 end
 
 function contains_integer(x)
-    ~isnothing(match(r"[0-9]+", x))
+    ~isnothing(match(r"[0-9]+", basename(x)))
 end
 
 function apply_all(fs, x)
