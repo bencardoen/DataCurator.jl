@@ -18,28 +18,11 @@ hierarchical = true
 inputdirectory = "/dev/shm"
 counters = ["c1"]
 file_lists = ["inlist.txt"]
-[template]
 
-# Example entry
-# [any]
-# negate = false
-# conditions = ["isfile"]
-# actions = ["delete_file"]
-
-# [level_x or any]  x should be integer > 0, root directory = 1
-# uses only "any" if hierarchical = false
-# conditions = ["check_1", "check_2"]
-
-# actions = ["action_1", "action_2"]
-# see documentation for 'shortcode' conditions and actions
-
-# if a condition needs an argument, add it separated by space:
-# conditons = ["has_n_files 2", "has_n_subdirs 3"]
 
 [any]
 conditions = ["always"]
 actions = ["warn_on_fail"]
-inputdirectory="/dev/shm"
 [level_1]
 all=true
 conditions = ["isdir", "lowercase", "ends_with_integer", ["has_n_files", 2]]

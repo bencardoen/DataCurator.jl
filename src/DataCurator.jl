@@ -210,7 +210,7 @@ function decode_counter(c::AbstractVector)
     return (name, generate_counter(true;incrementer=symbol))
 end
 
-function decode_function(f::AbstractString, glob::AbstractDict)
+function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
     fs = lookup(f)
     @debug "0 argument function lookup for $f"
     if isnothing(fs)
@@ -236,14 +236,14 @@ function collapse_functions(fs; left_to_right=false)
 end
 
 
-function handle_chained(f::AbstractVector, glob::AbstractDict)
+function handle_chained(f::AbstractVector, glob::AbstractDict; condition=false)
     fuser = f[1]
     remainder = f[2:end]
     chain = []
     if fuser ∈ ["transform_inplace", "transform_copy"]
         for candidate in remainder
             @debug "Decoding $candidate"
-            cfs = decode_function(candidate, glob)
+            cfs = decode_function(candidate, glob; condition=condition)
             isnothing(cfs) ? throw(ArgumentError) : nothing
             push!(chain, cfs)
         end
@@ -255,7 +255,7 @@ function handle_chained(f::AbstractVector, glob::AbstractDict)
     end
 end
 
-function decode_function(f::AbstractVector, glob::AbstractDict)
+function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     # @info f
     negate = false
     if f[1] == "not"
@@ -263,11 +263,15 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
         negate=true
     end
     if typeof(f[1])<:AbstractVector
-        @debug "Nested actions"
+        @debug "Nested function"
         if f[1][1] == "all"
             rem_f = f[1][2:end]
-            subfs = [decode_function(_f, glob) for _f in rem_f]
-            return x->apply_all(sub_fs, x)
+            subfs = [decode_function(_f, glob; condition=condition) for _f in rem_f]
+            if condition
+                return x->all_of(sub_fs, x)
+            else
+                return x->apply_all(sub_fs, x)
+            end
         else
             @error "$f is not valid nested function"
             throw(ArgumentError("$f"))
@@ -276,7 +280,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     if f[1] == "all"
         @debug "Nested actions"
         rem = f[2:end]
-        _fs = [decode_symbol(_f) for _f in rem]
+        _fs = [decode_function(_f, glob; condition=condition) for _f in rem]
         @debug fs
         throw(ArgumentError("Work in progress"))
         # return x->apply_all(decode_symbol(f))
@@ -293,7 +297,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict)
     fname = f[1]
     if startswith(fname, "transform_")
         @debug "Chained transform detected"
-        return handle_chained(f, glob)
+        return handle_chained(f, glob; condition=condition)
     end
     fs = lookup(fname)
     if isnothing(fs)
@@ -384,12 +388,12 @@ function delegate(config, template)
     for f in config["file_lists"]
         name, (list, _) = f
         if contains(name, "table")
-            @debug "Found a list of csv's to fuse into 1 table for $name"
+            @info "Found a list of csv's to fuse into 1 table to $(name).csv"
             df = shared_list_to_table(list)
             @debug "Writing to $name.csv"
             CSV.write("$name.csv", df)
         else
-            @debug "Saving list to $(name).txt"
+            @info "Saving list to $(name).txt"
             shared_list_to_file(list, "$(name).txt")
         end
         push!(lists, vcat(list...))
@@ -413,6 +417,28 @@ function shared_list_to_table(list)
         end
     end
     return vcat(tables...)
+end
+
+function validate_top_config(cfg)
+    keys_c = keys(cfg)|>collect
+    if haskey(cfg, "global")
+        if haskey(cfg["global"], "hierarchical")
+
+        else
+            accepted = ["global", "any"]
+            if haskey(cfg, "any")
+            for k in keys_c
+                if k in accepted
+                    continue
+                else
+                    @error "Invalid key $k in config"
+                    throw(ArgumentError("Invalid key $k in config"))
+                end
+        end
+    else
+        @error "No global section, invalid configuration"
+        throw(ArgumentError("No [global] section in configuration"))
+    end
 end
 
 
@@ -478,17 +504,17 @@ end
 """
     Helper function to parse all functions
 """
-function parse_acsym(a, glob)
+function parse_acsym(a, glob; condition=false)
     @debug "Parsing $a"
-    parsed = decode_symbol(a, glob)
+    parsed = decode_symbol(a, glob; condition=condition)
     if isnothing(parsed)
-        throw(ArgumentError("Not a valid action of condition : $a"))
+        throw(ArgumentError("Not a valid action or condition : $a"))
     end
     return parsed
 end
 
-function parse_all(acs, glob)
-    return [parse_acsym(ac, glob) for ac in acs]
+function parse_all(acs, glob; condition=false)
+    return [parse_acsym(ac, glob; condition=condition) for ac in acs]
 end
 
 
@@ -513,10 +539,21 @@ function to_level(actions, conditions; all=false)
     end
 end
 
+function check_level_keys(level)
+    accepted = ["all", "actions", "conditions", "counter_actions"]
+    for k in keys(level)
+        if k in accepted
+            @debug "Key $k in level is valid"
+        else
+            @error "Key $k in level\n $level \n is not valid, should be one of \n $(accepted)"
+            throw(ArgumentError("Invalid key $k"))
+        end
+    end
+end
+
 
 function decode_level(level_config, globalconfig)
-    # @info level_config
-    # @info globalconfig
+    check_level_keys(level_config)
     all_mode = false
     if haskey(level_config, "all")
         if typeof(level_config["all"]) != Bool
@@ -615,12 +652,12 @@ is_lower = x -> ~has_upper(x)
 is_upper = x -> ~has_lower(x)
 has_whitespace = x -> ~isnothing(match(r"[\s,\t]", x))
 show_warning = x -> @warn x
+warn_on_fail = x -> show_warning(x)
 halt = x -> begin @info "Triggered early exit for $x"; return :quit; end
 quit = x -> return :quit
 keep_going = x-> :proceed
 filename = x->basename(x)
 integer_name = x->~isnothing(tryparse(Int, filename(x)))
-warn_on_fail = x -> @warn "$x"
 quit_on_fail = x -> begin @warn "$x"; return :quit; end
 is_img = x -> isfile(x) & ~isnothing(try Images.load(x) catch e end;)
 is_kd_img = (x, k) -> is_img(x) & (length(size(Images.load(x)))==k)
@@ -732,9 +769,9 @@ function guess_argument(str)
 end
 
 
-function decode_symbol(s, glob)
+function decode_symbol(s, glob; condition=false)
     @debug "Decoding $s"
-    return decode_function(s, glob)
+    return decode_function(s, glob; condition=condition)
 end
 
 function make_shared_list()

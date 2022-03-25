@@ -21,6 +21,17 @@ using DataFrames
         rm("outfiles.txt")
     end
 
+    @testset "logmsg" begin
+        ac = ["log_to_file_with_message", "log.txt", "expecting Series xyz"]
+        # a = decode_symbol(["log_to_file_with_message", "log.txt", "expecting Series xyz"], Dict("regex"=>true))
+        @test ~isnothing(decode_symbol(ac, Dict("regex"=>true)))
+    end
+
+    @testset "nested" begin
+        a = decode_symbol([["all", "show_warning", "show_warning"]], Dict("regex"=>true))
+        @test ~isnothing(a)
+    end
+
     @testset "example_transform_chained" begin
         IN = "testdir/input_spaces_upper"
         if isdir(IN)
