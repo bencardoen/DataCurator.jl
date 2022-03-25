@@ -30,11 +30,11 @@ any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list,
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
-copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level,
+copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, mt, dostep, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, mt, dostep, is_hidden_file, is_hidden_dir, is_hidden, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -42,6 +42,10 @@ column_names = x -> names(CSV.read(x, DataFrame))
 has_n_columns = (x, k) -> length(CSV.read(x, DataFrame))
 path_only = x -> splitdir(x)[1]
 remove = x -> delete_if_exists(x)
+is_hidden_file = x-> isfile(x) && startswith(basename(x), ".")
+is_hidden_dir = x-> isdir(x) && startswith(basename(x), ".")
+is_hidden = x -> is_hidden_file(x) || is_hidden_dir(x)
+# log_to_file_message = (x, m) -> log_to_file()
 
 
 function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}, on_success::Bool)
@@ -631,6 +635,7 @@ subdirs = x -> [_x for _x in read_dir(x) if isdir(x)]
 has_n_subdirs = (x, k) -> (length(subdirs(x))==k)
 less_than_n_subdirs = (x, k) -> (length(subdirs(x))<k)
 log_to_file = (x, fname) -> write_file(fname, x)
+log_to_file_with_message = (x, fname, reason) -> write_file(fname, "$(x) :: reason $(reason)")
 ignore = x -> nothing
 always = x->true
 never = x->false

@@ -173,11 +173,12 @@ Check the directory example_recipes for examples on how to achieve a whole range
   actions=[["log_to_file", "csvs.txt"]]
   counter_actions = [["log_to_file", "non_csvs.txt"]]
   ```
+  or another use case is deleting a file that's incorrect, while transforming correct files in preparation for a pipeline, in 1 step.
 
 #### Usage
 Assuming you have the singularity image (does not require Julia, nor installation of dependencies)
 ```bash
-image.sif <your_toml_recipe>
+image.sif -r <your_toml_recipe> [--verbose]
 ```
 
 If you have Singularity, you can do more advanced things
@@ -190,19 +191,37 @@ If you have the package cloned in this directory
 julia --project=. src/curator.jl --recipe "my_recipe.toml"
 ```
 
-### Using Julia API
+## Using Julia API
+### Typesafe templates
+We heavily use Julia's multiple type dispatch system, so when you make a template
+```julia
+template = [mt(is_tif_file, show_warning)]
+```
+is internally transformed to a named tuple
+```julia
+template[1].condition == is_tif_file # true
+template[1].actions == show_warning
+```
+As a user this isn't relevant to you, but it does help in simplifying the code and optimizing the execution quite dramatically. The Julia compiler for example knows the difference at compile time between
+```
+fs = [is_tif_file, show_warning, quit]
+A = mt(fs...) # condition, action, counteraction
+fs = [is_tif_file, show_warning]
+B = mt(fs...) # condition, action
+```
+A and B are resolved at compile time, not at runtime, improving execution speed while ensuring type safety.
 ### Replace whitespace and uppercase
 Rename all files/directories with ' ' in them to '_' and switch any uppercase to lowercase.
 ```julia
 condition = x -> is_upper(x) | has_whitespace(x)
 fix = x -> whitespace_to(lowercase(x), '_')
 action = x -> transform_inplace(x, fix)
-transform_template(rootdirectory, [(condition, action)]; act_on_success=true)
+transform_template(rootdirectory, [mt(condition, action)]; act_on_success=true)
 ```
 Next, we verify our dataset has no uppercase/whitespace in names.
 ```julia
 count, counter = generate_counter()
-verify_template(rootdirectory, [(condition, counter)]; act_on_success=true)
+verify_template(rootdirectory, [mt(condition, counter)]; act_on_success=true)
 @info count
 ```
 
