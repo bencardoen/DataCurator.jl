@@ -259,7 +259,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     # @info f
     negate = false
     if f[1] == "not"
-        @debug "Negate switched on"
+        @info "Negate switched on"
         negate=true
     end
     if typeof(f[1])<:AbstractVector
@@ -295,6 +295,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     end
     if negate
         f = f[2:end]
+        @info "Negate so function is $f"
     end
     fname = f[1]
     if startswith(fname, "transform_")
@@ -329,7 +330,12 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
         end
     end
     functor = x -> fs(x, f[2:end]...)
-    return negate ? flipfunctor(functor) : functor
+    if negate
+        return flipfunctor(functor)
+    else
+        return functor
+    end
+    # return negate ? flipfunctor(functor) : functor
 end
 
 function flipfunctor(f)
