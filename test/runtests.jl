@@ -139,21 +139,21 @@ using DataFrames
 
     @testset "example_hierarchical" begin
 
-        IN = "/dev/shm/input_hierarchical"
+        IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
         mkpath(IN)
         f1 = joinpath(IN, "test.txt")
         touch(f1)
         res = create_template_from_toml("../example_recipes/hierarchical_validation.toml")
         c, t = res
-        t[1][2]
         cts, cls, rv = delegate(c, t)
         @test isfile(f1)
     end
 
     @testset "example_csv" begin
-        IN = "/dev/shm/inputtables"
-        mkpath("/dev/shm/inputtables")
+        IN = "testdir"
+        isdir(IN) ? rm(IN, recursive=true) : nothing
+        mkpath(IN)
         using CSV, DataFrames
         csv1 = CSV.write(joinpath(IN, "1.csv"),  DataFrame(zeros(3,3), :auto))
         csv2 = CSV.write(joinpath(IN, "2.csv"),  DataFrame(zeros(3,3), :auto))
@@ -245,6 +245,7 @@ using DataFrames
         @test ~is_lower(TF)
         @test ~is_upper(TF)
     end
+
 
     @testset "parser" begin
         c = create_template_from_toml("test.toml")

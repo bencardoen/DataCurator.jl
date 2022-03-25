@@ -1,12 +1,13 @@
 [global]
 act_on_success=false
 inputdirectory = "testdir"
+hierarchical=true
 [any]
 conditions = ["never"]
 actions=["show_warning"]
-[1]
+[level_1]
 conditions = ["isdir"]
 actions = ["show_warning"]
-[2]
-conditions = ["is_file"]
+[level_2]
+conditions = ["isfile"]
 actions = ["show_warning"]

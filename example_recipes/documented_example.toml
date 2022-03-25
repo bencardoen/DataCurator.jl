@@ -49,13 +49,14 @@ file_lists = ["infiles", ["outfiles", "/dev/shm/outpath"], "table_x"]
 # Assume action_on_success=true
 all=true
 conditions=["isfile"]
-actions=["warn_on_fail", "delete_file"]
+actions=["show_warning", "delete_file"]
 
 # Root directory
 [level_1]
 # Let"s say you only expect sub directories
 conditions=["isfile"]
-actions=["warn_on_fail"]
+actions=["show_warning"]
+counter_actions=[["log_to_file", "correct.txt"]]
 
 
 [level_2]
@@ -73,6 +74,5 @@ all=true
 conditions=["isfile", "is_img", "is_3d_img", "is_tif_file", "is_rgb"]
 actions=[["flatten_to", "my/special/flat/directory"]]
 
-
-## To run this
-## singularity exec image.sif julia --project=/opt/DataCurator.jl /opt/DataCurator.jl/src/curator.jl --recipe <your_recipe.toml>
+## When complete, execute by
+## ./curator.sif -r myrecipe.toml [-v]

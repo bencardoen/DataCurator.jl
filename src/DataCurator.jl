@@ -268,9 +268,11 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
             rem_f = f[1][2:end]
             subfs = [decode_function(_f, glob; condition=condition) for _f in rem_f]
             if condition
-                return x->all_of(sub_fs, x)
+                @info "Nested condition"
+                return x->all_of(subfs, x)
             else
-                return x->apply_all(sub_fs, x)
+                @info "Nested action"
+                return x->apply_all(subfs, x)
             end
         else
             @error "$f is not valid nested function"
@@ -421,19 +423,36 @@ end
 
 function validate_top_config(cfg)
     keys_c = keys(cfg)|>collect
+    @info "Top level keys : $(keys_c)"
     if haskey(cfg, "global")
         if haskey(cfg["global"], "hierarchical")
-
+            for k in keys_c
+                if k ∈ ["any", "global"]
+                    continue
+                end
+                m = match(r"^level_[0-9]+$", k)
+                if isnothing(m)
+                    @error "Unexpected key $k in hierarchical template, expecting: [global], [any], [level_x] where x > 0"
+                    throw(ArgumentError("Invalid configuration key $k"))
+                end
+            end
         else
             accepted = ["global", "any"]
-            if haskey(cfg, "any")
+            if ~haskey(cfg, "any")
+                @error "For a non-hierarchical template, you need 1 entry [any]."
+                throw(ArgumentError("Missing [any] section"))
+            end
             for k in keys_c
                 if k in accepted
                     continue
                 else
-                    @error "Invalid key $k in config"
+                    if startswith(k, "level_")
+                        @error "Keys of form level_x are only valid when hierarchical=true in [global]"
+                    end
+                    @error "Invalid key $k in config for flat template"
                     throw(ArgumentError("Invalid key $k in config"))
                 end
+            end
         end
     else
         @error "No global section, invalid configuration"
@@ -444,6 +463,7 @@ end
 
 function create_template_from_toml(tomlfile)
     config = TOML.parsefile(tomlfile)
+    validate_top_config(config)
     glob = validate_global(config)
     @info "Global configuration"
     for key in keys(glob)
@@ -577,7 +597,7 @@ function decode_level(level_config, globalconfig)
                 return nothing
             end
         end
-        lvl = to_level(parse_all(actions,globalconfig) , parse_all(conditions,globalconfig) , parse_all(counteractions,globalconfig) ;all=all_mode)
+        lvl = to_level(parse_all(actions,globalconfig;condition=false) , parse_all(conditions,globalconfig;condition=true) , parse_all(counteractions,globalconfig;condition=false) ;all=all_mode)
         @debug "decode level successful"
         return lvl
     else
