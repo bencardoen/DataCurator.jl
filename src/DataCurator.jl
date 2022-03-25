@@ -34,7 +34,7 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, mt, dostep, is_hidden_file, is_hidden_dir, is_hidden, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, not_hidden, mt, dostep, is_hidden_file, is_hidden_dir, is_hidden, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -45,6 +45,7 @@ remove = x -> delete_if_exists(x)
 is_hidden_file = x-> isfile(x) && startswith(basename(x), ".")
 is_hidden_dir = x-> isdir(x) && startswith(basename(x), ".")
 is_hidden = x -> is_hidden_file(x) || is_hidden_dir(x)
+not_hidden = x -> ~is_hidden(x)
 # log_to_file_message = (x, m) -> log_to_file()
 
 
