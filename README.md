@@ -54,7 +54,7 @@ julia --project=. src/curator.jl --recipe your.toml --verbose
 Check example_recipes/documented_example.toml for all possible options in a single example.
 
 Check the directory example_recipes for examples on how to achieve a whole range of tasks:
-- Find all csvs with 10 columns and fuse them into 1 large table, called table.csv
+##### Find all csvs with 10 columns and fuse them into 1 large table, called table.csv
   ```toml
   [global]
   act_on_success=true
@@ -75,7 +75,8 @@ Check the directory example_recipes for examples on how to achieve a whole range
   conditions = ["has_whitespace", "is_tif_file", "is_16bit_img"]
   actions=[["transform_inplace", ["whitespace_to", '_'], "tolowercase"]]
   ```
-- Create lists of files to process, and an equivalent list where to save the corresponding output. This is common for cluster/HPC schedulers, where you'd give the scheduler an input and output lists of 100s if not 1000s of input/output pairs. While we're at it, compute the size in bytes of all target files.
+##### Create lists of files to process, and an equivalent list where to save the corresponding output, to be sent to batch processing
+This is common for cluster/HPC schedulers, where you'd give the scheduler an input and output lists of 100s if not 1000s of input/output pairs. While we're at it, compute the size in bytes of all target files.
   ```toml
   [global]
   act_on_success=true
@@ -89,7 +90,8 @@ Check the directory example_recipes for examples on how to achieve a whole range
   ```
   This will generate an **infiles.txt** and **outfiles.txt** containing e.g. "/a/b/c/e.tif" and "/my/outpath/e.tif". The advantage over doing this with your own for loops/scripts, is that you only need the recipe, it'll run in parallel without you having to worry about synchronization/data races, and it'll just work, so you get to do something more interesting.
 
-- **Verify a complex, deep dataset layout**. This is the same as the Julia API equivalent below, but then in toml recipe
+##### Verify a complex, deep dataset layout.
+This is the same as the Julia API equivalent below, but then in toml recipe
   ```toml
   [global]
   act_on_success=false
@@ -132,7 +134,8 @@ Check the directory example_recipes for examples on how to achieve a whole range
   conditions=["is_3d_img", ["endswith", "[1,2].tif"]]
   actions = ["show_warning"]
   ```
-- **Early exit**: sometimes you want the validation or processing to stop immediately based on a condition, e.g. finding corrupt data, or because you're just looking for 1 specific type of conditions. This can be achieved fairly easily, illustrated with a trivial example that stops after finding something else than .txt files.
+##### Early exit:
+sometimes you want the validation or processing to stop immediately based on a condition, e.g. finding corrupt data, or because you're just looking for 1 specific type of conditions. This can be achieved fairly easily, illustrated with a trivial example that stops after finding something else than .txt files.
   ```toml
   [global]
   act_on_success = false
@@ -142,7 +145,8 @@ Check the directory example_recipes for examples on how to achieve a whole range
   conditions = ["isfile", ["endswith", ".txt"]]
   actions = ["halt"]
   ```
-- **Regular expressions**: for more advanced users, when you write "startswith" "*.txt", it will not match anything, because by default regular expressions are disabled. Enabling them is easy though
+##### Regular expressions:
+For more advanced users, when you write "startswith" "*.txt", it will not match anything, because by default regular expressions are disabled. Enabling them is easy though
   ```toml
   [global]
   regex=true
@@ -151,7 +155,8 @@ Check the directory example_recipes for examples on how to achieve a whole range
   ```
   This will now match files with 1 or more integers at the beginning of the file name. **Note** If you try to pass a regex such as *.txt, you'll get an error complaining about PCRE not being able to compile your Regex. The reason for this is the lookahead/lookback functionality in the Regex engine not allowing such wildcards at the beginning of a regex. When you write *.txt, what you probably meant was 'anything with extension txt', but not the name ".txt", which " *.txt " will also match. Instead, use "\.\*.txt". When in doubt, don't use a regex if you can avoid it. Similar to Kruger-Dunning, those who believe they can wield a regex with confidence, probably shouldn't.
 
-- **Negating conditions**: By default your conditions are 'OR'ed, and by setting all=yes, you have 'AND'. By flipping action_on_succes you can negate all conditions. So in essence you don't need more than that for all combinations, but if you need to specifically flip 1 condition, this will get messy. Instead, you can negate any condition by giving it a prefix argumet of "not".
+##### Negating conditions:
+By default your conditions are 'OR'ed, and by setting all=yes, you have 'AND'. By flipping action_on_succes you can negate all conditions. So in essence you don't need more than that for all combinations, but if you need to specifically flip 1 condition, this will get messy. Instead, you can negate any condition by giving it a prefix argumet of "not".
   ```toml
   [global]
   act_on_success = true
@@ -163,7 +168,8 @@ Check the directory example_recipes for examples on how to achieve a whole range
   actions = [["flatten_to", "outdir"], "show_warning"]
   ```
 
-- **Counteractions** : When you're validating you'll want to warn/log invalid files/folders. But at the same time, you may want to do the actual preprocessing as well. This is where counteractions come in, they allow you to specify
+##### Counteractions:
+When you're validating you'll want to warn/log invalid files/folders. But at the same time, you may want to do the actual preprocessing as well. This is where counteractions come in, they allow you to specify
   - Do x when condition = true
   - Do y when condition = false
   A simple example, filtering by file type:
@@ -177,7 +183,8 @@ Check the directory example_recipes for examples on how to achieve a whole range
   counter_actions = [["log_to_file", "non_csvs.txt"]]
   ```
   or another use case is deleting a file that's incorrect, while transforming correct files in preparation for a pipeline, in 1 step.
-- **Export to HDF5/MAT**
+
+##### Export to HDF5/MAT
   ```toml
   [global]
   act_on_success=true
