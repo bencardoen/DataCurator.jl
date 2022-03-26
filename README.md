@@ -32,7 +32,31 @@ In short, what is needed is an approach that
 - Runs in parallel, with a large set of predefined operations common to dataset processing
 
 
-## Quickstart recipes
+## Quickstart
+### Install
+#### As a local repo
+```bash
+git clone git@github.com:bencardoen/DataCurator.jl.git
+cd DataCurator.jl
+julia
+julia>using Pkg; Pkg.activate("."); Pkg.instantiate()
+```
+If you have Singularity, you can build the image
+```bash
+./buildimage.sh
+```
+#### As a Julia package
+```julia
+using Pkg;
+Pkg.add(https://github.com/bencardoen/DataCurator.jl.git)
+using DataCurator
+```
+#### As a Singularity image
+```bash
+wget <URL TO DO>
+./datacurator --recipe your.toml --verbose
+```
+## Running
 ### Using TOML recipes
 Our package does not require you to write code, so as long as you understand what you want to happen to your data, and you can read and write a text file, that's all it takes.
 
@@ -45,6 +69,11 @@ inputdirectory = "your/very/deep/directory/structure"
 all=true
 conditions = ["isfile", ["endswith", ".txt"]]
 actions = [["flatten_to", "your/flattened_path"]]
+```
+Assuming inputdirectory and "your/flattened_path" exist, you can just do
+Then
+```bash
+./datacurator --recipe your.toml --verbose
 ```
 
 Check example_recipes/documented_example.toml for all possible options in a single example.
