@@ -1,0 +1,57 @@
+## A recipe for a dataset of mito/er 3D volumes
+## Root
+### Replicate (number)
+#### Condition/celltype
+##### Series XYZ (cell nr)
+###### ...1.tif (3D)
+###### ...2.tif (3D)
+
+
+## We want to
+## Check the structure is valid
+## Remove anything invalid
+## What is left, compile into input and output lists for batch processing
+
+[global]
+act_on_success=false
+inputdirectory = "/tmp/test"
+hierarchical=true
+parallel=false
+file_lists=["inlist", ["outlist", "/tmp/output"]]
+regex=true
+[any]
+# Whatever is not defined below, e.g. too deep of a level --> fail and delete
+all=true
+conditions=["never"]
+actions=["show_warning", ["log_to_file_with_message", "errors.txt", "Unexpected file/directory"], "remove"]
+
+[level_1]
+# top directory, should only contain subdirs, this is your dataset directory -- 'inputdirectory'
+all=true
+conditions=["isdir", ["not", "is_hidden"]]
+actions=["show_warning", ["log_to_file_with_message", "errors.txt", "Only expecting subdirectories, not files"], "remove"]
+
+[level_2]
+# Replicate directory, no files, name = integer
+all=true
+conditions=["isdir", "integer_name", ["not", "is_hidden"]]
+actions=["show_warning", ["log_to_file_with_message", "errors.txt", "Expecting a replicate directory with as name an integer"], "remove"]
+
+[level_3]
+# Celltype, dir only
+all=true
+conditions=["isdir", ["not", "is_hidden"]]
+actions=["show_warning", ["log_to_file_with_message", "errors.txt", "Expecting a celltype or condition directory, e.g. HT-1080, or Cos-7, but not a file or hidden directory"], "remove"]
+
+[level_4]
+# Serie directory, Serie[s ][0-9]+
+all=true
+conditions=["isdir", ["startswith", "Serie"], "ends_with_integer", ["has_n_files", 2]]
+actions=["show_warning", ["log_to_file_with_message", "errors.txt", "Expecting a directory with 2 files, named ~ Serie XYZ where XYZ is a cell number, e.g. Series 1 or Serie 001 are ok"], "remove"]
+counter_actions=[["add_to_file_list", "inlist"], ["add_to_file_list", "outlist"]]
+
+[level_5]
+# Tif files, 2 channels, 3d
+all=true
+conditions=["is_3d_img", "is_tif_file", ["endswith", "[1,2].tif"], ["not", "is_hidden"]]
+actions=["show_warning", ["log_to_file_with_message", "errors.txt", "Expecting 2 3D tiff files, single channel, ending with '1.tif' or '2.tif' ."], "remove"]

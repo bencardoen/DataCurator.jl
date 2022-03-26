@@ -1,0 +1,7 @@
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+conditions=["is_csv_file"]
+actions=[["log_to_file", "csvs.txt"]]
+counter_actions = [["log_to_file", "non_csvs.txt"]]
