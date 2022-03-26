@@ -41,10 +41,10 @@ all=true
 conditions = ["isfile", ["endswith", ".txt"]]
 actions = [["flatten_to", "your/flattened_path"]]
 ```
-Assuming inputdirectory and "your/flattened_path" exist, you can just do
+Save this in 'recipe.toml', assuming inputdirectory and "your/flattened_path" exist, you can just do
 Then
 ```bash
-./datacurator --recipe your.toml --verbose
+./datacurator --recipe recipe.toml --verbose
 ```
 
 Check example_recipes/documented_example.toml for all possible options in a single example.
