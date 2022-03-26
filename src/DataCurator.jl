@@ -21,6 +21,8 @@ using Match
 using CSV
 using DataFrames
 import TOML
+using HDF5
+using MAT
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
@@ -34,7 +36,7 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, not_hidden, mt, dostep, is_hidden_file, is_hidden_dir, is_hidden, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt, dostep, is_hidden_file, is_hidden_dir, is_hidden, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -702,7 +704,9 @@ log_to_file = (x, fname) -> write_file(fname, x)
 log_to_file_with_message = (x, fname, reason) -> write_file(fname, "$(x) :: reason $(reason)")
 ignore = x -> nothing
 always = x->true
+always_triggers = always
 never = x->false
+always_fails = never
 sample = x->Random.rand()>0.5
 size_of_file = x -> isfile(x) ? filesize(x) : 0
 
@@ -1177,6 +1181,43 @@ end
 
 function expand_filesystem(node)
     return isdir(node) ? readdir(node, join=true) : []
+end
+
+
+function add_img_to_hdf5_as(imgfile, name, hfile)
+	h5open(hfile, "w") do file
+    	write(file, name, Float64.(Images.load(imgfile)))  # alternatively, say "@write file A"
+	end
+end
+
+
+function add_csv_to_hdf5_as(csv, name, hfile)
+	h5open(hfile, "w") do file
+    	write(file, name, CSV.load(csv, DataFrame))  # alternatively, say "@write file A"
+	end
+end
+
+
+function add_to_hdf5(fname, name, h5)
+	if is_img(fname)
+		return add_img_to_hdf5_as(fname, name, h5)
+	end
+	if is_csv_file(fname)
+		return add_csv_to_hdf5_as(fname, name, h5)
+	end
+	throw(ArgumentError("Unsupported file $fname"))
+end
+
+
+
+function add_to_mat(fname, name, mfile)
+	if is_img(fname)
+		return add_img_to_mat_as(fname, name, mfile)
+	end
+	if is_csv_file(fname)
+		return add_csv_to_mat_as(fname, name, mfile)
+	end
+	throw(ArgumentError("Unsupported file $fname"))
 end
 
 ## Expand mat
