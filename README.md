@@ -12,21 +12,21 @@ cd DataCurator.jl
 julia
 julia>using Pkg; Pkg.activate("."); Pkg.instantiate()
 ```
-If you have Singularity, you can build the image
-```bash
-./buildimage.sh
-```
+
 #### As a Julia package
 ```julia
 using Pkg;
 Pkg.add(https://github.com/bencardoen/DataCurator.jl.git)
 using DataCurator
 ```
-#### As a Singularity image
+#### Download the executable image
 ```bash
 wget <URL TO DO>
-./datacurator --recipe your.toml --verbose
 ```
+
+#### Singularity
+TODO download from sylabs + build
+
 ## Running
 ### Using TOML recipes
 Our package does not require you to write code, so as long as you understand what you want to happen to your data, and you can read and write a text file, that's all it takes.
@@ -45,6 +45,10 @@ Assuming inputdirectory and "your/flattened_path" exist, you can just do
 Then
 ```bash
 ./datacurator --recipe your.toml --verbose
+```
+or
+```bash
+julia --project=. src/curator.jl --recipe your.toml --verbose
 ```
 
 Check example_recipes/documented_example.toml for all possible options in a single example.
