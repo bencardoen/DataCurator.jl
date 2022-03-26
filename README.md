@@ -139,7 +139,7 @@ Check the directory example_recipes for examples on how to achieve a whole range
   conditions = ["isfile", ["endswith", ".txt"]]
   actions = ["halt"]
   ```
-- **Regular expression**: for more advanced users, when you write "startswith" "*.txt", it will not match anything, because by default regular expressions are disabled. Enabling them is easy though
+- **Regular expressions**: for more advanced users, when you write "startswith" "*.txt", it will not match anything, because by default regular expressions are disabled. Enabling them is easy though
   ```toml
   [global]
   regex=true
@@ -174,6 +174,15 @@ Check the directory example_recipes for examples on how to achieve a whole range
   counter_actions = [["log_to_file", "non_csvs.txt"]]
   ```
   or another use case is deleting a file that's incorrect, while transforming correct files in preparation for a pipeline, in 1 step.
+- **Export to HDF5/MAT**
+  ```toml
+  [global]
+  act_on_success=true
+  inputdirectory = "testdir"
+  [any]
+  conditions = ["is_tif_file", "is_csv_file"]
+  actions=[["add_to_hdf5", "img.hdf5"], ["add_to_mat", "csv.mat"]]
+  ```
 
 #### Usage
 Assuming you have the singularity image (does not require Julia, nor installation of dependencies)
