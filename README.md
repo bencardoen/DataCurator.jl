@@ -27,7 +27,7 @@ In short, what is needed is an approach that
 - Ensures portability by packaging everything in a single Singularity image so
   - it runs everywhere
   - it runs the same everywhere
-  - no dependencies, nor even Julia are needed
+  - no dependencies, not even Julia is needed
 - Uses TOML configuration files, designed to be human readable, as **recipes**
 - Runs in parallel, with a large set of predefined operations common to dataset processing
 
@@ -192,6 +192,16 @@ julia --project=. src/curator.jl --recipe "my_recipe.toml"
 ```
 
 ## Using Julia API
+### Under the hood
+When you define a template, a 'visitor' will walk over each 'node' in the filesystem graph, testing any conditions when appropriate, and executing actions or counteractions.
+![Concept](concept.png)
+
+In the background there's a lot more going on
+- Managing threadsafe data structures
+- Resolving counters and file lists
+- Looking up functions
+- Composing functions and conditions
+- ...
 ### Typesafe templates
 We heavily use Julia's multiple type dispatch system, so when you make a template
 ```julia
@@ -229,7 +239,7 @@ verify_template(rootdirectory, [mt(condition, counter)]; act_on_success=true)
 ### Flatten a file hierarchy
 ```julia
 action = x->flatten_to(root, x, newdirectory)
-verify_template(root, [(isfile, action)]; act_on_success=true)
+verify_template(root, [mt(isfile, action)]; act_on_success=true)
 ```
 
 ### Extract all 3D tif files to a single directory
@@ -237,19 +247,19 @@ Note, this will halt if the images it extracts exist on the target directory.
 ```julia
 trigger = x-> is_3d_img(x)
 action = x->flatten_to(root, x, image_directory)
-verify_template(root, [(trigger, action)]; act_on_success=true)
+verify_template(root, [mt(trigger, action)]; act_on_success=true)
 ```
 ### Sort 2D image and csv files into separate directories
 ```julia
 img_action = x->flatten_to(root, x, image_directory)
 csv_action = x->flatten_to(root, x, csv_directory)
-verify_template(root, [(is_2d_img, img_action), (is_csv_file, csv_action)]; act_on_success=true)
+verify_template(root, [(mtis_2d_img, img_action), (is_csv_file, csv_action)]; act_on_success=true)
 ```
 
 ### Compute size in bytes of a large hierarchy in parallel
 ```julia
 count, counter = generate_size_counter()
-verify_template("rootdirectory", [(isfile, counter)]; act_on_success=true)
+verify_template("rootdirectory", [mt(isfile, counter)]; act_on_success=true)
 @info "Size of matched files = $(count) bytes"
 ```
 
@@ -257,7 +267,7 @@ verify_template("rootdirectory", [(isfile, counter)]; act_on_success=true)
 ```julia
 count2, counter2 = generate_size_counter()
 count3, counter3 = generate_size_counter()
-verify_template("rootdirectory", [(is_2d_img, counter2),(is_3d_img, counter3)]; act_on_success=true)
+verify_template("rootdirectory", [mt(is_2d_img, counter2),(is_3d_img, counter3)]; act_on_success=true)
 @info "$(count2) bytes of 2D images, $(count3) of 3D images"
 ```
 
@@ -277,30 +287,30 @@ template = Dict()
 ```
 ##### First, define what to do with unexpected directories/files
 ```julia
-template[-1] = [(never, onfail)]
+template[-1] = [mt(never, onfail)]
 ```
 *never* is a shortcode symbol for 'will never pass'
 #####  At root, we only expect sub directories
 ```julia
-template[1] = [(isdir, onfail)]
+template[1] = [mt(isdir, onfail)]
 ```
 ##### Replicate should be integer
 ```julia
-template[2] = [(x->all_of(x, [isdir, integer_name]), onfail)]
+template[2] = [mt(x->all_of(x, [isdir, integer_name]), onfail)]
 ```
 ##### Celltype should only be subdirs
 ```julia
-template[3] = [(isdir, onfail)]
+template[3] = [mt(isdir, onfail)]
 ```
 ##### Lowest data directory should end with cell nr, and have 2 or more files
 ```julia
 inputdir_check = x->all_of(x, [isdir, x->ends_with_integer(x), x->n_files_or_more(x, 2)])
-template[4] = [(inputdir_check, onfail)]
+template[4] = [mt(inputdir_check, onfail)]
 ```
 ##### Actual files should be 3D images
 ```julia
 file_check = x -> is_tif_file(x) & is_3d_img(x) & endswith(x, r"[1,2].tif")
-template[5] = [(file_check, onfail)]
+template[5] = [mt(file_check, onfail)]
 ```
 ##### Execute
 ```julia
@@ -310,7 +320,7 @@ verify_template(root, template; traversalpolicy=topdown, parallel_policy="parall
 You are free to define even more complex actions, for example, triggers that fire on invalid data AND valid data in 1 template.
 For example, let's say we expect csv files, and if we find tif files, then we delete those, otherwise we just warn.
 ```julia
-template[y] = [(x->~is_tif_file(x), delete_file), (is_csv_file, onfail)]
+template[y] = [mt(x->~is_tif_file(x), delete_file), mt(is_csv_file, onfail)]
 ```
 
 ## Fire triggers when they are true, not when they fail
@@ -324,22 +334,16 @@ verify_template(root, template; act_on_succes=true)
 All recipes can be executed in parallel. Counters are protected so they are threadsafe, yet need no locks.
 ```julia
 count, counter = generate_counter(true; incrementer=size_of_file)
-verify_template("rootdirectory", [(condition, counter)]; parallel_policy="parallel", act_on_success=true)
+verify_template("rootdirectory", [mt(condition, counter)]; parallel_policy="parallel", act_on_success=true)
 @info "Size of matched files = $(count) bytes"
 ```
 
-## Targets
+## Data type support
 
-A **target** is your datastore, in the simplest case a folder.
-
-- Implemented
-  - [x] Local Filesystems
-  - [x] Parallel execution
-- Future
-  - [-] Archives
-    - [-] JLD
-    - [-] HDF5
-    - [-] MAT
+- CSV / DataFrames : fusing, reading
+- Images
+- HDF5 (export data to)
+- MAT (export data to)
 
 ### Shortcodes
 For your convenience a whole set of 'shortcodes' are defined, those are symbols referring to often used functions, that you can use as-is in triggers/actions.
@@ -385,6 +389,16 @@ read_float
 is_8bit_img
 is_16bit_img
 column_names
+has_n_columns
+less_than_n_subdirs
+is_hidden[_dir, _file]
+add_path_to_file_list
+remove
+delete_file
+delete_folder
+path_only
+show_warning
+log_to_file_with_message
 ```
 If you're not familiar with Julia, the following are builtin
 ```julia

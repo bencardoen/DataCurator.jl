@@ -6,5 +6,5 @@ inputdirectory = "testdir"
 file_lists = ["table"]
 [any]
 conditions = ["is_csv_file"]
-actions = ["warn_on_fail"]
-# actions=[["add_to_file_list", "table"]]
+# actions = ["warn_on_fail"]
+actions=[["add_to_file_list", "table"]]

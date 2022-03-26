@@ -36,7 +36,9 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt, dostep, is_hidden_file, is_hidden_dir, is_hidden, less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
+halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
+dostep, is_hidden_file, is_hidden_dir, is_hidden,
+less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -1193,12 +1195,22 @@ end
 
 function add_csv_to_hdf5_as(csv, name, hfile)
 	h5open(hfile, "w") do file
-    	write(file, name, CSV.load(csv, DataFrame))  # alternatively, say "@write file A"
+        d = CSV.read(csv, DataFrames)
+        D = Dict([(nm, d[!,nm]) for nm in names(d)])
+    	write(file, name, D)  # alternatively, say "@write file A"
 	end
 end
 
+function add_to_hdf5(fname::AbstractString,  h5::AbstractString)
+    add_to_hdf5(fname, fname, h5)
+end
 
-function add_to_hdf5(fname, name, h5)
+function add_to_mat(fname::AbstractString, m::AbstractString)
+    vname = match(r"[a-z,A-Z]+",fname).match
+    return add_to_mat(fname, vname, m)
+end
+
+function add_to_hdf5(fname::AbstractString, name::AbstractString, h5::AbstractString)
 	if is_img(fname)
 		return add_img_to_hdf5_as(fname, name, h5)
 	end
@@ -1208,6 +1220,32 @@ function add_to_hdf5(fname, name, h5)
 	throw(ArgumentError("Unsupported file $fname"))
 end
 
+
+
+function add_csv_to_mat_as(csvfile, name, mfile)
+	if ~isfile(mfile)
+		touch(mfile)
+	end
+	d = CSV.read(csvfile, DataFrame)
+	D = Dict([(nm, d[!,nm]) for nm in names(d)])
+	file = matopen(mfile, "w")
+	write(file, name, D)
+	close(file)
+end
+
+function add_img_to_mat_as(imgfile, name, mfile)
+	if ~isfile(mfile)
+		touch(mfile)
+	end
+	i = Images.load(imgfile)
+	file = matopen(mfile, "w")
+	write(file, name, Float64.(i))
+	close(file)
+end
+
+function toalpha(x)
+
+end
 
 
 function add_to_mat(fname, name, mfile)
