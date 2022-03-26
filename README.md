@@ -79,10 +79,9 @@ Check the directory example_recipes for examples on how to achieve a whole range
   file_lists = ["infiles", ["outfiles", "/my/outpath"]]
   inputdirectory = "/data/directory"
   [any]
-  all=false
+  all=true
   conditions = ["is_3d_img"]
-  actions=[["count", "c1"]]
-  actions=[["add_to_file_list", "outfiles"]]
+  actions=[["count", "c1"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]
   ```
   This will generate an **infiles.txt** and **outfiles.txt** containing e.g. "/a/b/c/e.tif" and "/my/outpath/e.tif". The advantage over doing this with your own for loops/scripts, is that you only need the recipe, it'll run in parallel without you having to worry about synchronization/data races, and it'll just work, so you get to do something more interesting.
 
@@ -104,30 +103,30 @@ Check the directory example_recipes for examples on how to achieve a whole range
   ## If we see anything else than the structure below, complain
   [any]
   conditions=["never"]
-  actions = ["warn_on_fail"]
+  actions = ["show_warning"]
   ## Top directory, only sub directories
   [level_1]
   conditions=["isdir"]
-  actions = ["warn_on_fail"]
+  actions = ["show_warning"]
   ## Replicate directory, should be an integer
   [level_2]
   all=true
   conditions=["isdir", "integer_name"]
-  actions = ["warn_on_fail"]
+  actions = ["show_warning"]
   ## We don't care what cell types are named, as long as there's not unexpected data
   [level_3]
   conditions=["isdir"]
-  actions = ["warn_on_fail"]
+  actions = ["show_warning"]
   ## Final level, directory with 2 files, and should end with cell nr
   [level_4]
   all=true
   conditions=["isdir", ["has_n_files", 2], ["ends_with_integer"]]
-  actions = ["warn_on_fail"]
+  actions = ["show_warning"]
   ## The actual files, we complain if there's any subdirectories, or if the files are not 3D
   [level_5]
   all=true
   conditions=["is_3d_img", ["endswith", "[1,2].tif"]]
-  actions = ["warn_on_fail"]
+  actions = ["show_warning"]
   ```
 - **Early exit**: sometimes you want the validation or processing to stop immediately based on a condition, e.g. finding corrupt data, or because you're just looking for 1 specific type of conditions. This can be achieved fairly easily, illustrated with a trivial example that stops after finding something else than .txt files.
   ```toml
@@ -157,7 +156,7 @@ Check the directory example_recipes for examples on how to achieve a whole range
   [any]
   all=true
   conditions = ["isfile", ["not", "endswith", ".*.txt"]]
-  actions = [["flatten_to", "outdir"], "warn_on_fail"]
+  actions = [["flatten_to", "outdir"], "show_warning"]
   ```
 
 - **Counteractions** : When you're validating you'll want to warn/log invalid files/folders. But at the same time, you may want to do the actual preprocessing as well. This is where counteractions come in, they allow you to specify
@@ -322,7 +321,7 @@ Suppose your data is supposed to have this layout
 You can use **hierarchical** templates, that give you very precise control of where a condition fires
 ##### Create a hierarchical template, and what to do if something is wrong
 ```julia
-onfail = x->warn_on_fail
+onfail = x->show_warning
 template = Dict()
 ```
 ##### First, define what to do with unexpected directories/files
@@ -400,7 +399,7 @@ quit
 proceed
 filename
 integer_name
-warn_on_fail
+show_warning
 quit_on_fail
 is_img
 is_kd_img
