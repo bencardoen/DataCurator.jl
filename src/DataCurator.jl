@@ -1207,6 +1207,7 @@ end
 
 function add_to_mat(fname::AbstractString, m::AbstractString)
     vname = match(r"[a-z,A-Z]+",fname).match
+    @info "Writing $fname to $vname in $m"
     return add_to_mat(fname, vname, m)
 end
 
@@ -1226,11 +1227,13 @@ function add_csv_to_mat_as(csvfile, name, mfile)
 	if ~isfile(mfile)
 		touch(mfile)
 	end
+    @info "Opening csv $csvfile"
 	d = CSV.read(csvfile, DataFrame)
 	D = Dict([(nm, d[!,nm]) for nm in names(d)])
-	file = matopen(mfile, "w")
-	write(file, name, D)
-	close(file)
+	# file = matopen(mfile, "w")
+    @info "Writing to $mfile"
+	matwrite(mfile, D)
+	# close(file)
 end
 
 function add_img_to_mat_as(imgfile, name, mfile)

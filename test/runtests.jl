@@ -47,6 +47,27 @@ using DataFrames
         @test isfile(joinpath(IN, "ab_c.txt"))
     end
 
+    @testset "testhdf5mat" begin
+        IN = "testdir"
+        if isdir(IN)
+            rm(IN, recursive=true)
+        end
+        if isfile("img.hdf5")
+            rm("img.hdf5")
+        end
+        if isfile("csv.mat")
+            rm("csv.mat")
+        end
+        mkpath(IN)
+        CSV.write(joinpath(IN, "test.csv"), DataFrame(zeros(3,3),:auto))
+        Images.save(joinpath(IN, "test.tif"), zeros(3,3,3))
+        res = create_template_from_toml("../example_recipes/export_to_mat_h5.toml")
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        @test isfile("img.hdf5")
+        @test isfile("csv.mat")
+    end
+
     @testset "tupletypes" begin
         i = 1
         f = x-> begin; i= i+1;end
