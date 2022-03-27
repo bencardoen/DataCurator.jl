@@ -35,9 +35,50 @@ function parse_commandline()
             help = "If set, in --decon mode use channel normalization after background removal."
             action = :store_true
             default = false
+        "--update"
+            help = "If set, needs --inputdirectory and --outputdirectory, will update your template in place"
+            action = :store_true
+        "--inputdirectory"
+            help = "Recipe in TOML format, see example_recipes/ for example configurations"
+            arg_type = String
+            required = false
+        "--outputdirectory"
+            help = "Recipe in TOML format, see example_recipes/ for example configurations"
+            arg_type = String
+            required = false
     end
 
     return parse_args(s)
+end
+
+
+function update_template(template, indir, outdir)
+    UDR=indir
+    ODR=outdir
+    isdir(UDR)
+    isdir(ODR)
+    x = nothing
+    f1, f2 = false, false
+    s=readlines(template)
+    for (i, _s) in enumerate(s)
+        # println(_s)
+        if startswith(_s, "inputdirectory")
+            n = "inputdirectory=\"$UDR\" \n"
+            s[i]= n
+            f1 = true
+        end
+        if startswith(_s, "file_lists")
+            s[i]= "file_lists=[\"inlist\", [\"outlist\", \"$ODR\"]]"
+            f2 = true
+        end
+    end
+
+    if ~f1 || ~f2
+        @error "Failed converting template, make sure the directories exist and the template is not corrupt."
+        throw(ArgumentError("Failed updating template"))
+    end
+    @info "Updating $template with $indir and $outdir"
+    write(template, join(s, "\n")...)
 end
 
 function run()
@@ -55,6 +96,18 @@ function run()
     c = parsed_args["recipe"]
     if ~ isfile(c)
         @error "Failed reading $c, file does not exist"
+    end
+
+    if parsed_args["update"]
+        @info "Updating template"
+        ip, op = parsed_args["inputdirectory"], parsed_args["outputdirectory"]
+        if isnothing(ip) || isnothing(op)
+            @error "Input or outputdirectory not set : use --inputdirectory ... --outputdirectory ... when you use --update"
+            throw(ArgumentError("Invalid args"))
+        end
+        @info "Updating recipe ..."
+        update_template(c, ip, op)
+        @info "...done"
     end
     @info "Reading template recipe $c"
     res = create_template_from_toml(c)
