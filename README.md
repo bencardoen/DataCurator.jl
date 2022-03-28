@@ -2,7 +2,7 @@
 
 A multithreaded package to validate, curate, and transform large heterogenous datasets using reproducible recipes, that can be created both in TOML human readable format, or in Julia.
 
-[Concept](venn.png)
+![Concept](venn.png)
 
 
 ## Quickstart
