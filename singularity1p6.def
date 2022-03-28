@@ -46,6 +46,7 @@ From: fedora:35
 %runscript
     echo "Starting DataCurator.jl"
     echo "Version 0.1"
+    echo `pwd`
     echo "Expected usage : ./image.sif --recipe your_recipe.toml [--verbose]"
     /opt/runjulia.sh "$@"
 
