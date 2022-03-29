@@ -356,25 +356,20 @@ verify_template("rootdirectory", [mt(condition, counter)]; parallel_policy="para
 
 ### Actions and conditions you can use in your TOML recipes
 For your convenience a whole set of 'shortcodes' are defined, those are symbols referring to often used functions, that you can use as-is in triggers/actions.
+#### Conditions
 ```julia
-
 is_csv_file
 is_tif_file
 is_png_file
-whitespace_to
+integer_name
 is_lower
 is_upper
 has_whitespace
-quit
-proceed
-filename
-integer_name
-show_warning
-quit_on_fail
 is_img
 is_kd_img
 is_2d_img
 is_3d_img
+is_rgb
 is_rgb
 read_dir
 files
@@ -383,12 +378,8 @@ n_files_or_more
 less_than_n_files
 subdirs
 has_n_subdirs
-log_to_file
-ignore
 always
 never
-sample
-size_of_file
 read_postfix_int
 read_prefix_int
 read_int
@@ -401,6 +392,19 @@ column_names
 has_n_columns
 less_than_n_subdirs
 is_hidden[_dir, _file]
+```
+#### Actions
+```julia
+whitespace_to
+quit
+proceed
+filename
+show_warning
+quit_on_fail
+log_to_file
+ignore
+sample
+size_of_file
 add_path_to_file_list
 remove
 delete_file
@@ -416,7 +420,9 @@ remove_from_to_inclusive
 remove_pattern
 replace_pattern
 ```
+
 If you're not familiar with Julia, the following are builtin
+
 ```julia
 size
 isfile
@@ -430,3 +436,40 @@ length
 sum
 isnothing
 ```
+
+### Extending with your own conditions and actions
+As long as your own functions are in scope, they can be used.
+For example
+
+```julia
+using DataCurator
+function myspecialcheck(x)
+    @info x
+    return true
+end
+
+fsym = lookup(myspecialcheck)
+@info isnothing(fsym)==false
+```
+
+#### Interface
+##### Conditions
+```julia
+function condition(x, ...) -> true,false
+```
+A condition is always passed as first argument the `node`, e.g. the current file or directory being evaluated. Anything else is up to you to specify.
+
+Conditions should **NEVER** modify any state, especially not global state, and have 0 side-effects (no files, no logging, no changing files, ...)
+
+##### Actions
+```julia
+function action(x, ...) -> :quit, :proceed
+```
+There are special cases, e.g. when functions are chained.
+E.g. `tolowercase` will never return `:quit` or `:proceed`, but then you'd use it in a chain, as in
+```julia
+transform_copy(x, lowercase(x))
+```
+
+Not all functions can be chained, the template reader will consider chaining when you use `transform_copy` and `transform_inplace`.
+See [example_recipes/remove_pattern.toml].

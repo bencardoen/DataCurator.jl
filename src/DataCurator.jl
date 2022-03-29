@@ -855,8 +855,14 @@ function lookup(sym)
     try
         return getfield(DataCurator, Symbol(sym))
     catch
-        @error "No such symbol $sym"
-        return nothing
+        @warn "No such symbol $sym"
+        @warn "Trying user defined functions in Main"
+        try
+            return getfield(Main, Symbol(sym))
+        catch
+            @error "No such symbol $sym"
+            return nothing
+        end
     end
 end
 
