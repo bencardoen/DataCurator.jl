@@ -473,3 +473,9 @@ transform_copy(x, lowercase(x))
 
 Not all functions can be chained, the template reader will consider chaining when you use `transform_copy` and `transform_inplace`.
 See [example_recipes/remove_pattern.toml].
+
+**Note**
+If you are defining your own functions, there's a fine line between adding one or two convenience functions, and a whole slew of extras.
+In the second case, what you actually want is using the Julia API.
+
+You can still make your Julia template 100% reproducible by building a singularity image with your script, see the [definition file](singularity1p6.def) in this repo as an example.
