@@ -39,6 +39,15 @@ using DataFrames
         rm(IN; recursive=true)
     end
 
+    @testset "RMV" begin
+        a = ["remove_from_to", "DAPI", ".tif"]
+        z = decode_function(a, Dict("regex"=>true))("DAPI-Unage.tif")
+        @test z==".tif"
+
+
+        # _remove_from_to("DAPI-Unage.tif", "DAPI", ".tif")
+    end
+
     @testset "delegate" begin
         mkpath("/dev/shm/inpath")
         touch("/dev/shm/inpath/test.tif")

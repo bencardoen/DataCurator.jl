@@ -276,7 +276,7 @@ function remove_from_to(x, from, to; inclusive_first=true, inclusive_second=fals
         return x
     end
     if inclusive_first
-        PRE = FN[1:B.start]
+        PRE = FN[1:B.start-1]
     else
         PRE = FN[1:B.stop]
     end
