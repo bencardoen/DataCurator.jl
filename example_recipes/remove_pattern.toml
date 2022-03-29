@@ -1,0 +1,11 @@
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+regex=true
+[any]
+all=true
+conditions = ["is_tif_file", ["contains", "DAPI"]]
+actions=[["transform_copy", ["remove_from_to_extension_exclusive", "DAPI"]]]
+#== same as
+## File : DAPIXXXXX.tif --> DAPI.tif
+#actions=[["transform_copy", ["remove_from_to_exclusive", "DAPI", ".tif"]]

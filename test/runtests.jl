@@ -78,6 +78,22 @@ using DataFrames
         @test R2=="ABC_.txt"
     end
 
+    @testset "sl_issue2" begin
+        IN="testdir"
+        delete_folder(IN)
+        mkdir(IN)
+        touch(joinpath(IN, "20x_2008-037_27_C1_Cy3-FITC-DAPI-Image Export-21_h0t0z0c0-3x0-2048y0-2048.tif"))
+        Q = readdir("testdir") |> collect
+        @test length(Q) == 1
+        res = create_template_from_toml("../example_recipes/remove_pattern.toml")
+        c, t = res
+        t[1].action("abc.txt")
+        cts, cls, rv = delegate(c, t)
+        Q = readdir("testdir") |> collect
+        @test length(Q) == 2
+        rm(IN; recursive=true)
+    end
+
     @testset "delegate" begin
         mkpath("/dev/shm/inpath")
         touch("/dev/shm/inpath/test.tif")

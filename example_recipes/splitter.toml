@@ -1,0 +1,7 @@
+[global]
+act_on_success=true
+inputdirectory="/dev/shm/splitter"
+[any]
+all=false
+conditions=["endswith .tif", "endswith .csv"]
+actions=["flatten_to tifs.txt", "log_to_file csvs.txt"]
