@@ -38,7 +38,7 @@ read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatt
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
 halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden,
-less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove
+less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -290,7 +290,7 @@ end
 
 function remove_from_to_extension(x, from; inclusive_first=true)
     if isdir(x)
-        throw ArgumentError("Not a file, so extensions do not make sense")
+        throw(ArgumentError("Not a file, so extensions do not make sense"))
     end
     path, FN = splitdir(x)
     FN, ext = splitext(FN)
@@ -312,6 +312,16 @@ function remove_from_to_extension(x, from; inclusive_first=true)
     JOINED = join([PRE, ext])
     @info JOINED
     return joinpath(path, JOINED)
+end
+
+function replace_pattern(x, ptrn, replacement)
+    p, f = splitdir(x)
+    fx = replace(f, Regex(ptrn)=>replacement)
+    return joinpath(p, fx)
+end
+
+function remove_pattern(x::AbstractString, ptrn::AbstractString)
+    return replace_pattern(x, ptrn, "")
 end
 
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
