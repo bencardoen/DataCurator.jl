@@ -8,6 +8,37 @@ using DataFrames
 
 @testset "DataCurator.jl" begin
 
+    @testset "pattern_removal" begin
+        IN = mktempdir()
+        T1= "20x_NR12-55_16_P1_Cy3-FITC-DAPI-Image Export-28_h0t0z0c0-3x0-2048y0-2048.tif"
+        T2= "20x_2008-037_27_C1_Cy3-FITC-DAPI-Image Export-21_h0t0z0c0-3x0-2048y0-2048.tif"
+        F1 = touch(joinpath(IN, T1))
+        F2 = touch(joinpath(IN, T2))
+        R = remove_pattern(F1, "DAPI")
+        @test contains(F1, "DAPI")
+        @test ~contains(R, "DAPI")
+        R = remove_pattern(F2, "DAPI")
+        @test contains(F2, "DAPI")
+        @test ~contains(R, "DAPI")
+        rm(IN; recursive=true)
+    end
+
+    @testset "extend_removal" begin
+        IN = mktempdir()
+        T1= "20x_NR12-55_16_P1_Cy3-FITC-DAPI-Image Export-28_h0t0z0c0-3x0-2048y0-2048.tif"
+        T2= "20x_2008-037_27_C1_Cy3-FITC-DAPI-Image Export-21_h0t0z0c0-3x0-2048y0-2048.tif"
+        F1 = touch(joinpath(IN, T1))
+        F2 = touch(joinpath(IN, T2))
+        Q = remove_from_to(T1, "DAPI", ".tif"; inclusive_first=false)
+        Z = "20x_NR12-55_16_P1_Cy3-FITC-DAPI.tif"
+        @test Q == Z
+        Q = remove_from_to(F1, "DAPI", ".tif"; inclusive_first=false)
+        @test Q == joinpath(IN, Z)
+        A = remove_from_to_extension(T1, "DAPI"; inclusive_first=false)
+        @test Q == joinpath(IN, A)
+        rm(IN; recursive=true)
+    end
+
     @testset "delegate" begin
         mkpath("/dev/shm/inpath")
         touch("/dev/shm/inpath/test.tif")
