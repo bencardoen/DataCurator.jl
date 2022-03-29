@@ -39,6 +39,23 @@ using DataFrames
         rm(IN; recursive=true)
     end
 
+    @testset "tf-copy+remove" begin
+        IN = mktempdir()
+        T1= "20x_NR12-55_16_P1_Cy3-FITC-DAPI-Image Export-28_h0t0z0c0-3x0-2048y0-2048.tif"
+        T2= "20x_2008-037_27_C1_Cy3-FITC-DAPI-Image Export-21_h0t0z0c0-3x0-2048y0-2048.tif"
+        F1 = touch(joinpath(IN, T1))
+        F2 = touch(joinpath(IN, T2))
+        f = ["transform_copy", ["remove_from_to_extension_inclusive", "DAPI"]]
+        Q = decode_function(f, Dict("regex"=>true))
+        Z=Q(F1)
+        @test ~contains(Z, "DAPI")
+        f = ["transform_copy", ["remove_from_to_extension_exclusive", "DAPI"]]
+        A=decode_function(f, Dict("regex"=>true))
+        B=A(F1)
+        @test contains(B, "DAPI")
+        rm(IN; recursive=true)
+    end
+
     @testset "RMV" begin
         a = ["remove_from_to", "DAPI", ".tif"]
         z = decode_function(a, Dict("regex"=>true))("DAPI-Unage.tif")
@@ -53,12 +70,12 @@ using DataFrames
         R1=remove_from_to_inclusive(F, "_", ".txt")
         @test R1=="ABC"
         R2=remove_from_to_exclusive(F, "_", ".txt")
-        @test R2="ABC_.txt"
+        @test R2=="ABC_.txt"
         F = "ABC_CDE.txt"
         R1=remove_from_to_extension_inclusive(F, "_")
         @test R1=="ABC.txt"
         R2=remove_from_to_extension_exclusive(F, "_")
-        @test R2="ABC_.txt"
+        @test R2=="ABC_.txt"
     end
 
     @testset "delegate" begin
