@@ -408,6 +408,13 @@ delete_folder
 path_only
 show_warning
 log_to_file_with_message
+remove_from_to
+remove_from_to_extension_inclusive
+remove_from_to_extension_exclusive
+remove_from_to_exclusive
+remove_from_to_inclusive
+remove_pattern
+replace_pattern
 ```
 If you're not familiar with Julia, the following are builtin
 ```julia
