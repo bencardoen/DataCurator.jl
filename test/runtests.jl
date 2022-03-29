@@ -48,6 +48,19 @@ using DataFrames
         # _remove_from_to("DAPI-Unage.tif", "DAPI", ".tif")
     end
 
+    @testset "rmv_aliases" begin
+        F = "ABC_CDE.txt"
+        R1=remove_from_to_inclusive(F, "_", ".txt")
+        @test R1=="ABC"
+        R2=remove_from_to_exclusive(F, "_", ".txt")
+        @test R2="ABC_.txt"
+        F = "ABC_CDE.txt"
+        R1=remove_from_to_extension_inclusive(F, "_")
+        @test R1=="ABC.txt"
+        R2=remove_from_to_extension_exclusive(F, "_")
+        @test R2="ABC_.txt"
+    end
+
     @testset "delegate" begin
         mkpath("/dev/shm/inpath")
         touch("/dev/shm/inpath/test.tif")

@@ -37,7 +37,8 @@ safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
 halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
-dostep, is_hidden_file, is_hidden_dir, is_hidden,
+dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
+remove_from_to_extension_inclusive, remove_from_to_extension_exclusive,
 less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
@@ -259,7 +260,6 @@ function handle_chained(f::AbstractVector, glob::AbstractDict; condition=false)
     end
 end
 
-
 function remove_from_to(x, from, to; inclusive_first=true, inclusive_second=false)
     path, FN = splitdir(x)
     @debug "$x -> \n $path \n $FN"
@@ -280,14 +280,18 @@ function remove_from_to(x, from, to; inclusive_first=true, inclusive_second=fals
     else
         PRE = FN[1:B.stop]
     end
-    POST = FN[B.stop+1+C.start-1:end]
+    if inclusive_second
+        POST = FN[B.stop+1+C.stop:end]
+    else
+        POST = FN[B.stop+1+C.start-1:end]
+    end
     @debug "Prefix $PRE"
     @debug "Prefix $POST"
     JOINED = join([PRE, POST])
     return joinpath(path, JOINED)
 end
 
-function remove_from_to_extension(x, from; inclusive_first=true)
+function remove_from_to_extension(x::AbstractString, from::AbstractString; inclusive_first=true)
     if isdir(x)
         throw(ArgumentError("Not a file, so extensions do not make sense"))
     end
@@ -302,7 +306,7 @@ function remove_from_to_extension(x, from; inclusive_first=true)
         return x
     end
     if inclusive_first
-        PRE = FN[1:B.start]
+        PRE = FN[1:B.start-1]
     else
         PRE = FN[1:B.stop]
     end
@@ -311,6 +315,11 @@ function remove_from_to_extension(x, from; inclusive_first=true)
     JOINED = join([PRE, ext])
     return joinpath(path, JOINED)
 end
+
+remove_from_to_inclusive = (x, f, t) -> remove_from_to(x, f, t;inclusive_first=true, inclusive_second=true)
+remove_from_to_exclusive = (x, f, t) -> remove_from_to(x, f, t;inclusive_first=false, inclusive_second=false)
+remove_from_to_extension_inclusive = (x, f) -> remove_from_to_extension(x, f;inclusive_first=true)
+remove_from_to_extension_exclusive = (x, f) -> remove_from_to_extension(x, f;inclusive_first=false)
 
 function replace_pattern(x, ptrn, replacement)
     p, f = splitdir(x)
