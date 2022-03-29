@@ -48,6 +48,8 @@ From: fedora:35
     echo "Version 0.1"
     echo `pwd`
     echo "Expected usage : ./image.sif --recipe your_recipe.toml [--verbose]"
+    echo "OR to create batch processing lists and update a template:"
+    echo "OR : ./image.sif --recipe your_recipe.toml [--verbose] --update --inputdirectory $A --outputdirectory $B"
     /opt/runjulia.sh "$@"
 
 %labels
