@@ -13,8 +13,12 @@ DataCurator is a Swiss army knife that ensures:
 ![Concept](whatami.png)
 
 ## Quickstart
-### Install
-#### As a local repo
+### Installation
+#### As a local repository
+You need:
+- Julia
+- git
+
 ```bash
 git clone git@github.com:bencardoen/DataCurator.jl.git
 cd DataCurator.jl
@@ -23,18 +27,33 @@ julia>using Pkg; Pkg.activate("."); Pkg.instantiate()
 ```
 
 #### As a Julia package
+You need:
+- Julia
+
 ```julia
 using Pkg;
 Pkg.add(https://github.com/bencardoen/DataCurator.jl.git)
 using DataCurator
 ```
 #### Download the executable image
+You need:
+- A command line environment (WSL on windows, any shell on Linux or MAC)
+
 ```bash
 wget <URL TO DO>
 ```
 
 #### Singularity
 TODO download from sylabs + build
+
+
+**Note**
+
+If you run into issues with files or directories not found, this is because the Singularity container by default has no access except to your $HOME directory. Use
+```
+singularity run -B /scratch image.sif ...
+```
+where /scratch is a directory you want read/write access to.
 
 ## Running
 ### Using TOML recipes
