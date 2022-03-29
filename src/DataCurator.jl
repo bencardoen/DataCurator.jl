@@ -259,6 +259,61 @@ function handle_chained(f::AbstractVector, glob::AbstractDict; condition=false)
     end
 end
 
+
+function remove_from_to(x, from, to; inclusive_first=true, inclusive_second=false)
+    path, FN = splitdir(x)
+    @info "$x -> \n $path \n $FN"
+    # @info FN
+    @info "Remove [$from - $to] from FN"
+    B = findfirst(from, FN)
+    if isnothing(B)
+        @warn "$from not found in $x"
+        return x
+    end
+    C = findfirst(to, FN[B.stop+1:end])
+    if isnothing(C)
+        @warn "$to not found in $x"
+        return x
+    end
+    if inclusive_first
+        PRE = FN[1:B.start]
+    else
+        PRE = FN[1:B.stop]
+    end
+    POST = FN[B.stop+1+C.start-1:end]
+    @info "Prefix $PRE"
+    @info "Prefix $POST"
+    JOINED = join([PRE, POST])
+    @info JOINED
+    return joinpath(path, JOINED)
+end
+
+function remove_from_to_extension(x, from; inclusive_first=true)
+    if isdir(x)
+        throw ArgumentError("Not a file, so extensions do not make sense")
+    end
+    path, FN = splitdir(x)
+    FN, ext = splitext(FN)
+    @info "$x -> $path \n $FN \n $ext"
+    # @info FN
+    @info "Remove [$from - $to] from FN"
+    B = findfirst(from, FN)
+    if isnothing(B)
+        @warn "$from not found in $x"
+        return x
+    end
+    if inclusive_first
+        PRE = FN[1:B.start]
+    else
+        PRE = FN[1:B.stop]
+    end
+    @info "Remaining prefix $PRE"
+    @info "Remaining postfix $ext"
+    JOINED = join([PRE, ext])
+    @info JOINED
+    return joinpath(path, JOINED)
+end
+
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     # @info f
     negate = false
