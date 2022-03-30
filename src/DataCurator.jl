@@ -38,7 +38,7 @@ read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatt
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
 halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
-remove_from_to_extension_inclusive, remove_from_to_extension_exclusive,
+remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate,
 less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
@@ -138,6 +138,7 @@ function decode_filelist(fe::AbstractString, glob)
     lst = make_shared_list()
     adder = x->add_to_file_list(x, lst)
     aggregator = shared_list_to_file(lst, fe)
+    ## TODO switch to aggregator objects
     return (fe, (lst, adder, aggregator))
 end
 
@@ -150,6 +151,7 @@ function decode_filelist(fe::AbstractVector, glob)
     alter_root = fe[2]
     fs = lookup(alter_root)
     lst = make_shared_list()
+    ## TODO switch to aggregator objects
     @warn "change to decode aggregator"
     if isnothing(fs)
         @info "Aggregator not set, assuming short code for shared_list_to_file[change_path, prefix]"
@@ -489,6 +491,9 @@ function delegate(config, template)
         adder=f[2][2]
         aggregator=f[2][3]
         @info name list adder aggregator
+        ## TODO -->
+        ## f = aggregator
+        ## aggregator_aggregate(f)
         ## TODO f[1][2] - adder
         ## TODO f[1][3] - aggregator
         if contains(name, "table")
@@ -1446,18 +1451,26 @@ function verifier(node, template::Vector, level::Int; on_success=false)
     # return :proceed
 end
 
-function make_aggregator(name, adder, aggregator)
-    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, aggregator, identity))
+function make_aggregator(name, list, adder, aggregator)
+    return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, aggregator, identity))
 end
 
 
-function make_aggregator(name, adder)
-    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, (x,lst)->shared_list_to_file(x, lst), identity))
+function make_aggregator(name, list, adder)
+    return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, (x,lst)->shared_list_to_file(x, lst), identity))
 end
 
 
-function make_aggregator(name, adder, aggregator, transformer)
-    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, aggregator,transformer))
+function make_aggregator(name, list, adder, aggregator, transformer)
+    return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, aggregator,transformer))
+end
+
+function aggregator_add(nt)
+    nt.adder(nt.list, nt.transformer(x))
+end
+
+function aggregator_aggregate(nt)
+    nt.aggregator(nt.name, nt.list)
 end
 
 function make_tuple(co, ac, ca)

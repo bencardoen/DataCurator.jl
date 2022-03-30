@@ -13,9 +13,10 @@ using DataFrames
         adder = x::AbstractString -> add_to_file_list(x, l)
         transformer = identity
         aggregator = shared_list_to_file
-        Q = make_aggregator(l, adder, aggregator, transformer)
+        Q = make_aggregator("L", l, adder, aggregator, transformer)
         Q.transformer == identity
         Q.transformer(1) == 1
+        Q.adder("1")
     end
 
     @testset "pattern_removal" begin
