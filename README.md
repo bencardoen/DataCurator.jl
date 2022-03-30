@@ -32,7 +32,7 @@ You need:
 
 ```julia
 using Pkg;
-Pkg.add(https://github.com/bencardoen/DataCurator.jl.git)
+Pkg.add(url="https://github.com/bencardoen/DataCurator.jl")
 using DataCurator
 ```
 #### Download the executable image
