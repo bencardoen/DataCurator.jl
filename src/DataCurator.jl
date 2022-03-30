@@ -39,7 +39,7 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive,
-less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table
+less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -1447,12 +1447,17 @@ function verifier(node, template::Vector, level::Int; on_success=false)
 end
 
 function make_aggregator(name, adder, aggregator)
-    return @NamedTuple{name, adder, aggregator}((name, adder, aggregator))
+    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, aggregator, x->x))
 end
 
 
 function make_aggregator(name, adder)
-    return @NamedTuple{name, adder, aggregator}((name, adder, (x,lst)->shared_list_to_file(x, lst)))
+    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, (x,lst)->shared_list_to_file(x, lst),x->x))
+end
+
+
+function make_aggregator(name, adder, aggregator, transformer)
+    return @NamedTuple{name, adder, aggregator}((name, adder, aggregator,transformer))
 end
 
 function make_tuple(co, ac, ca)
