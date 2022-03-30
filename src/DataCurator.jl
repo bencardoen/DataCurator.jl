@@ -1450,6 +1450,11 @@ function make_aggregator(name, adder, aggregator)
     return @NamedTuple{name, adder, aggregator}((name, adder, aggregator))
 end
 
+
+function make_aggregator(name, adder)
+    return @NamedTuple{name, adder, aggregator}((name, adder, (x,lst)->shared_list_to_file(x, lst)))
+end
+
 function make_tuple(co, ac, ca)
     return @NamedTuple{condition,action, counteraction}((co,ac,ca))
 end
