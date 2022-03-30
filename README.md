@@ -20,10 +20,11 @@ You need:
 - git
 
 ```bash
-git clone git@github.com:bencardoen/DataCurator.jl.git
+git clone git@github.com:bencardoen/DataCurator.jl.git ## Assumes ssh
+# git clone https://github.com/bencardoen/DataCurator.jl.git ## For non SSH
 cd DataCurator.jl
 julia
-julia>using Pkg; Pkg.activate("."); Pkg.instantiate()
+julia>using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.Test();
 ```
 
 #### As a Julia package
@@ -35,6 +36,8 @@ using Pkg;
 Pkg.add(url="https://github.com/bencardoen/DataCurator.jl")
 using DataCurator
 ```
+Note: when this repo is private this will prompt for username and github token (not psswd)
+
 #### Download the executable image
 You need:
 - A command line environment (WSL on windows, any shell on Linux or MAC)
@@ -44,16 +47,48 @@ wget <URL TO DO>
 ```
 
 #### Singularity
+
+The container provides:
+- Fedora 35 base environment
+- Julia 1.6.2 base installation
+- DataCurator installed in its own environment at /opt/DataCurator.jl
+
 TODO download from sylabs + build
 
-
-**Note**
-
-If you run into issues with files or directories not found, this is because the Singularity container by default has no access except to your $HOME directory. Use
+##### Get an interactive julia shell inside the container
+```bash
+singularity shell image.sif
+Singularity>julia --project=/opt/DataCurator.jl
+julia>
+#OR to access the base Julia installation
+Singularity>julia
+julia>
 ```
-singularity run -B /scratch image.sif ...
+
+##### Execute command line scripts with the container
+```bash
+singularity exec image.sif julia --project=/opt/DataCurator.jl -e 'using Logging; @info "Are you looking for 42?";'
 ```
-where /scratch is a directory you want read/write access to.
+
+###### Notes
+- I get read/write errors, but the files exits:
+    If you run into issues with files or directories not found, this is because the Singularity container by default has **no access except to your $HOME directory**. Use
+    ```
+    singularity run -B /scratch image.sif ...
+    ```
+    where /scratch is a directory you want read/write access to.
+
+    A symbolic link from $HOME to a directory may work, ymmv.
+
+- I can't install package or update in the container
+    This is by design, the container image is **read-only**. It can access your $HOME directory, but nothing else. There are ways to modify the image, but:
+    - It's not what you want
+    - If it is, you probably already know how to do it (see Singularity docs)
+    - If you really want to modify the image the *right way*
+      - change [singularity1p6.def](singularity1p6.def), then
+        ```bash
+        ./buildimage.sh
+        ```
 
 ## Running
 ### Using TOML recipes
@@ -70,14 +105,16 @@ conditions = ["isfile", ["endswith", ".txt"]]
 actions = [["flatten_to", "your/flattened_path"]]
 ```
 Assuming inputdirectory and "your/flattened_path" exist, you can just do
-Then
+
 ```bash
-./datacurator --recipe your.toml --verbose
+./datacurator.sif --recipe your.toml --verbose
 ```
 or
 ```bash
 julia --project=. src/curator.jl --recipe your.toml --verbose
 ```
+
+Verbose really is, well, verbose, it will activate all logging statements. Use this when you really want to see what is going on under the hood or if you think something is wrong. 99% of the time, you want to ``omit --verbose``.
 
 Check example_recipes/documented_example.toml for all possible options in a single example.
 
@@ -92,11 +129,50 @@ A more extensive manual is available at [manual.md](manual.md)
 #### I'm getting weird non-deterministic results
 - If you use parallel=true, and global variables, and no locks, then that is expected, use the lists to aggregate anything in a threadsafe way
 #### Things are slower with parallel=true
-- If you have small data on a fast filesystem, the gain of using threads is minimal, and so overhead begins to dominate. Use parallel=true if you have a lot of files, need to read/check large files, a slow filesystem, and/or deep hierarchies. By default, the nr of threads = JULIA_NUM_THREADS = nr of cores. So on a cluster, think if that makes sense for you. For small to medium datasets I'd be surprised if you gain from more than 16 threads. On the other hand, for large (>1TB, 1e6 files) datasets, 24+ has worked for me.
-#### I told your code to quit, but it kept going
-- With parallel=true, it can take time before all other threads get the message that they too should quit, not just the thread that's doing work. Without a locked global that is continuously checked, in which case performance drops extremely, there's no way to avoid this. If you need a brusque "drop everything" exit, then use a function like
+- If you have small data on a fast filesystem, the gain of using threads is minimal, and so overhead begins to dominate. Use parallel=true if you have a lot of files, need to read/check large files, a slow filesystem, and/or deep hierarchies. By default, the nr of threads = ``$JULIA_NUM_THREADS`` = nr of cores. So on a cluster, think if that makes sense for you. For small to medium datasets I'd be surprised if you gain from more than 16 threads. On the other hand, for large (>1TB, 1e6 files) datasets, 24+ has worked for me.
+#### I told your code to quit, but it kept going for some time.
+- With ``parallel=true``, it can take time before all other threads get the message that they too should quit, not just the thread that's doing work. Without a locked global that is continuously checked, in which case performance drops extremely, there's no way to avoid this. If you need a brusque "drop everything" exit, then use a function like
 
     ```julia
     end_times = x -> exit(-1)
     ```
-Don't expect counters, filelists etc to be in a usable state if you do this.
+    Don't expect counters, filelists etc to be in a usable state if you do this.
+
+A more detailed explanation:
+
+Assume your data is structured like this, and you specify `traversal=topdown`.
+You set `conditions=["contains", "A"]` and `actions=["quit"]` with `act_on_success=true` and `counter_actions=["log_to_file", "notA.txt"]`
+
+- Top directory
+  - A [quit here]
+    - a
+    - b
+  - B
+    - a
+    - b
+With `parallel=false`, notA.txt will be empty or read
+```
+B
+```
+depending on the order in which your filesystem returns listings.
+We do not sort by default, that is _extremely_ expensive to do on HPC filesystems.
+
+With `parallel=true`, notA.txt can be
+```
+B
+a
+b
+```
+or
+```
+B
+```
+but **never**
+```
+A
+a
+b
+B
+a
+b
+```
