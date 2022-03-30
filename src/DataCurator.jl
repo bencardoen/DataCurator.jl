@@ -39,8 +39,7 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive,
-less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to,
-list_to_file, concat_to_table
+less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -149,12 +148,21 @@ function decode_filelist(fe::AbstractVector, glob)
     end
     fn = fe[1]
     alter_root = fe[2]
-    change_path = x->new_path(glob["inputdirectory"], x, alter_root)
+    fs = lookup(alter_root)
     lst = make_shared_list()
     @warn "change to decode aggregator"
-    adder = x->add_to_file_list(change_path(x), lst)
-    aggregator = shared_list_to_file(lst, fn)
-    return (fn, (lst, adder, aggregator))
+    if isnothing(fs)
+        @info "Aggregator not set, assuming short code for shared_list_to_file[change_path, prefix]"
+        change_path = x->new_path(glob["inputdirectory"], x, alter_root)
+        adder = x->add_to_file_list(change_path(x), lst)
+        aggregator = (l, f) -> shared_list_to_file(l, f)
+        return (fn, (lst, adder, aggregator))
+    else
+        @info "Found aggregator $fs"
+        adder = x->add_to_file_list(change_path(x), lst)
+        aggregator = (l, f) -> fs(l, f)
+        return (fn, (lst, adder, aggregator))
+    end
 end
 
 
@@ -514,7 +522,7 @@ function shared_list_to_table(list, name)
     CSV.write("$name.csv", DF)
 end
 
-function shared_list_to_image(list, name)
+function stack_list_to_image(list, name)
     sz = nothing
     ims = []
     for sublist in list
@@ -532,7 +540,21 @@ function shared_list_to_image(list, name)
             end
         end
     end
-
+    N = length(ims)
+    if N < 1
+        @warn "No images to process for list $name"
+        return
+    end
+    ET = eltype(ims[1])
+    if length(sz) > 2
+        throw(ArgumentError("Stacking images dim > 2 not supported yet"))
+    end
+    res = zeros(ET, sz[1], sz[2], N)
+    for i in 1:N
+        res[:,:,i] .= ims[i]
+    end
+    @info "Saving aggregated image"
+    Images.save(name, res)
 end
 
 concat_to_table = shared_list_to_table
@@ -980,8 +1002,6 @@ function shared_list_to_file(list, fname)
     end
 end
 
-list_to_file = shared_list_to_file
-
 function pad(msg)
     if ~endswith(msg, "\n")
         msg = msg * "\n"
@@ -1426,6 +1446,9 @@ function verifier(node, template::Vector, level::Int; on_success=false)
     # return :proceed
 end
 
+function make_aggregator(name, adder, aggregator)
+    return @NamedTuple{name, adder, aggregator}((name, adder, aggregator))
+end
 
 function make_tuple(co, ac, ca)
     return @NamedTuple{condition,action, counteraction}((co,ac,ca))
