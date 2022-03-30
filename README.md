@@ -33,7 +33,6 @@ pkg 1.x> add https://github.com/bencardoen/DataCurator.jl
 pkg 1.x> test DataCurator
 ```
 
-
 Note: when this repo is private this will prompt for username and github token (not psswd)
 
 #### As a local repository
@@ -104,6 +103,32 @@ singularity exec image.sif julia --project=/opt/DataCurator.jl -e 'using Logging
         ```bash
         ./buildimage.sh
         ```
+      - if you don't have root (you always have root in a VM btw), use Sylabs's remote builder with our definition file.
+
+## Updating
+Globally installed package
+
+```julia
+julia> using Pkg; Pkg.update("DataCurator")
+```
+
+Repository
+```bash
+cd DataCurator.jl
+git pull origin main
+julia
+julia>using Pkg; Pkg.activate(".");
+```
+
+Singularity image
+- Redownload/rebuild
+
+## Tests
+```julia
+julia>using Pkg; Pkg.test("DataCurator")
+#or
+julia>using Pkg; Pkg.activate("."); Pkg.test();
+```
 
 ## Running
 ### Using TOML recipes

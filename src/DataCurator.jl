@@ -165,8 +165,8 @@ function handlefilelists!(val, key, glob_defaults)
             @error "Failed decoding filelists"
             throw(ErrorException("invalid lists"))
         else
-            name, cpair = d
-            cts[name]=cpair
+            name, ctuple = d
+            cts[name]=ctuple
         end
     end
     @debug cts
@@ -470,12 +470,15 @@ function delegate(config, template)
         push!(counters, read_counter(count))
     end
     for f in config["file_lists"]
-        name, (list, _) = f
+        ## entry : name, list, aggregator
+        ## aggregator(list, name)
+        name= f[1]
+        list= f[2][1]
+        ## TODO f[1][2] - adder
+        ## TODO f[1][3] - aggregator
         if contains(name, "table")
             @info "Found a list of csv's to fuse into 1 table to $(name).csv"
-            df = shared_list_to_table(list)
-            @debug "Writing to $name.csv"
-            CSV.write("$name.csv", df)
+            shared_list_to_table(list, name)
         else
             @info "Saving list to $(name).txt"
             shared_list_to_file(list, "$(name).txt")
@@ -486,7 +489,7 @@ function delegate(config, template)
 end
 
 
-function shared_list_to_table(list)
+function shared_list_to_table(list, name)
     tables = []
     for sublist in list
         for csv_file in sublist
@@ -500,7 +503,8 @@ function shared_list_to_table(list)
             end
         end
     end
-    return vcat(tables...)
+    DF = vcat(tables...)
+    CSV.write("$name.csv", DF)
 end
 
 function validate_top_config(cfg)
