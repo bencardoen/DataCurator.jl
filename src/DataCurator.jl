@@ -1447,17 +1447,17 @@ function verifier(node, template::Vector, level::Int; on_success=false)
 end
 
 function make_aggregator(name, adder, aggregator)
-    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, aggregator, x->x))
+    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, aggregator, identity))
 end
 
 
 function make_aggregator(name, adder)
-    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, (x,lst)->shared_list_to_file(x, lst),x->x))
+    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, (x,lst)->shared_list_to_file(x, lst), identity))
 end
 
 
 function make_aggregator(name, adder, aggregator, transformer)
-    return @NamedTuple{name, adder, aggregator}((name, adder, aggregator,transformer))
+    return @NamedTuple{name, adder, aggregator, transformer}((name, adder, aggregator,transformer))
 end
 
 function make_tuple(co, ac, ca)
