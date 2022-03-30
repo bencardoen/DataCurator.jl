@@ -14,6 +14,28 @@ DataCurator is a Swiss army knife that ensures:
 
 ## Quickstart
 ### Installation
+You can install DataCurator in 1 of 3 ways, as a Julia package in your global Julia environment, as a local package (no change to global), or completely isolated as a container or executable image.
+
+#### As a Julia package
+You need:
+- Julia
+
+```julia
+using Pkg;
+Pkg.add(url="https://github.com/bencardoen/DataCurator.jl")
+Pkg.test("DataCurator")
+using DataCurator
+```
+or interactively
+```julia
+julia> ] # typing right bracket opens package manager
+pkg 1.x> add https://github.com/bencardoen/DataCurator.jl
+pkg 1.x> test DataCurator
+```
+
+
+Note: when this repo is private this will prompt for username and github token (not psswd)
+
 #### As a local repository
 You need:
 - Julia
@@ -27,18 +49,8 @@ julia
 julia>using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.Test();
 ```
 
-#### As a Julia package
-You need:
-- Julia
 
-```julia
-using Pkg;
-Pkg.add(url="https://github.com/bencardoen/DataCurator.jl")
-using DataCurator
-```
-Note: when this repo is private this will prompt for username and github token (not psswd)
-
-#### Download the executable image
+#### As executable image or container
 You need:
 - A command line environment (WSL on windows, any shell on Linux or MAC)
 
@@ -71,7 +83,7 @@ singularity exec image.sif julia --project=/opt/DataCurator.jl -e 'using Logging
 ```
 
 ###### Notes
-- I get read/write errors, but the files exits:
+- You get read/write errors, but the files exist:
     If you run into issues with files or directories not found, this is because the Singularity container by default has **no access except to your $HOME directory**. Use
     ```
     singularity run -B /scratch image.sif ...
@@ -80,12 +92,15 @@ singularity exec image.sif julia --project=/opt/DataCurator.jl -e 'using Logging
 
     A symbolic link from $HOME to a directory may work, ymmv.
 
-- I can't install package or update in the container
+- To see what the executable image actually does, see [singularity1p6.def](singularity1p6.def) in the `run` section
+
+- You can't install package or update in the container:
     This is by design, the container image is **read-only**. It can access your $HOME directory, but nothing else. There are ways to modify the image, but:
     - It's not what you want
-    - If it is, you probably already know how to do it (see Singularity docs)
-    - If you really want to modify the image the *right way*
-      - change [singularity1p6.def](singularity1p6.def), then
+    - If it really is what you want, you probably already know how to do it (see Singularity docs)
+    - If you really really want to modify the image, please do it the *right way*
+      - change [singularity1p6.def](singularity1p6.def),
+      - then (needs root)
         ```bash
         ./buildimage.sh
         ```
