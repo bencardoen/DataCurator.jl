@@ -27,8 +27,8 @@ using MAT
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential,
-expand_threaded, transform_template, quit, proceed, filename, integer_name,
-any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
+expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
+any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file, stack_images,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, decode_filelist,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list,
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
@@ -173,7 +173,7 @@ end
 function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     #Here check for
     # KEys name, transformer, aggregator
-    default=Dict([("transformer",identity), ("aggregator",shared_list_to_file)])
+    default=Dict([("transformer", identity), ("aggregator", shared_list_to_file)])
     @info "Decoding $fe , default = $default"
     if ~haskey(fe, "name")
         @error "Invalid file list entry $fe"
@@ -184,6 +184,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     ag = default["aggregator"]
     if haskey(fe, "transformer")
         TF = fe["transformer"]
+        @info "Found a transformer entry $TF"
         tf = decode_symbol(TF, glob;condition=false)
         if isnothing(tf)
             @error "Invalid $TF"
@@ -201,31 +202,36 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
     if tf != identity
-        adder = x::AbstractString -> add_to_file_list(x->wrap_transform(x, tf), l)
+        @info "Custom transform, wrapping with copy"
+        adder = x::AbstractString -> add_to_file_list(tf(wrap_transform(x)), l)
     else
-        adder = x::AbstractString -> add_to_file_list(tf(x), l)
+        adder = x::AbstractString -> add_to_file_list(x, l)
     end
     return fn, make_aggregator(fn, l, adder, ag, tf)
 end
 
 
-function wrap_transform(x::AbstractString, transform=identity)
-    c = joinpath(tempdir(), "$(randstring(40)).tmp")
+function wrap_transform(x::AbstractString)
+    c = joinpath(tempdir(), "$(Random.randstring(40)).tmp")
     @info "Temporary copy $c"
     cp(x, c)
-    return transform(c)
+    return c
 end
+#
+# function wrap_transform(x::AbstractString, transform=identity)
+#     c = joinpath(tempdir(), "$(Random.randstring(40)).tmp")
+#     @info "Temporary copy $c"
+#     cp(x, c)
+#     return transform(c)
+# end
 
 function extract_columns(csv, columns)
+    @info "Extracting copies"
     df = CSV.read(csv, DataFrame)
     @info df
     CSV.write(csv, df[!,columns])
     return csv
 end
-
-function wrap_transform(x, transform)
-end
-
 
 function handlefilelists!(val, key, glob_defaults)
     file_entries = val
@@ -610,6 +616,10 @@ function stack_list_to_image(list, name)
     end
     @info "Saving aggregated image"
     Images.save(name, res)
+end
+
+function stack_images(l, n)
+    return stack_list_to_image(l, n)
 end
 
 concat_to_table = shared_list_to_table
