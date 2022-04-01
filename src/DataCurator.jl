@@ -73,7 +73,6 @@ function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}
     end
 end
 
-
 function dostep(node::Any, t::NamedTuple{(:condition, :action, :counteraction), Tuple{Any, Any, Any}}, on_success::Bool)
     if t.condition(node) == on_success
         @debug "Condition fired for $node with on_success == $(on_success)"
@@ -135,68 +134,83 @@ function handlecounters!(val, key, glob_defaults)
 end
 
 function decode_filelist(fe::AbstractString, glob)
-    # lst = make_shared_list()
-    # adder = x->add_to_file_list(x, lst)
-    # aggregator = shared_list_to_file(lst, fe)
-    ## TODO switch to aggregator objects
     l = make_shared_list()
     adder = x::AbstractString -> add_to_file_list(x, l)
     transformer = identity
     aggregator = shared_list_to_file
     Q = make_aggregator(fe, l, adder, aggregator, transformer)
     @info "Creating aggregator --> $fe save file list to txt file."
-    # Q.transformer == identity
-    # Q.transformer(1) == 1
-    # Q.adder("1")
     return (fe, Q)
 end
 
+function decode_filelist(fe::AbstractDict, glob::AbstractDict)
+    #Here check for
+    # KEys name, transformer, aggregator
+    @error "Implement me"
+    return nothing
+end
+
 function decode_filelist(fe::AbstractVector, glob)
-    if length(fe) < 2
+    ### Can only be 2 special cases
+    ### name, outpath
+    ### name, concat_to_table
+    if length(fe) != 2
         @error "Failed decoding filelists $fe"
-        raise(ErrorException("invalid lists"))
+        raise(ArgumentError("invalid lists"))
     end
-    fn = fe[1]
-    alter_root = fe[2]
-    fs = lookup(fe[2])
-    # lst = make_shared_list()
-    ## TODO switch to aggregator objects
-    @warn "change to decode aggregator"
-    if isnothing(fs)
-        @info "Aggregator/transformer not set, assuming short code for shared_list_to_file[change_path, prefix]"
+    listname, second = fe[1], fe[2]
+    l = make_shared_list()
+    if second == "concat_to_table"
+        @info "Shortcode for table concatenation found"
+        # change_path = x->new_path(glob["inputdirectory"], x, alter_root)
+        adder = x::AbstractString -> add_to_file_list(x, l)
+        Q = make_aggregator(fn, l, adder, concat_to_table, identity)
+        return (fn, Q)
+    else
+        @info "Assuming $gn is a path and you want to compile in/out filelists"
         change_path = x->new_path(glob["inputdirectory"], x, alter_root)
-        # adder = x->add_to_file_list(change_path(x), lst)
-        # aggregator = (l, f) -> shared_list_to_file(l, f)
-        # return (fn, (lst, adder, aggregator))
-        l = make_shared_list()
         adder = x::AbstractString -> add_to_file_list(x, l)
-        transformer = x->new_path(glob["inputdirectory"], x, alter_root)
-        aggregator = shared_list_to_file
-        Q = make_aggregator(fn, l, adder, aggregator, transformer)
+        Q = make_aggregator(fn, l, adder, shgared_list_to_file, identity)
         return (fn, Q)
     end
-    if length(fe) == 2
-        TF = decode_symbol(fe[2])
-        if isnothing(TF)
-            throw(ArgumentError("Failed decoding file list"))
-        end
-        l = make_shared_list()
-        adder = x::AbstractString -> add_to_file_list(x, l)
-        AG = shared_list_to_file
-        Q = make_aggregator(fn, l, adder, AG, TF)
-    end
-    if length(fe) == 3
-        @info "Transformer and aggregator specified"
-        TF = decode_symbol(fe[2])
-        AG = decode_symbol(fe[3])
-        if any(isnothing.([TF, QG]))
-            throw(ArgumentError("Failed decoding file list"))
-        end
-        l = make_shared_list()
-        adder = x::AbstractString -> add_to_file_list(x, l)
-        Q = make_aggregator(fn, l, adder, AG, TF)
-        return (fn, Q)
-    end
+    # # lst = make_shared_list()
+    # ## TODO switch to aggregator objects
+    # @warn "change to decode aggregator"
+    # if isnothing(fs)
+    #     @info "Aggregator/transformer not set, assuming short code for shared_list_to_file[change_path, prefix]"
+    #     change_path = x->new_path(glob["inputdirectory"], x, alter_root)
+    #     # adder = x->add_to_file_list(change_path(x), lst)
+    #     # aggregator = (l, f) -> shared_list_to_file(l, f)
+    #     # return (fn, (lst, adder, aggregator))
+    #     l = make_shared_list()
+    #     adder = x::AbstractString -> add_to_file_list(x, l)
+    #     transformer = x->new_path(glob["inputdirectory"], x, alter_root)
+    #     aggregator = shared_list_to_file
+    #     Q = make_aggregator(fn, l, adder, aggregator, transformer)
+    #     return (fn, Q)
+    # end
+    # if length(fe) == 2
+    #     TF = decode_symbol(fe[2])
+    #     if isnothing(TF)
+    #         throw(ArgumentError("Failed decoding file list"))
+    #     end
+    #     l = make_shared_list()
+    #     adder = x::AbstractString -> add_to_file_list(x, l)
+    #     AG = shared_list_to_file
+    #     Q = make_aggregator(fn, l, adder, AG, TF)
+    # end
+    # if length(fe) == 3
+    #     @info "Transformer and aggregator specified"
+    #     TF = decode_symbol(fe[2])
+    #     AG = decode_symbol(fe[3])
+    #     if any(isnothing.([TF, QG]))
+    #         throw(ArgumentError("Failed decoding file list"))
+    #     end
+    #     l = make_shared_list()
+    #     adder = x::AbstractString -> add_to_file_list(x, l)
+    #     Q = make_aggregator(fn, l, adder, AG, TF)
+    #     return (fn, Q)
+    # end
 end
 
 
@@ -517,14 +531,19 @@ function delegate(config, template)
         @debug "Counter named $name has value $count"
         push!(counters, read_counter(count))
     end
-    for ag in config["file_lists"]
+    for (list_name, ag) in config["file_lists"]
         @info "Processing with list $ag.name"
+        @info ag
+        if list_name != ag.name
+            @error "Invalid entry!! $ag $list_name"
+            throw(ArgumentError("Invalid entry"))
+        end
         aggregator_aggregate(ag)
         if contains(ag.name, "table")
             @warn "Deprecated behavior of -> concat_to_table triggered by using table in name"
             @warn "Please use [name, identity, concat_to_table] or [name, [preprocess table in some way], concat_to_table]"
         end
-        push!(lists, vcat(list...))
+        push!(lists, vcat(ag.list...))
     end
     return counters, lists, rval
 end
@@ -921,6 +940,7 @@ function validate_global(config)
             @match key begin
                 "counters" => handlecounters!(val, key, glob_defaults)
                 "file_lists" => handlefilelists!(val, key, glob_defaults)
+                "file_aggregators" => handlefilelists!(val, key, glob_defaults)
                 "inputdirectory" => nothing
                 _ => handle_default!(val, key, glob_defaults)
             end
@@ -1479,20 +1499,23 @@ end
 
 
 function make_aggregator(name, list, adder)
-    return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, shared_list_to_file, identity))
+    return @NamedTuple{name::AbstractString, list, adder, aggregator, transformer}((name, list, adder, shared_list_to_file, identity))
 end
 
 
-function make_aggregator(name, list, adder, aggregator, transformer)
+function make_aggregator(name::AbstractString, list, adder, aggregator, transformer)
     return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, aggregator,transformer))
 end
 
-function aggregator_add(nt)
+# NamedTuple{(:condition, :action), Tuple{Any, Any}}
+## TODO Add type
+function aggregator_add(nt::NamedTuple{(:name, :list, :adder, :aggregator, :transformer), Tuple{Any, Any, Any, Any, Any}})
     nt.adder(nt.list, nt.transformer(x))
 end
 
-function aggregator_aggregate(nt)
-    nt.aggregator(nt.name, nt.list)
+function aggregator_aggregate(nt::NamedTuple{(:name, :list, :adder, :aggregator, :transformer), Tuple{Any, Any, Any, Any, Any}})
+    @info nt
+    nt.aggregator(nt.list, nt.name)
 end
 
 function make_tuple(co, ac, ca)
