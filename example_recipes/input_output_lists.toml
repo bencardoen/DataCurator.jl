@@ -6,7 +6,7 @@ counters = [["c1", "size_of_file"]]
 ## If you want to collect files in a pattern for batch processing
 ## The first will collect files with their full path, the second will change path to 'outpath'
 ## This is ideal for e.g. HPC/SLURM processing
-file_lists = [["outfiles", "outpath"]]
+file_lists = ["infiles", ["outfiles", "outpath"]]
 inputdirectory = "testdir"
 [any]
 all=true

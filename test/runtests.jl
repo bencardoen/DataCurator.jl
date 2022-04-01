@@ -138,7 +138,7 @@ using DataFrames
         # t[1].action(csv1)
         cts, cls, rv = delegate(c, t)
         inl = readlines("inlist.txt")
-        otl = readlines("outlist.txt")
+        otl = readlines("outfiles.txt")
         for ot in otl
             @error ot
             contains(ot, "outpath")

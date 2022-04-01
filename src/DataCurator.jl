@@ -199,7 +199,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     end
     @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
-    adder = x::AbstractString -> add_to_file_list(x, l)
+    adder = x::AbstractString -> add_to_file_list(tf(x), l)
     return make_aggregator(fn, l, adder, ag, tf)
 end
 
