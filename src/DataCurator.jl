@@ -200,8 +200,30 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     end
     @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
-    adder = x::AbstractString -> add_to_file_list(tf(x), l)
+    if tf != identity
+        adder = x::AbstractString -> add_to_file_list(x->wrap_transform(x, tf), l)
+    else
+        adder = x::AbstractString -> add_to_file_list(tf(x), l)
+    end
     return fn, make_aggregator(fn, l, adder, ag, tf)
+end
+
+
+function wrap_transform(x::AbstractString, transform=identity)
+    c = joinpath(tempdir(), "$(randstring(40)).tmp")
+    @info "Temporary copy $c"
+    cp(x, c)
+    return transform(c)
+end
+
+function extract_columns(csv, columns)
+    df = CSV.read(csv, DataFrame)
+    @info df
+    CSV.write(csv, df[!,columns])
+    return csv
+end
+
+function wrap_transform(x, transform)
 end
 
 
