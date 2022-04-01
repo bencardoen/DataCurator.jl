@@ -143,13 +143,6 @@ function decode_filelist(fe::AbstractString, glob)
     return (fe, Q)
 end
 
-function decode_filelist(fe::AbstractDict, glob::AbstractDict)
-    #Here check for
-    # KEys name, transformer, aggregator
-    @error "Implement me"
-    return nothing
-end
-
 function decode_filelist(fe::AbstractVector, glob)
     ### Can only be 2 special cases
     ### name, outpath
@@ -170,47 +163,44 @@ function decode_filelist(fe::AbstractVector, glob)
         @info "Assuming $gn is a path and you want to compile in/out filelists"
         change_path = x->new_path(glob["inputdirectory"], x, alter_root)
         adder = x::AbstractString -> add_to_file_list(x, l)
-        Q = make_aggregator(fn, l, adder, shgared_list_to_file, identity)
+        Q = make_aggregator(fn, l, adder, shared_list_to_file, identity)
         return (fn, Q)
     end
-    # # lst = make_shared_list()
-    # ## TODO switch to aggregator objects
-    # @warn "change to decode aggregator"
-    # if isnothing(fs)
-    #     @info "Aggregator/transformer not set, assuming short code for shared_list_to_file[change_path, prefix]"
-    #     change_path = x->new_path(glob["inputdirectory"], x, alter_root)
-    #     # adder = x->add_to_file_list(change_path(x), lst)
-    #     # aggregator = (l, f) -> shared_list_to_file(l, f)
-    #     # return (fn, (lst, adder, aggregator))
-    #     l = make_shared_list()
-    #     adder = x::AbstractString -> add_to_file_list(x, l)
-    #     transformer = x->new_path(glob["inputdirectory"], x, alter_root)
-    #     aggregator = shared_list_to_file
-    #     Q = make_aggregator(fn, l, adder, aggregator, transformer)
-    #     return (fn, Q)
-    # end
-    # if length(fe) == 2
-    #     TF = decode_symbol(fe[2])
-    #     if isnothing(TF)
-    #         throw(ArgumentError("Failed decoding file list"))
-    #     end
-    #     l = make_shared_list()
-    #     adder = x::AbstractString -> add_to_file_list(x, l)
-    #     AG = shared_list_to_file
-    #     Q = make_aggregator(fn, l, adder, AG, TF)
-    # end
-    # if length(fe) == 3
-    #     @info "Transformer and aggregator specified"
-    #     TF = decode_symbol(fe[2])
-    #     AG = decode_symbol(fe[3])
-    #     if any(isnothing.([TF, QG]))
-    #         throw(ArgumentError("Failed decoding file list"))
-    #     end
-    #     l = make_shared_list()
-    #     adder = x::AbstractString -> add_to_file_list(x, l)
-    #     Q = make_aggregator(fn, l, adder, AG, TF)
-    #     return (fn, Q)
-    # end
+end
+
+
+function decode_filelist(fe::AbstractDict, glob::AbstractDict)
+    #Here check for
+    # KEys name, transformer, aggregator
+    default=Dict([("transformer",identity), ("aggregator",shared_list_to_file)])
+    @info "Decoding $fe , default = $default"
+    if ~haskey(fe, "name")
+        @error "Invalid file list entry $fe"
+        throw(ArgumentError("Your list should have at least a name, use file_lists=[{\"name\":\"mylistname\",...}]"))
+    end
+    fn = fe["name"]
+    tf = default["transformer"]
+    ag = default["aggregator"]
+    if haskey(fe, "transformer")
+        TF = fe["transformer"]
+        tf = decode_symbol(TF, glob;condition=false)
+        if isnothing(tf)
+            @error "Invalid $TF"
+            throw(ArgumentError("Invalid $TF"))
+        end
+    end
+    if haskey(fe, "aggregator")
+        AG = fe["aggregator"]
+        ag = decode_symbol(AG, glob;condition=false)
+        if isnothing(ag)
+            @error "Invalid $AG"
+            throw(ArgumentError("Invalid $AG"))
+        end
+    end
+    @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
+    l = make_shared_list()
+    adder = x::AbstractString -> add_to_file_list(x, l)
+    return make_aggregator(fn, l, adder, ag, tf)
 end
 
 
