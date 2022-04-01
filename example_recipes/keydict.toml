@@ -1,0 +1,10 @@
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+file_lists = [{name="q", transformer="identity"}]
+[any]
+all=true
+# conditions=[["endswith", "*.tif"]]
+conditions = ["isfile"]
+# actions=[["count", "c1"]]
+actions=[["add_to_file_list", "q"]]

@@ -1,12 +1,7 @@
 [global]
 act_on_success=true
 inputdirectory = "testdir"
-# Using a list with 'table' in the name will trigger the fusing of anything added to it (in csv format) to 1 table called $name.csv
-# It's up to you to verify that this is possible, loading a tif file into a table is not going to work, and fusing csvs with different columns will not work either
-# file_lists = ["table", "concat_to_table"]
-file_lists = ["table"]
-## Change to
-# file_lists = ["table", "identity", "concat_to_table"]
+file_lists = [["table", "concat_to_table"]]
 [any]
 conditions = ["is_csv_file"]
 # actions = ["warn_on_fail"]

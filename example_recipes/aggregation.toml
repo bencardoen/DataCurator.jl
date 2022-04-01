@@ -1,0 +1,14 @@
+What is left, compile into input and output lists for batch processing
+
+[global]
+act_on_success=false
+inputdirectory = "/tmp/test"
+hierarchical=true
+parallel=false
+file_lists=["inlist", ["outlist", "/tmp/output"], ["t", "concat_to_table"]]
+regex=true
+[any]
+# Whatever is not defined below, e.g. too deep of a level --> fail and delete
+all=true
+conditions=["never"]
+actions=["show_warning", ["log_to_file_with_message", "errors.txt", "Unexpected file/directory"], "remove"]

@@ -157,14 +157,14 @@ function decode_filelist(fe::AbstractVector, glob)
         @info "Shortcode for table concatenation found"
         # change_path = x->new_path(glob["inputdirectory"], x, alter_root)
         adder = x::AbstractString -> add_to_file_list(x, l)
-        Q = make_aggregator(fn, l, adder, concat_to_table, identity)
-        return (fn, Q)
+        Q = make_aggregator(listname, l, adder, shared_list_to_file, identity)
+        return (listname, Q)
     else
-        @info "Assuming $gn is a path and you want to compile in/out filelists"
-        change_path = x->new_path(glob["inputdirectory"], x, alter_root)
-        adder = x::AbstractString -> add_to_file_list(x, l)
-        Q = make_aggregator(fn, l, adder, shared_list_to_file, identity)
-        return (fn, Q)
+        @info "Assuming $second is a path and you want to compile in/out filelists"
+        change_path = x->new_path(glob["inputdirectory"], x, second)
+        adder = x::AbstractString -> add_to_file_list(change_path(x), l)
+        Q = make_aggregator(listname, l, adder, shared_list_to_file, change_path)
+        return (listname, Q)
     end
 end
 
@@ -523,16 +523,11 @@ function delegate(config, template)
     end
     for (list_name, ag) in config["file_lists"]
         @info "Processing with list $ag.name"
-        @info ag
         if list_name != ag.name
             @error "Invalid entry!! $ag $list_name"
             throw(ArgumentError("Invalid entry"))
         end
         aggregator_aggregate(ag)
-        if contains(ag.name, "table")
-            @warn "Deprecated behavior of -> concat_to_table triggered by using table in name"
-            @warn "Please use [name, identity, concat_to_table] or [name, [preprocess table in some way], concat_to_table]"
-        end
         push!(lists, vcat(ag.list...))
     end
     return counters, lists, rval
@@ -1030,9 +1025,15 @@ function delete_folder(x)
 end
 
 function shared_list_to_file(list, fname)
+    @info "Writing $list to $fname"
+    if ~endswith(fname, ".txt")
+        @info "Changing extension to .txt"
+        fname="$(fname).txt"
+    end
     open(fname, "w"; lock=true) do f
         for sublist in list
             for entry in sublist
+                @info "Writing $entry"
                 write(f, pad(entry))
             end
         end
@@ -1504,7 +1505,7 @@ function aggregator_add(nt::NamedTuple{(:name, :list, :adder, :aggregator, :tran
 end
 
 function aggregator_aggregate(nt::NamedTuple{(:name, :list, :adder, :aggregator, :transformer), Tuple{Any, Any, Any, Any, Any}})
-    @info nt
+    @info "Executing aggregator for $nt.name"
     nt.aggregator(nt.list, nt.name)
 end
 

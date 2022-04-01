@@ -105,19 +105,49 @@ using DataFrames
         rm(IN; recursive=true)
     end
 
+    @testset "list_table" begin
+        IN = "testdir"
+        isdir(IN) ? rm(IN, recursive=true) : nothing
+        mkpath(IN)
+        using CSV, DataFrames
+        csv1 = CSV.write(joinpath(IN, "1.csv"),  DataFrame(zeros(3,3), :auto))
+        csv2 = CSV.write(joinpath(IN, "2.csv"),  DataFrame(zeros(3,3), :auto))
+        # touch("/dev/shm/inputspaces/2/3/4 .txt")
+        # touch("/dev/shm/inputspaces/top .txt")
+        # mkpath("/dev/shm/flattened_path")
+        res = create_template_from_toml("../example_recipes/collect_csvs_in_table.toml")
+        c, t = res
+        # t[1].action(csv1)
+        cts, cls, rv = delegate(c, t)
+        df = CSV.read("table.csv", DataFrame)
+        @test size(df) == (6,3)
+    end
+
     @testset "lists_outpath" begin
-        ## TODO TEST SAVING TO LOTULFIES
-        @warn "TRENBD"
-        # mkpath("/dev/shm/inpath")
-        # touch("/dev/shm/inpath/test.tif")
-        # res = create_template_from_toml("full.toml")
-        # @test ~isnothing(res)
-        # cs, ls, rv = delegate(res...)
-        # # @error cs ls
-        # @test sum(cs) == 0
-        # @test length(vcat(ls...)) > 0
-        # @test isfile("outfiles.txt")
-        # rm("outfiles.txt")
+        IN = "testdir"
+        isdir(IN) ? rm(IN, recursive=true) : nothing
+        mkpath(IN)
+        using CSV, DataFrames
+        csv1 = CSV.write(joinpath(IN, "1.csv"),  DataFrame(zeros(3,3), :auto))
+        csv2 = CSV.write(joinpath(IN, "2.csv"),  DataFrame(zeros(3,3), :auto))
+        # touch("/dev/shm/inputspaces/2/3/4 .txt")
+        # touch("/dev/shm/inputspaces/top .txt")
+        # mkpath("/dev/shm/flattened_path")
+        res = create_template_from_toml("../example_recipes/input_output_lists.toml")
+        c, t = res
+        # t[1].action(csv1)
+        cts, cls, rv = delegate(c, t)
+        inl = readlines("inlist.txt")
+        otl = readlines("outlist.txt")
+        for ot in otl
+            @error ot
+            contains(ot, "outpath")
+        end
+        for it in inl
+            @error it
+        end
+        # df = CSV.read("table.csv", DataFrame)
+        # @test size(df) == (6,3)
     end
 
     @testset "logmsg" begin
