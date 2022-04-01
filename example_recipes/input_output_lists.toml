@@ -7,6 +7,13 @@ counters = [["c1", "size_of_file"]]
 ## The first will collect files with their full path, the second will change path to 'outpath'
 ## This is ideal for e.g. HPC/SLURM processing
 file_lists = ["infiles", ["outfiles", "outpath"]]
+# file_lists = ["X"] is equivalent to
+# file_lists = [{name="X", tranformer="identity", aggregator="shared_list_to_file"}]
+# file_lists = ["X", "/dev/x"] is equivalent to
+# file_lists = [{name="X", tranformer=["change_path", "/dev/X"], aggregator="shared_list_to_file"}]
+# file_lists = [["X", "concat_to_table"]] is equivalent to
+# file_lists = [{name="X", tranformer="identity", aggregator="shared_list_to_table"}]
+
 inputdirectory = "testdir"
 [any]
 all=true
