@@ -13,5 +13,5 @@ all=true
 # conditions=[["endswith", "*.tif"]]
 conditions = ["isfile"]
 # actions=[["count", "c1"]]
-actions=[["add_to_file_list", "outfiles"]]
+actions=[["add_to_file_list", "outfiles"], ["add_to_file_list", "infiles"]]
 #actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]

@@ -137,14 +137,14 @@ using DataFrames
         c, t = res
         # t[1].action(csv1)
         cts, cls, rv = delegate(c, t)
-        inl = readlines("inlist.txt")
+        inl = readlines("infiles.txt")
         otl = readlines("outfiles.txt")
         for ot in otl
-            @error ot
-            contains(ot, "outpath")
+            # @error ot
+            @test contains(ot, "outpath")
         end
         for it in inl
-            @error it
+            @test ~contains(it, "outpath")
         end
         # df = CSV.read("table.csv", DataFrame)
         # @test size(df) == (6,3)
