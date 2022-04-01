@@ -29,7 +29,7 @@ verify_template, always, never, increment_counter, make_counter, read_counter, t
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential,
 expand_threaded, transform_template, quit, proceed, filename, integer_name,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file,
-is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, decode_filelist
+is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, decode_filelist,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list,
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
 copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
@@ -144,12 +144,13 @@ function decode_filelist(fe::AbstractString, glob)
 end
 
 function decode_filelist(fe::AbstractVector, glob)
+    @info "DF with $fe and $glob"
     ### Can only be 2 special cases
     ### name, outpath
     ### name, concat_to_table
     if length(fe) != 2
         @error "Failed decoding filelists $fe"
-        raise(ArgumentError("invalid lists"))
+        throw(ArgumentError("invalid lists"))
     end
     listname, second = fe[1], fe[2]
     l = make_shared_list()
@@ -200,14 +201,15 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
     adder = x::AbstractString -> add_to_file_list(tf(x), l)
-    return make_aggregator(fn, l, adder, ag, tf)
+    return fn, make_aggregator(fn, l, adder, ag, tf)
 end
 
 
 function handlefilelists!(val, key, glob_defaults)
     file_entries = val
     cts = Dict()
-    @debug file_entries
+    @info file_entries
+    @info key
     for ce in file_entries
         d = decode_filelist(ce, glob_defaults)
         if isnothing(d)
@@ -473,7 +475,8 @@ function lookup_filelists(tpl, glob)
     if haskey(glob, "file_lists")
         @debug "Checking file list table"
         fl_table = glob["file_lists"]
-        @debug fl_table
+        @info "TABLE == "
+        @info fl_table
         if haskey(fl_table, fn)
             fl_object = fl_table[fn]
             if fl_object.name != fn
