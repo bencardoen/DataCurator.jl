@@ -191,6 +191,68 @@ When you're validating you'll want to warn/log invalid files/folders. But at the
   actions=[["add_to_hdf5", "img.hdf5"], ["add_to_mat", "csv.mat"]]
   ```
 
+## Aggregation
+When you need group data, such as collecting files to count their size, write input-output pairs, and so forth, you're performing a pattern of the form
+```julia
+output = reduce(aggregator, map(transform, filter(test, data)))
+```
+Sounds complex, but it's intuitive, you
+- collect data based on some condition (filter)
+- transform it in some way (e.g. mask images, copy, ...)
+- group the output and reduce it (all filenames to 1 file, ...)
+
+Examples of this use case:
+- Collect all CSV files, concat to 1 table
+- Collect columns "x2" and "x3" of CSV files whose name contains "infected_C19", and concat to 1 table
+- Collect all 2D images, and save to 1 3D stack
+- Collect all 3D images, and save maximum/minimum/mean/median projection
+
+The 2nd example is simply:
+```toml
+[global]
+...
+file_lists=[{name="group", transformer=["extract_columns", ["x2", "x3"]], aggregator="concat_to_table"}]
+...
+[any]
+all=true
+conditions=["is_csv_file", ["contains", "infected_C19"]]
+actions=[["add_to_file_list", "group"]]
+```
+
+#### The maximum projection of 2D images
+
+```toml
+[global]
+...
+file_lists=[{name="group", aggregator=["reduce_images", "maximum"]}]
+...
+[any]
+conditions=["is_2d_img"]
+actions=[["add_to_file_list", "group"]]
+```
+
+#### The complete grammar:
+
+
+```toml
+file_lists=[{name=name, transformer=identity, aggregator=shared_list_to_file}+]
+```
+(X+) indicates at least one of X
+
+The following aliases save you typing:
+```toml
+file_lists=["name"]
+# is the same as
+file_lists=[{name=name, transformer=identity, aggregator=shared_list_to_file}]
+```
+```toml
+file_lists=[["name", "some_directory"]]
+# is the same as
+file_lists=[{name=name, transformer=change_path, aggregator=shared_list_to_file}]
+```
+
+You're free to specify as many aggregators as you like.
+
 ## Under the hood
 When you define a template, a 'visitor' will walk over each 'node' in the filesystem graph, testing any conditions when appropriate, and executing actions or counteractions.
 ![Concept](concept.png)
@@ -225,7 +287,7 @@ A and B are resolved at compile time, not at runtime, improving execution speed 
 
 To put it differently, your template is usually precompiled, not interpreted, as it would be in bash/Python scripts.
 
-### Exmamples
+### Examples
 
 #### Replace whitespace and uppercase
 Rename all files/directories with ' ' in them to '_' and switch any uppercase to lowercase.
