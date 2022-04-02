@@ -58,28 +58,13 @@ not_hidden = x -> ~is_hidden(x)
 
 
 """
-    reduce_images(list, fname::AbstractString, op=median)
+    reduce_images(list, fname::AbstractString, op::AbstractString)
 
-    Given list of K-D images (tif), stack to K+1, then apply op along K+1 th dimension.
+    Given list of K-D images (tif), stack to K+1, then apply `op` along K+1 th dimension.
     Save to fname in K-D tif
 
     Example
-    maxproject = (list, fname) -> reduce_images(list, fname, maximum)
-"""
-function reduce_images(list, fname::AbstractString, op::Any)
-    res = list_to_image(list)
-    X = op(res; dims=length(size(res)))
-    Images.save(X, fname)
-end
-
-"""
-    reduce_images(list, fname::AbstractString, op=median)
-
-    Given list of K-D images (tif), stack to K+1, then apply op along K+1 th dimension.
-    Save to fname in K-D tif
-
-    Example
-    maxproject = (list, fname) -> reduce_images(list, fname, maximum)
+    maxproject = (list, fname) -> reduce_images(list, fname, "maximum")
 """
 function reduce_images(list, fname::AbstractString, op::AbstractString=median)
     fs = lookup(op)
@@ -88,7 +73,10 @@ function reduce_images(list, fname::AbstractString, op::AbstractString=median)
     end
     res = list_to_image(list)
     X = fs(res; dims=length(size(res)))
-    Images.save(X, fname)
+    if ~endswith(fname, ".tif")
+        fname = "$(fname).tif"
+    end
+    Images.save(fname, X)
 end
 
 function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}, on_success::Bool)

@@ -1,0 +1,8 @@
+
+[global]
+act_on_success=true
+file_lists = [{name="3dstack.tif", aggregator=["reduce_images", "maximum"]}]
+inputdirectory = "testdir"
+[any]
+conditions=["is_tif_file"]
+actions=[["add_to_file_list", "3dstack.tif"]]

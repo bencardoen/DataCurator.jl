@@ -1,0 +1,12 @@
+
+[global]
+act_on_success=true
+file_lists = [{name="3dstack.tif", aggregator="stack_images"}]
+inputdirectory = "testdir"
+[any]
+all=true
+# conditions=[["endswith", "*.tif"]]
+conditions = ["is_tif_file"]
+# actions=[["count", "c1"]]
+actions=[["add_to_file_list", "3dstack.tif"]]
+#actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]
