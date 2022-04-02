@@ -158,7 +158,7 @@ function decode_filelist(fe::AbstractVector, glob)
         @info "Shortcode for table concatenation found"
         # change_path = x->new_path(glob["inputdirectory"], x, alter_root)
         adder = x::AbstractString -> add_to_file_list(x, l)
-        Q = make_aggregator(listname, l, adder, shared_list_to_file, identity)
+        Q = make_aggregator(listname, l, adder, shared_list_to_table, identity)
         return (listname, Q)
     else
         @info "Assuming $second is a path and you want to compile in/out filelists"
@@ -193,7 +193,8 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     end
     if haskey(fe, "aggregator")
         AG = fe["aggregator"]
-        ag = decode_symbol(AG, glob;condition=false)
+        ag = decode_aggregator(AG, glob)
+        @info "Found a aggregator entry $AG -> $ag"
         if isnothing(ag)
             @error "Invalid $AG"
             throw(ArgumentError("Invalid $AG"))
@@ -211,9 +212,19 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
 end
 
 
+function decode_aggregator(name::AbstractString, glob::AbstractDict)
+    # aggregators=[shared_list_to_file, shared_list_to_table, concat_to_table]
+    fs = lookup(name)
+    if isnothing(fs)
+        throw(ArgumentError("$name is not valid function call"))
+    end
+    return fs
+end
+
+
 function wrap_transform(x::AbstractString)
     c = joinpath(tempdir(), "$(Random.randstring(40)).tmp")
-    @info "Temporary copy $c"
+    @info "Temporary copy for x -> $c"
     cp(x, c)
     return c
 end
@@ -226,9 +237,11 @@ end
 # end
 
 function extract_columns(csv, columns)
-    @info "Extracting copies"
+    @info "Extracting columns $columns for $csv"
     df = CSV.read(csv, DataFrame)
-    @info df
+    @info "DF = $(df)"
+    extracted=df[!,columns]
+    @info "Extracted = $(extracted))"
     CSV.write(csv, df[!,columns])
     return csv
 end
@@ -296,7 +309,7 @@ end
 
 function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
     fs = lookup(f)
-    @debug "0 argument function lookup for $f"
+    @info "0 argument function lookup for $f"
     if isnothing(fs)
         @error "$f is not a valid function"
         return nothing
@@ -553,7 +566,8 @@ function delegate(config, template)
         push!(counters, read_counter(count))
     end
     for (list_name, ag) in config["file_lists"]
-        @info "Processing with list $ag.name"
+        @info "Processing with list $(ag.name)"
+        @info ag.list
         if list_name != ag.name
             @error "Invalid entry!! $ag $list_name"
             throw(ArgumentError("Invalid entry"))
@@ -565,11 +579,11 @@ function delegate(config, template)
 end
 
 
-function shared_list_to_table(list, name)
+function shared_list_to_table(list, name::AbstractString)
     tables = []
     for sublist in list
         for csv_file in sublist
-            @debug "Reading $csv_file"
+            @info "Reading $csv_file"
             try
                 tb = CSV.read(csv_file, DataFrame)
                 push!(tables, tb)
