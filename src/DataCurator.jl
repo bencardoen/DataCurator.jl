@@ -208,6 +208,9 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
 end
 
 
+## TODO split aggregation into
+## Aggregation(list, function) --> map(list, function)
+## And dooutput(map(list, function), out)
 function decode_aggregator(name::AbstractString, glob::AbstractDict)
     # aggregators=[shared_list_to_file, shared_list_to_table, concat_to_table]
     fs = lookup(name)
@@ -603,6 +606,9 @@ function shared_list_to_table(list, name::AbstractString)
         end
     end
     DF = vcat(tables...)
+    if ~endswith(name, ".csv")
+        name="$(name).csv"
+    end
     CSV.write("$name.csv", DF)
 end
 

@@ -123,6 +123,23 @@ using DataFrames
         @test size(df) == (6,3)
     end
 
+    @testset "list_table" begin
+        IN = "testdir"
+        isdir(IN) ? rm(IN, recursive=true) : nothing
+        mkpath(IN)
+        using CSV, DataFrames
+        csv1 = CSV.write(joinpath(IN, "1.csv"),  DataFrame(zeros(3,3), :auto))
+        csv2 = CSV.write(joinpath(IN, "2.csv"),  DataFrame(zeros(3,3), :auto))
+        # touch("/dev/shm/inputspaces/2/3/4 .txt")
+        # touch("/dev/shm/inputspaces/top .txt")
+        # mkpath("/dev/shm/flattened_path")
+        res = create_template_from_toml("../example_recipes/aggregate_new_api.toml")
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        df = CSV.read("table.csv", DataFrame)
+        @test size(df) == (6,3)
+    end
+
     @testset "lists_outpath" begin
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
