@@ -195,10 +195,6 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
         AG = fe["aggregator"]
         ag = decode_aggregator(AG, glob)
         @info "Found a aggregator entry $AG -> $ag"
-        if isnothing(ag)
-            @error "Invalid $AG"
-            throw(ArgumentError("Invalid $AG"))
-        end
     end
     @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
@@ -219,6 +215,19 @@ function decode_aggregator(name::AbstractString, glob::AbstractDict)
         throw(ArgumentError("$name is not valid function call"))
     end
     return fs
+end
+
+function decode_aggregator(ag::AbstractVector, glob::AbstractDict)
+    an = ag[1]
+    if length(ag) < 2
+        throw(ArgumentError("Invalid aggregator $ag"))
+    end
+    # aggregators=[shared_list_to_file, shared_list_to_table, concat_to_table]
+    fs = lookup(an)
+    if isnothing(fs)
+        throw(ArgumentError("$name is not valid function call"))
+    end
+    return (list, name) --> (fs(list, name, ag[2:end]...))
 end
 
 
