@@ -20,15 +20,18 @@ using LoggingExtras
 using Match
 using CSV
 using DataFrames
+using Statistics
 import TOML
 using HDF5
+import ERGO
+import SPECHT
 using MAT
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
-any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file, stack_images,
+any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file, stack_images, list_to_image,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, decode_filelist,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list,
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
@@ -39,7 +42,7 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate,
-less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
+less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, reduce_images, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -52,6 +55,13 @@ is_hidden_dir = x-> isdir(x) && (startswith(basename(x), ".") || contains(basena
 is_hidden = x -> is_hidden_file(x) || is_hidden_dir(x)
 not_hidden = x -> ~is_hidden(x)
 # log_to_file_message = (x, m) -> log_to_file()
+
+
+function reduce_images(list, fname::AbstractString, op=median)
+    res = list_to_image(list)
+    X = op(res; dims=length(size(res)))
+    Images.save(X, fname)
+end
 
 function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}, on_success::Bool)
     @debug "Do-step for 2-tuple c/a for $node on_success=$(on_success)"
@@ -219,9 +229,14 @@ function decode_aggregator(name::AbstractString, glob::AbstractDict)
     end
     return fs
 end
+#
+# function reduce_images(list, name, op)
+#     stack_list_to_image(list, name)
+# end
 
 function decode_aggregator(ag::AbstractVector, glob::AbstractDict)
     an = ag[1]
+    @info "Decoding aggregator $(ag)"
     if length(ag) < 2
         throw(ArgumentError("Invalid aggregator $ag"))
     end
@@ -230,7 +245,7 @@ function decode_aggregator(ag::AbstractVector, glob::AbstractDict)
     if isnothing(fs)
         throw(ArgumentError("$name is not valid function call"))
     end
-    return (list, name) --> (fs(list, name, ag[2:end]...))
+    return (list, name) -> (fs(list, name, ag[2:end]...))
 end
 
 
@@ -613,6 +628,16 @@ function shared_list_to_table(list, name::AbstractString)
 end
 
 function stack_list_to_image(list, name)
+    res = list_to_image(list)
+    @info "Saving aggregated image"
+    if ~endswith(name, ".tif")
+        @info "Postfixing tif"
+        name = "$(name).tif"
+    end
+    Images.save(name, res)
+end
+
+function list_to_image(list)
     sz = nothing
     ims = []
     for sublist in list
@@ -632,7 +657,7 @@ function stack_list_to_image(list, name)
     end
     N = length(ims)
     if N < 1
-        @warn "No images to process for list $name"
+        @warn "No images to process for list"
         return
     end
     ET = eltype(ims[1])
@@ -643,8 +668,7 @@ function stack_list_to_image(list, name)
     for i in 1:N
         res[:,:,i] .= ims[i]
     end
-    @info "Saving aggregated image"
-    Images.save(name, res)
+    return res
 end
 
 function stack_images(l, n)
@@ -962,7 +986,7 @@ end
 
 
 function validate_global(config)
-    glob_defaults = Dict([("parallel", false),  ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    glob_defaults = Dict([("parallel", false),("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     # glob = config["global"]
     glob_default_types = Dict([("parallel", Bool), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing

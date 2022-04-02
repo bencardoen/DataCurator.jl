@@ -123,7 +123,25 @@ using DataFrames
         @test size(df) == (6,3)
     end
 
-    @testset "list_table" begin
+    @testset "list_stack_images" begin
+        IN = "testdir"
+        isdir(IN) ? rm(IN, recursive=true) : nothing
+        mkpath(IN)
+        using CSV, DataFrames
+        Images.save(joinpath(IN, "1.tif"), zeros(3,3))
+        Images.save(joinpath(IN, "2.tif"), zeros(3,3))
+
+        # touch("/dev/shm/inputspaces/2/3/4 .txt")
+        # touch("/dev/shm/inputspaces/top .txt")
+        # mkpath("/dev/shm/flattened_path")
+        res = create_template_from_toml("../example_recipes/aggregate_new_api_images.toml")
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        isfile("3dstack.tif")
+        size(Images.load("3dstack.tif")) == (3,3,2)
+    end
+
+    @testset "list_table_napi" begin
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
         mkpath(IN)
