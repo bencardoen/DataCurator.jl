@@ -158,6 +158,12 @@ Verbose really is, well, verbose, it will activate all logging statements. Use t
 
 Check example_recipes/documented_example.toml for all possible options in a single example.
 
+## Features
+- Multithreaded
+- Arbitrary user defined conditions and actions
+- Portable
+- Supports map/filter/reduce functionality
+
 ## Manual
 A more extensive manual is available at [manual.md](manual.md)
 
