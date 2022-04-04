@@ -450,6 +450,7 @@ In the background there's a lot more going on
 - Composing functions and conditions
 - ...
 
+
 ## Using the Julia API <a name="julia"></a>
 
 ### Typesafe templates
@@ -737,6 +738,19 @@ You can still make your Julia template 100% reproducible by building a singulari
 
 
 ## Troubleshooting
+
+#### Startup time is so slow
+Julia precompiles code, in a constant cost, so normally your workload is orders of magnitude higher than this compile time. For smaller loads, using a precompiled image can help:
+```julia
+julia --project=. setupimage.jl
+```
+This should create a file called 'sys_img.so', which contains precompiled versions of the code to build and execute a template. Note that this can take ~ 10 minutes or so.
+
+To use this, all you need to do is tell Julia to use it.
+```
+julia --project=. --sysimage sys_img.so src/curator.jl ....
+```
+On a laptop this reduces latency from 16 seconds to 1.5 seconds. For large datasets this won't make a measurable difference (~TB)
 
 #### Conditions not working as expected
 - Check if you used regex syntax without setting regex=true
