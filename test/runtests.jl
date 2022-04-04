@@ -38,6 +38,16 @@ using DataFrames
         @test d == load_content("2.csv")
     end
 
+    @testset "reductions" begin
+        a = zeros(3,3,3)
+        Images.save("test.tif", a)
+        X = Images.load("test.tif")
+        Y = reduce_image(X, ["maximum", 1])
+        @test size(Y) = (1,3,3)
+        Y = reduce_image(X, ["maximum", 3])
+        @test size(Y) == (3,3,1)
+    end
+
     @testset "transform_api" begin
         remove("test.tif")
         remove("TEST.tif")
