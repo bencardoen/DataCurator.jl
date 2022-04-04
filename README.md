@@ -15,12 +15,21 @@ DataCurator is a Swiss army knife that ensures:
 ## Table of Contents
 1. Quickstart
 2. [Installation](#install)
-   1. [Updating]
-   1. [Tests](#tests)
-3. [Ready to use TOML Examples](#examples)
-4. [List of Actions and Conditions](#list)
+   1. [Installing]
+      1. Julia package
+      2. Cloned repository
+      3. Singularity image
+      4. Executable image
+   2. [Updating](#updating)
+   3. [Tests](#tests)
+3. [Running](#running)
+   1. Dataset Validation
+   2. Dataset Curation
+   3. [Ready to use TOML Examples](#examples)
+4. [List of Actions and Conditions you can use in recipes](#list)
 5. [Aggregation (aka filter-map-reduce)](#mapreduce)
 6. [Julia API](#julia)
+7. [Troubleshooting](#troubleshooting)
 
 ## Quickstart
 ### Installation
@@ -147,45 +156,45 @@ julia>using Pkg; Pkg.activate("."); Pkg.test();
 ```
 
 ## Running
-### Using TOML recipes
 Our package does not require you to write code, so as long as you understand what you want to happen to your data, and you can read and write a text file, that's all it takes.
+### Dataset Validation: minimal example. <a name="validation"></a>
+The simplest example is the following `recipe`, which checks that your dataset only contain 3D images, and warns for anything that is not a 3D image.
 
-For example, extract all .txt files from a deep filesystem into a single flat directory
 ```toml
 [global]
-act_on_success = true
-inputdirectory = "your/very/deep/directory/structure"
+inputdirectory="your_data_directory"
 [any]
-all=true
-conditions = ["isfile", ["endswith", ".txt"]]
-actions = [["flatten_to", "your/flattened_path"]]
+conditions=["is_3d_img"]
+actions=["show_warning"]
 ```
-Assuming inputdirectory and "your/flattened_path" exist, you can just do
+Because this is the simplest example, it does not showcase the full power, so please see folder [example_recipes](example_recipes) for the large set of examples, each illustrating a different feature to help you validate datasets.
+### Dataset Curation: minimal example. <a name="curation"></a>
+Instead of validating, now we want to do a maximum projection of all 3d images over the Z axis. We also want to save all 2D images in lowercase, and as copies, so as to leave the original data intact.
+```toml
+[global]
+act_on_succes=true
+inputdirectory="your_data_directory"
+[any]
+conditions=["is_3d_img"]
+actions=[{name_transform=["tolowercase"], content_transform=[["reduce_image", ["maximum", 2]]], mode="copy"}]
+```
 
+##### Run your minimal TOML recipe
+Now it's time to execute your template, save the above snippet in a file called `template.toml`, and execute
 ```bash
-./datacurator.sif --recipe your.toml --verbose
+./datacurator.sif --recipe template.toml --verbose
 ```
 or
 ```bash
-julia --project=. src/curator.jl --recipe your.toml --verbose
+julia --project=. src/curator.jl --recipe template.toml --verbose
 ```
 
 Verbose really is, well, verbose, it will activate all logging statements. Use this when you really want to see what is going on under the hood or if you think something is wrong. 99% of the time, you want to ``omit --verbose``.
 
-Check example_recipes/documented_example.toml for all possible options in a single example.
-
-## Features
-- Multithreaded
-- Arbitrary user defined conditions and actions
-- Portable
-- Supports map/filter/reduce functionality
+Check [example_recipes/documented_example.toml]([example_recipes/documented_example.toml]) for all possible options in a single example.
 
 
-===============================================================================
-
-## User manual
-
-### Usage
+##### Alternative ways of running DataCurator
 Assuming you have the singularity image (does not require Julia, nor installation of dependencies)
 ```bash
 image.sif -r <your_toml_recipe> [--verbose]
@@ -200,36 +209,6 @@ If you have the package cloned in this directory
 ```julia
 julia --project=. src/curator.jl --recipe "my_recipe.toml"
 ```
-
-
-### Motivation
-A computational pipeline will spend a significant amount of its code and development time in hardening against unexpected data, in pre and post-processing, and in dealing effectively with massive datasets (on clusters).
-Often this results in a mix of scripts in different programming languages, created by people who may have moved on, and did not document why data was reorganized or processed in a given way. Reproduction, and adaptation to new datasets, is near impossible, compromising the scientific contributions it underlies.
-To complicate matters, in interdisciplinary work, people designing and implementing the algorithms are not always those who curate datasets, nor those who actually acquire the data and have research questions to answer. Yet, as an example, few biologists know how to write a bash script on a cluster, let alone write one that will be robust and correct. Reviewers with access to the code will be hard pressed to reproduce or validate the used approach either.
-In short, what is needed is an approach that
-- validates large complex datasets
-- transforms such datasets
-- does it fast
-- requires 0 coding expertise
-- runs on without brittle dependencies, portably
-
-### Why not use ...?
-- Shell scripts / Linux tools
-  - They're very powerful, modular, but the syntax/behavior is not always portable, and requires a certain expertise. Shell scripting is non-trivial if you want it to be robust and reproducible
-- GLOST / Gnu Parallel
-  - Both can execute large amount of jobs in parallel, but creating the jobs would require extra tools
-- Python
-  - Julia has a definitive advantage in its typing inference for safety and with JIT has a near C-like speed. Python lacks multiple dispatch, or typed dispatch, which is leveraged heavily in this package
-
-
-## Our approach
-- Uses Julia for speed without compromising on high level features
-- Ensures portability by packaging everything in a single Singularity image so
-  - it runs everywhere
-  - it runs the same everywhere
-  - no dependencies, not even Julia is needed
-- Uses TOML configuration files, designed to be human readable, as **recipes**
-- Runs in parallel, with a large set of predefined operations common to dataset processing
 
 
 ### Ready to use TOML Examples <a name="examples"></a>
@@ -377,10 +356,29 @@ When you're validating you'll want to warn/log invalid files/folders. But at the
   ```
 
 ## Modifying files and content
+When you want precise control over what function runs on the content, versus the name of files, you can do so.
+This example finds all 3D tif files, does a median projection along Z, then masks (binarizes) the image as a copy with original filename in lowercase.
+```toml
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+conditions=["is_3d_img"]
+actions=[{name_transform=["tolowercase"], content_transform=[["reduce_image", ["maximum", 2]], "mask"], mode="copy"}]
 
+```
+The examples so far use `syntactic sugar`, they're shorter ways of writing the below, but in certain case where you need to get a lot done, this full syntax is more descriptive, and less error prone.
+It also gives DataCurator the opportunity to save otherwise excessive intermediate copies.
+
+The full syntax for actions of this kind:
+```toml
+actions=[{name_transform=[entry+], content_transform=[entry+], mode="copy" | "move" | "inplace"}+]
+```
+Where `entry` is any set of functions with arguments. The + sign indicates "one or more".
+The | symbol indicates 'OR', e.g. either copy, move, or inplace.
 
 ## Aggregation <a name="mapreduce"></a>
-When you need group data, such as collecting files to count their size, write input-output pairs, and so forth, you're performing a pattern of the form
+When you need group data before processing it, such as collecting files to count their size, write input-output pairs, or stack images, and so forth, you're performing a pattern of the form
 ```julia
 output = reduce(aggregator, map(transform, filter(test, data)))
 ```
@@ -794,6 +792,25 @@ a
 b
 ```
 
+
+
+### Why not use ...?
+- Shell scripts / Linux tools
+  - They're very powerful, modular, but the syntax/behavior is not always portable, and requires a certain expertise. Shell scripting is non-trivial if you want it to be robust and reproducible
+- GLOST / Gnu Parallel
+  - Both can execute large amount of jobs in parallel, but creating the jobs would require extra tools
+- Python
+  - Julia has a definitive advantage in its typing inference for safety and with JIT has a near C-like speed. Python lacks multiple dispatch, or typed dispatch, which is leveraged heavily in this package
+
+
+### Our approach
+- Uses Julia for speed without compromising on high level features
+- Ensures portability by packaging everything in a single Singularity image so
+  - it runs everywhere
+  - it runs the same everywhere
+  - no dependencies, not even Julia is needed
+- Uses TOML configuration files, designed to be human readable, as **recipes**
+- Runs in parallel, with a large set of predefined operations common to dataset processing
 
 ## Cite
 
