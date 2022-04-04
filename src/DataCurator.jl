@@ -42,7 +42,7 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate,
-less_than_n_subdirs, tmpcopy, has_n_columns, load_content, save_content, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
+less_than_n_subdirs, tmpcopy, has_n_columns, load_content, save_content, transform_wrapper, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -86,7 +86,7 @@ function mode_copy(old::AbstractString, tmp::AbstractString, new::AbstractString
 end
 
 function mode_move(old::AbstractString, tmp::AbstractString, new::AbstractString)
-    mv(tmp, new)
+    mv(tmp, new, force=true)
     rm(old)
 end
 
@@ -98,6 +98,29 @@ function mode_inplace(old::AbstractString, tmp::AbstractString, new::AbstractStr
         mv(tmp, old, force=true)
         # rm(old)
     end
+end
+
+function transform_wrapper(file::AbstractString, nametransform, contenttransform, mode)
+    tmp = tmpcopy(file)
+    newname = nametransform(file)
+    oldcontent = load_content(file)
+    newcontent = contenttransform(oldcontent)
+    save_content(newcontent, tmp)
+    if newname == file
+        if mode == mode_copy
+            @warn "Name is left intact, but copy (not mv) is set, overriding to save new content"
+            if oldcontent == newcontent
+                @warn "Filename nor content changed, noop"
+                return
+            else
+                @warn "Changing mode from $mode to mode_inplace"
+                mode=mode_inplace
+            end
+        end
+    end
+    # save_content(newcontent, tmp)
+    @info "Transform $file -> $newname complete"
+    mode(file, tmp, newname)
 end
 
 """

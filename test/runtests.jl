@@ -38,6 +38,29 @@ using DataFrames
         @test d == load_content("2.csv")
     end
 
+    @testset "transform_api" begin
+        remove("test.tif")
+        remove("TEST.tif")
+        Images.save("TEST.tif", zeros(3,3))
+        transform_wrapper("TEST.tif", tolowercase, identity, mode_move)
+        @test isfile("TEST.tif") == false
+        @test isfile("test.tif") == true
+        remove("test.tif")
+        remove("TEST.tif")
+        Images.save("TEST.tif", zeros(3,3))
+        transform_wrapper("TEST.tif", tolowercase, identity, mode_copy)
+        @test isfile("TEST.tif") == true
+        @test isfile("test.tif") == true
+        remove("test.tif")
+        remove("TEST.tif")
+        Images.save("TEST.tif", zeros(3,3))
+        transform_wrapper("TEST.tif", tolowercase, identity, mode_inplace)
+        @test isfile("TEST.tif") == false
+        @test isfile("test.tif") == true
+        remove("test.tif")
+        remove("TEST.tif")
+    end
+
     @testset "tmp" begin
         for _ in 1:1000
             a="a.test"
