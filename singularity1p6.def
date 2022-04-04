@@ -27,7 +27,7 @@ From: fedora:35
     julia --project=$LOCALPKG -e 'using Pkg; Pkg.update(); ENV["PYTHON"]=""; Pkg.build(); Pkg.instantiate()'
     julia --project=$LOCALPKG -e 'using DataCurator; using Pkg;'
     ## Build the precompiled image for faster start
-    julia --project=$LOCALPKG setupimage.jl
+    julia --project=$LOCALPKG $LOCALPKG/src/setupimage.jl
     rm -rf /opt/juliadepot/logs
     rm -rf /opt/juliadepot/scratchspaces
     ln -s /dev/shm/ /opt/juliadepot/logs
