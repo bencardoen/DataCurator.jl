@@ -140,7 +140,7 @@ function tmpcopy(x; seed=0, length=40)
     rs = Random.randstring(length) ## 40^(54+10) unique names --> log(10, 40^66) = 105, 10^52 files before you get a collision (bday paradox)
     new = joinpath(tempdir(), join([rs, ext]))
     cp(x, new)
-    @info "Copying $x to temporary $new"
+    @debug "Copying $x to temporary $new"
     return new
 end
 

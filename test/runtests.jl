@@ -43,7 +43,7 @@ using DataFrames
         Images.save("test.tif", a)
         X = Images.load("test.tif")
         Y = reduce_image(X, ["maximum", 1])
-        @test size(Y) = (1,3,3)
+        @test size(Y) == (1,3,3)
         Y = reduce_image(X, ["maximum", 3])
         @test size(Y) == (3,3,1)
     end
