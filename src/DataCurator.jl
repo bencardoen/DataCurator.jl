@@ -42,7 +42,7 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate,
-less_than_n_subdirs, tmpcopy, has_n_columns, path_only, add_path_to_file_list, reduce_images, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
+less_than_n_subdirs, tmpcopy, has_n_columns, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -56,6 +56,26 @@ is_hidden = x -> is_hidden_file(x) || is_hidden_dir(x)
 not_hidden = x -> ~is_hidden(x)
 # log_to_file_message = (x, m) -> log_to_file()
 
+
+
+function mode_copy(old::AbstractString, tmp::AbstractString, new::AbstractString)
+    mv(tmp, new)
+end
+
+function mode_move(old::AbstractString, tmp::AbstractString, new::AbstractString)
+    mv(tmp, new)
+    rm(old)
+end
+
+function mode_inplace(old::AbstractString, tmp::AbstractString, new::AbstractString)
+    if old!=new
+        @warn "Chaning in place and changing the name is not meaningful --> mode_move"
+        mode_move(old, tmp, new)
+    else
+        mv(tmp, new, force=true)
+        rm(old)
+    end
+end
 
 """
     tmpcopy(x; seed=0, length=40)

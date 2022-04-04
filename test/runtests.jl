@@ -34,6 +34,35 @@ using DataFrames
         end
     end
 
+    @testset "mode" begin
+        a = "test.txt"
+        if isfile(a)
+            rm(a)
+        end
+        touch(a)
+        q = tmpcopy(a)
+        b = "new.txt"
+        if isfile(b)
+            rm(b)
+        end
+        mode_copy(a, q, b)
+        @test isfile(a)
+        @test ~isfile(q)
+        @test isfile(b)
+        rm(b)
+        q = tmpcopy(a)
+        mode_move(a, q, b)
+        @test ~isfile(a)
+        @test ~isfile(q)
+        @test isfile(b)
+        touch(a)
+        q = tmpcopy(a)
+        mode_inplace(a, q, a)
+        remove(a)
+        remove(q)
+        remove(b)
+    end
+
     @testset "pattern_removal" begin
         IN = mktempdir()
         T1= "20x_NR12-55_16_P1_Cy3-FITC-DAPI-Image Export-28_h0t0z0c0-3x0-2048y0-2048.tif"
