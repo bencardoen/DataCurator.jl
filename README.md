@@ -14,9 +14,13 @@ DataCurator is a Swiss army knife that ensures:
 
 ## Table of Contents
 1. Quickstart
-2. Updating
-3. Tests
+2. [Installation](#install)
+   1. [Updating]
+   1. [Tests](#tests)
+3. [Ready to use TOML Examples](#examples)
 4. [List of Actions and Conditions](#list)
+5. [Aggregation (aka filter-map-reduce)](#mapreduce)
+6. [Julia API](#julia)
 
 ## Quickstart
 ### Installation
@@ -228,7 +232,7 @@ In short, what is needed is an approach that
 - Runs in parallel, with a large set of predefined operations common to dataset processing
 
 
-### TOML Examples
+### Ready to use TOML Examples <a name="examples"></a>
 
 Check the directory example_recipes for examples on how to achieve a whole range of tasks, a select few are illustrated below:
 
@@ -372,7 +376,10 @@ When you're validating you'll want to warn/log invalid files/folders. But at the
   actions=[["add_to_hdf5", "img.hdf5"], ["add_to_mat", "csv.mat"]]
   ```
 
-## Aggregation
+## Modifying files and content
+
+
+## Aggregation <a name="mapreduce"></a>
 When you need group data, such as collecting files to count their size, write input-output pairs, and so forth, you're performing a pattern of the form
 ```julia
 output = reduce(aggregator, map(transform, filter(test, data)))
@@ -445,7 +452,7 @@ In the background there's a lot more going on
 - Composing functions and conditions
 - ...
 
-## Using the Julia API
+## Using the Julia API <a name="julia"></a>
 
 ### Typesafe templates
 We heavily use Julia's multiple type dispatch system, so when you make a template
@@ -589,7 +596,7 @@ verify_template("rootdirectory", [mt(condition, counter)]; parallel_policy="para
 @info "Size of matched files = $(count) bytes"
 ```
 
-## Data type support
+### Data type support
 - Any file manipulation :
   - rename, copy, delete
 - CSV / DataFrames : fusing, reading
@@ -666,6 +673,7 @@ reduce_images
 concat_table
 extract_columns
 stack_images
+reduce_image + maximum, minimum, median, mean + dim : 1-N
 ```
 
 If you're not familiar with Julia, the following are builtin
