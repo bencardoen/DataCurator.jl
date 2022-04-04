@@ -42,7 +42,7 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate,
-less_than_n_subdirs, has_n_columns, path_only, add_path_to_file_list, reduce_images, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
+less_than_n_subdirs, tmpcopy, has_n_columns, path_only, add_path_to_file_list, reduce_images, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -58,6 +58,27 @@ not_hidden = x -> ~is_hidden(x)
 
 
 """
+    tmpcopy(x; seed=0, length=40)
+
+    Create a temporary copy of file x (with same extension), of length 40.
+    40 means there's a 1/10000 for a collision of 2 identical files.
+    Note that this function is used on executing a template, in parallel, so it's not the total of number files being processed, but the number of files being processed in the same window of time.
+    Return the temporary file name
+"""
+function tmpcopy(x; seed=0, length=40)
+    if seed != 0
+        Random.seed!(seed)
+    end
+    b = basename(x)
+    ext = splitext(x)[2]
+    rs = Random.randstring(length) ## 40^(54+10) unique names --> log(10, 40^66) = 105, 10^52 files before you get a collision (bday paradox)
+    new = joinpath(tempdir(), join([rs, ext]))
+    cp(x, new)
+    @info "Copying $x to temporary $new"
+    return new
+end
+
+"""
     reduce_images(list, fname::AbstractString, op::AbstractString)
 
     Given list of K-D images (tif), stack to K+1, then apply `op` along K+1 th dimension.
@@ -66,13 +87,63 @@ not_hidden = x -> ~is_hidden(x)
     Example
     maxproject = (list, fname) -> reduce_images(list, fname, "maximum")
 """
-function reduce_images(list, fname::AbstractString, op::AbstractString=median)
+function reduce_images(list, fname::AbstractString, op::AbstractString)
     fs = lookup(op)
     if isnothing(fs)
         throw(ArgumentError("Not a valid function $op for reduction"))
     end
     res = list_to_image(list)
     X = fs(res; dims=length(size(res)))
+    if ~endswith(fname, ".tif")
+        fname = "$(fname).tif"
+    end
+    Images.save(fname, X)
+end
+
+function reduce_image(img, op::AbstractString)
+    fs = lookup(op)
+    if isnothing(fs)
+        throw(ArgumentError("Not a valid function $op for reduction"))
+    end
+    res = list_to_image(list)
+    X = fs(res; dims=length(size(res)))
+    if ~endswith(fname, ".tif")
+        fname = "$(fname).tif"
+    end
+    Images.save(fname, X)
+end
+
+function mask(x::T) where {T<:AbstractString}
+    @info "File version"
+    img = Images.load(x)
+    masked = mask(img)
+    Images.save(x, masked)
+end
+
+function mask(q::Array{T}) where {T<:Images.Colorant}
+    @info "Data version"
+    q[abs.(q).>0] .= 1
+    return q
+end
+
+function mask(q)
+    error("HALT -- unexpected type")
+end
+
+function mask(q::T) where {T<:AbstractArray}
+    return mask(N0f16.(q))
+end
+
+function reduce_image(img, op::AbstractString, dims::Int64)
+    fs = lookup(op)
+    if isnothing(fs)
+        throw(ArgumentError("Not a valid function $op for reduction"))
+    end
+    # res = list_to_image(list)
+    if dims < 1 || dims > length(size(res))
+        throw(ArgumentError("Invalid dimension with $(size(img)) and dim = $dims"))
+    end
+    X = fs(img; dims=dims)
     if ~endswith(fname, ".tif")
         fname = "$(fname).tif"
     end
@@ -359,6 +430,7 @@ function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
     end
     return x -> fs(x)
 end
+
 
 
 """

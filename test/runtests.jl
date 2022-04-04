@@ -19,6 +19,21 @@ using DataFrames
         Q.adder("1")
     end
 
+    @testset "tmp" begin
+        for _ in 1:1000
+            a="a.test"
+            if isfile(a)
+                rm(a)
+            end
+            touch(a)
+            q = tmpcopy(a)
+            @test isfile(q)
+            @test isfile(a)
+            rm(q)
+            rm(a)
+        end
+    end
+
     @testset "pattern_removal" begin
         IN = mktempdir()
         T1= "20x_NR12-55_16_P1_Cy3-FITC-DAPI-Image Export-28_h0t0z0c0-3x0-2048y0-2048.tif"

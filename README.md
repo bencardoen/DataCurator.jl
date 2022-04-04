@@ -9,23 +9,14 @@ DataCurator is a Swiss army knife that ensures:
 - human readable `recipe` for future reproducibility
 - validation huge datasets at high speed
 - out-of-the-box operation without the need for code or dependencies
-- can execute arbitrary number map-filter-reduce aggregation of files, images, tables
-- csv, image, mat, HDF5 support
 
 ![Concept](whatami.png)
 
 ## Table of Contents
 1. Quickstart
-   1. Installation
-   2. Updating
-   3. Tests
-2. Running
-3. User Manual
-   1. Usage
-   2. Motivation
-   3. TOML example `recipes`
+2. Updating
+3. Tests
 4. [List of Actions and Conditions](#list)
-5. Troubleshooting
 
 ## Quickstart
 ### Installation
@@ -126,7 +117,7 @@ singularity exec image.sif julia --project=/opt/DataCurator.jl -e 'using Logging
         ```
       - if you don't have root (you always have root in a VM btw), use Sylabs's remote builder with our definition file.
 
-## Updating
+### Updating
 Globally installed package
 
 ```julia
@@ -144,7 +135,7 @@ julia>using Pkg; Pkg.activate(".");
 Singularity image
 - Redownload/rebuild
 
-## Tests
+### Tests
 ```julia
 julia>using Pkg; Pkg.test("DataCurator")
 #or
