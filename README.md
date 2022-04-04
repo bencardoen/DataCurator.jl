@@ -6,7 +6,7 @@ A multithreaded package to validate, curate, and transform large heterogeneous d
 
 DataCurator is a Swiss army knife that ensures:
 - pipelines can focus on the algorithm/problem solving
-- human readable `recipe` for future reproducibility
+- human readable `recipes` for future reproducibility
 - validation huge datasets at high speed
 - out-of-the-box operation without the need for code or dependencies
 
