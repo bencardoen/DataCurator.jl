@@ -19,6 +19,25 @@ using DataFrames
         Q.adder("1")
     end
 
+    @testset "loadsavecontent" begin
+        a = zeros(3,3,3)
+        af = "test.tif"
+        remove(af)
+        Images.save(af, a)
+        L = load_content(af)
+        @test size(L) == (3,3,3)
+        save_content(L, "q.tif")
+        @test isfile("q.tif")
+        remove(af)
+        remove("q.tif")
+        d = DataFrame(zeros(3,3), :auto)
+        save_content(d, "2.csv")
+        CSV.write("1.csv",  DataFrame(zeros(3,3), :auto))
+        e = load_content("1.csv")
+        @test d == e
+        @test d == load_content("2.csv")
+    end
+
     @testset "tmp" begin
         for _ in 1:1000
             a="a.test"
