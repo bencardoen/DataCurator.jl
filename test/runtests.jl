@@ -201,6 +201,25 @@ using DataFrames
         rm(IN; recursive=true)
     end
 
+    @testset "content_and_names" begin
+        IN="testdir"
+        delete_folder(IN)
+        mkdir(IN)
+        D = zeros(3,3)
+        D[2,2] = 0.75
+        D[2,1] = 0.5
+        Images.save(joinpath(IN, "TEST.tif"), D)
+        res = create_template_from_toml("../example_recipes/content_and_naming.toml")
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        Q = readdir(IN) |> collect
+        @test length(Q) == 2
+        E = Images.load(joinpath(IN,"test.tif"))
+        @test sum(E) == 1
+        @test size(E) == (3,1)
+        rm(IN; recursive=true)
+    end
+
     @testset "list_table" begin
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing

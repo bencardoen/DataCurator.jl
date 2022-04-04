@@ -82,6 +82,7 @@ function save_content(ct::DataFrame, sink::AbstractString)
 end
 
 function mode_copy(old::AbstractString, tmp::AbstractString, new::AbstractString)
+    @info "Moving $tmp to $new"
     mv(tmp, new)
 end
 
@@ -102,7 +103,9 @@ end
 
 function transform_wrapper(file::AbstractString, nametransform, contenttransform, mode)
     tmp = tmpcopy(file)
-    newname = nametransform(file)
+    path, fname = splitdir(file)
+    newname = joinpath(path, nametransform(fname))
+    @info "Transforming $file with $path + $fname to $newname"
     oldcontent = load_content(file)
     newcontent = contenttransform(oldcontent)
     save_content(newcontent, tmp)
@@ -121,6 +124,7 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
     # save_content(newcontent, tmp)
     @info "Transform $file -> $newname complete"
     mode(file, tmp, newname)
+    @info "File IO complete for $file -> $newname"
 end
 
 """
@@ -177,10 +181,18 @@ end
 
 function reduce_image(img::Array{T}, op::AbstractVector) where {T<:Images.Colorant}
     fs = lookup(op[1])
+    @info "Reduce Image with $op"
     if isnothing(fs)
         throw(ArgumentError("Not a valid function $op for reduction"))
     end
-    X = fs(img; dims=op[2])
+    d = 0
+    if typeof(op[2]) <: AbstractString
+        @warn "Dimension $(op[2]) passed as string, trying conversion ..."
+        d = tryparse(Int, op[2])
+    else
+        d = op[2]
+    end
+    X = fs(img; dims=d)
     return X
 end
 
@@ -511,6 +523,30 @@ function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
     return x -> fs(x)
 end
 
+
+"""
+    decode_function(f::AbstractDict, glob::AbstractDict; condition=false)
+
+    Dispatched method for transform entries
+"""
+function decode_function(f::AbstractDict, glob::AbstractDict; condition=false)
+    tomode = Dict([("copy", mode_copy),("move", mode_move),("inplace", mode_inplace)])
+    nt = f["name_transform"]
+    @info nt
+    nts = [DataCurator.decode_function(_nt, glob; condition=false) for _nt in nt]
+    if any(isnothing.(nts))
+        throw(ArgumentError("Failed decoding $f"))
+    end
+    nam_fun = collapse_functions(nts; left_to_right=true)
+    ct = f["content_transform"]
+    cts = [DataCurator.decode_function(_ct, glob; condition=false) for _ct in ct]
+    if any(isnothing.(cts))
+        throw(ArgumentError("Failed decoding $f"))
+    end
+    con_fun = collapse_functions(cts; left_to_right=true)
+    mode = tomode[f["mode"]]
+    return x->transform_wrapper(x, nam_fun, con_fun, mode)
+end
 
 
 """
