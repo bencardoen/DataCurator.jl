@@ -23,8 +23,6 @@ using DataFrames
 using Statistics
 import TOML
 using HDF5
-import ERGO
-import SPECHT
 using MAT
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,

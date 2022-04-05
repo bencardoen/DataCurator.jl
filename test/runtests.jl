@@ -543,6 +543,8 @@ using DataFrames
     end
 
     @testset "l2f" begin
+        c = global_logger()
+        global_logger(NullLogger())
         r = mktempdir()
         log_to_file("a", joinpath(r,"abc.txt"))
         @test isfile(joinpath(r,"abc.txt"))
@@ -550,6 +552,8 @@ using DataFrames
 
 
     @testset "decoding" begin
+        c = global_logger()
+        global_logger(NullLogger())
         s = decode_symbol("warn_on_fail", Dict())
         @test ~isnothing(s)
         s = decode_symbol("abc", Dict())
@@ -557,6 +561,8 @@ using DataFrames
     end
 
     @testset "sc" begin
+        c = global_logger()
+        global_logger(NullLogger())
         TF = "aBc"
         @test has_lower(TF)
         @test has_upper(TF)
@@ -566,11 +572,15 @@ using DataFrames
 
 
     @testset "parser" begin
+        c = global_logger()
+        global_logger(NullLogger())
         c = create_template_from_toml("test.toml")
         @test ~isnothing(c)
     end
 
     @testset "regex" begin
+        c = global_logger()
+        global_logger(NullLogger())
         T = "123 Serie"
         @test ~isnothing(read_prefix_int(T))
         @test isnothing(read_postfix_int(T))
@@ -584,6 +594,8 @@ using DataFrames
     end
 
     @testset "incrementer" begin
+        c = global_logger()
+        global_logger(NullLogger())
         ec, count_error = generate_counter(true)
         count_error(2)
         @test read_counter(ec) == 1
@@ -599,6 +611,8 @@ using DataFrames
 
 
     @testset "nfiles" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         t = joinpath(root, "1.txt")
         @test ~n_files_or_more(root, 1)
@@ -611,6 +625,8 @@ using DataFrames
     end
 
     @testset "destructive" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         for i in [1]
             for s in [14]
@@ -643,6 +659,8 @@ using DataFrames
     end
 
     @testset "shortcodes" begin
+        c = global_logger()
+        global_logger(NullLogger())
         rt = mktempdir()
         z = zeros(3,3,3)
         FN = joinpath(rt, "file.tif")
@@ -655,6 +673,8 @@ using DataFrames
     end
 
     @testset "movelink" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         node = joinpath(root, "a", "b")
         mkpath(node)
@@ -672,6 +692,8 @@ using DataFrames
     end
 
     @testset "movecopy" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         pt = joinpath(root, "1", "Type 2", "Serie 14")
         newroot = mktempdir()
@@ -716,6 +738,8 @@ using DataFrames
 
 
     @testset "relativecopy" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         pt = joinpath(root, "1", "Type 2", "Serie 14")
         fl = joinpath(pt, "test.txt")
@@ -735,6 +759,8 @@ using DataFrames
     end
 
     @testset "movelinkfile" begin
+        c = global_logger()
+        global_logger(NullLogger())
         root = mktempdir()
         node = joinpath(root, "a", "b")
         mkpath(node)
