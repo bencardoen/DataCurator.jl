@@ -1,0 +1,12 @@
+## Recipe to allow Julia to see which functions are called often, and compile them
+## This reduces startup latency (once) from 31 to 0.5 s
+[global]
+act_on_success=true
+file_lists = [{name="3dstack.tif", aggregator="stack_images"}]
+inputdirectory = "testdir"
+counters = [["c1", "size_of_file"]]
+[any]
+all=true
+conditions = ["is_tif_file"]
+actions=[["all",["add_to_file_list", "3dstack.tif"], ["count", "c1"]]]
+counter_actions=["show_warning"]
