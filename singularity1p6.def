@@ -27,7 +27,11 @@ From: fedora:35
     julia --project=$LOCALPKG -e 'using Pkg; Pkg.update(); ENV["PYTHON"]=""; Pkg.build(); Pkg.instantiate()'
     julia --project=$LOCALPKG -e 'using DataCurator; using Pkg;'
     ## Build the precompiled image for faster start
-    julia --project=$LOCALPKG $LOCALPKG/src/setupimage.jl
+    #julia --project=$LOCALPKG $LOCALPKG/src/setupimage.jl
+    julia --project=. --trace-compile=dc_precompile.jl src/curator.jl -r example_recipes/aggregate_new_api.toml
+    julia --project=. src/setupimage.jl
+    echo "Checking if sysimg exists"
+    ls -lahst *.so
     rm -rf /opt/juliadepot/logs
     rm -rf /opt/juliadepot/scratchspaces
     ln -s /dev/shm/ /opt/juliadepot/logs
@@ -35,6 +39,7 @@ From: fedora:35
 
     ## Cleanup
     dnf remove -y wget unzip
+    dnf clean all
 
 %environment
     export LC_ALL=C
@@ -66,3 +71,5 @@ From: fedora:35
     Singularity> julia --project=/opt/DataCurator.jl
     or
     singularity exec DataCurator.sif julia --project=/opt/DataCurator.jl <yourcode>
+    or for minimal latency
+    singularity exec DataCurator.sif julia --project=/opt/DataCurator.jl --sysimage=./sys_img.so <yourcode>

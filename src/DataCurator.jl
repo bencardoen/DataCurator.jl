@@ -253,11 +253,6 @@ function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}
         end
         return :proceed
     else
-        # rv = t.action(node)
-        # if rv == :quit
-        #     @debug "Early exit for $node"
-        #     return :quit
-        # end
         return :proceed
     end
 end
@@ -283,7 +278,7 @@ function dostep(node::Any, t::NamedTuple{(:condition, :action, :counteraction), 
 end
 
 function delete_if_exists(f)
-    @warn "Removing $f"
+    @debug "Removing $f"
     if isdir(f)
         rm(f; recursive=true)
     else
@@ -796,6 +791,12 @@ function delegate(config, template)
         aggregator_aggregate(ag)
         push!(lists, vcat(ag.list...))
     end
+    @info "Finished processing dataset located at $(config["inputdirectory"])"
+    if rval == :quit
+        @warn "Dataset processing stopped early per your conditions"
+    else
+        @info "Dataset processing completed without early exit"
+    end
     return counters, lists, rval
 end
 
@@ -915,9 +916,17 @@ function create_template_from_toml(tomlfile)
     config = TOML.parsefile(tomlfile)
     validate_top_config(config)
     glob = validate_global(config)
-    @info "Global configuration"
+    @info "Global configuration is:"
     for key in keys(glob)
-        @info "$key --> $(glob[key])"
+        if key == "file_lists"
+            @info "Aggregation file lists:"
+            FL = glob["file_lists"]
+            for k in keys(FL)
+                @info "$k with aggregator $(FL[k].aggregator) and transformer $(FL[k].transformer)"
+            end
+        else
+            @info "$key --> $(glob[key])"
+        end
     end
     if isnothing(glob)
         @error "Invalid configuration"
@@ -1712,19 +1721,6 @@ end
 """
 # Todo : change to Vector[namedtuple]  and use dispatch
 function verifier(node, template::Vector, level::Int; on_success=false)
-    # ### MARK
-    # # for step in template
-    #     if step.condition(node) == on_success
-    #         @debug "Condition triggered on $node"
-    #         rv = step.action(node)
-    #         if rv == :quit
-    #             @debug "Early exit for $node at $level"
-    #             return :quit
-    #         end
-    #     else
-    #
-    # for t in template
-    # rv = dostep(t)
     for step in template
         rv = dostep(node, step, on_success)
         if rv == :quit
@@ -1733,18 +1729,6 @@ function verifier(node, template::Vector, level::Int; on_success=false)
         end
     end
     return :proceed
-
-    # for (condition, action) in template
-    #     if condition(node) == on_success
-    #         @debug "Condition failed on $node"
-    #         rv = action(node)
-    #         if rv == :quit
-    #             @debug "Early exit for $node at $level"
-    #             return :quit
-    #         end
-    #     end
-    # end
-    # return :proceed
 end
 
 function make_aggregator(name, list, adder, aggregator)
@@ -1768,7 +1752,7 @@ function aggregator_add(nt::NamedTuple{(:name, :list, :adder, :aggregator, :tran
 end
 
 function aggregator_aggregate(nt::NamedTuple{(:name, :list, :adder, :aggregator, :transformer), Tuple{Any, Any, Any, Any, Any}})
-    @info "Executing aggregator for $nt.name"
+    @info "Executing aggregator for $(nt.name)"
     nt.aggregator(nt.list, nt.name)
 end
 

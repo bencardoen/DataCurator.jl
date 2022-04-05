@@ -39,11 +39,11 @@ function parse_commandline()
             help = "If set, needs --inputdirectory and --outputdirectory, will update your template in place"
             action = :store_true
         "--inputdirectory"
-            help = "Recipe in TOML format, see example_recipes/ for example configurations"
+            help = "If you want to override the inputdirectory field of the recipe at runtime, use this."
             arg_type = String
             required = false
         "--outputdirectory"
-            help = "Recipe in TOML format, see example_recipes/ for example configurations"
+            help = "Override output directory for creation of input/output pairs. Does NOT change the general output directory, that's controlled by the template actions."
             arg_type = String
             required = false
     end
@@ -55,8 +55,6 @@ end
 function update_template(template, indir, outdir)
     UDR=indir
     ODR=outdir
-    isdir(UDR)
-    isdir(ODR)
     x = nothing
     f1, f2 = false, false
     s=readlines(template)
@@ -73,15 +71,15 @@ function update_template(template, indir, outdir)
         end
     end
 
-    if ~f1 || ~f2
+    if ~f1
         @error "Failed converting template, make sure the directories exist and the template is not corrupt."
         throw(ArgumentError("Failed updating template"))
     end
-    @info "Updating $template with $indir and $outdir"
+    @info "Updating $template with $indir"
     write(template, join(s, "\n")...)
 end
 
-function run()
+function runme()
     parsed_args = parse_commandline()
     defl = Logging.Info
     v = parsed_args["verbose"]
@@ -123,4 +121,4 @@ function run()
     @info "Exit status $r"
 end
 
-run()
+runme()
