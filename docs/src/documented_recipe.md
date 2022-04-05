@@ -105,7 +105,6 @@ And so on ...
 ```toml
 file_lists = [{name="all_ab_columns.csv", transformer=["extract_columns", ["A", "B"]], aggregator="concat_to_table"}]
 ```
-...
 
 ### Template
 A template has 2 kind of entries `[any]` and `[level_X]`. You will only see the level_X entries in hierarchical templates, then X specifies at which depth you want to check a rule.
@@ -118,7 +117,8 @@ conditions=["is_tif_file", ["has_n_files", 10]]
 actions=["show_warning", ["log_to_file", "decathlon.txt"]]
 counter_actions=[["add_to_file_list", "mylist"], ["log_to_file", "not_decathlon.txt"]] ## Optional
 ```
-Here the `add_to_file_list` will pass any file or directory for which `is_tif_file` = true (see `act_on_success`) to a list you defined earlier called "mylist".
+
+The `add_to_file_list` will pass any file or directory for which `is_tif_file` = true (see `act_on_success`) to a list you defined earlier called "mylist".
 You specified in the global section what needs to be done with those files at the end.
 You do not need counter_actions.
 
@@ -162,112 +162,116 @@ Please see the directory [example_recipes](../../example_recipes) for more compl
 ### Advanced usage
 
 ##### Verify a complex, deep dataset layout.
-This is the same as the Julia API equivalent below, but then in toml recipe
-  ```toml
-  [global]
-  act_on_success=false
-  hierarchical=true
-  inputdirectory = "inputdirectory"
-  ## Suppose we expect 2 3D channels (tif) for each cell, and we have a dataset like
-  ## Root
-  ###  Replicatenr
-  ####  Celltype
-  #####  Series cellnr
-  ######  ...[1,2].tif
+This is an example of a real world dataset, with comments.
 
-  # For now we just want a warning when the data does not like it should be
+Suppose we expect 2 3D channels (tif) for each cell, and we have a dataset that should look like
+```
+Root/Replicatenr/Celltype/Series_Cellnr/[1,2].tif
+```
 
-  ## If we see anything else than the structure below, complain
-  [any]
-  conditions=["never"]
-  actions = ["show_warning"]
-  ## Top directory, only sub directories
-  [level_1]
-  conditions=["isdir"]
-  actions = ["show_warning"]
-  ## Replicate directory, should be an integer
-  [level_2]
-  all=true
-  conditions=["isdir", "integer_name"]
-  actions = ["show_warning"]
-  ## We don't care what cell types are named, as long as there's not unexpected data
-  [level_3]
-  conditions=["isdir"]
-  actions = ["show_warning"]
-  ## Final level, directory with 2 files, and should end with cell nr
-  [level_4]
-  all=true
-  conditions=["isdir", ["has_n_files", 2], ["ends_with_integer"]]
-  actions = ["show_warning"]
-  ## The actual files, we complain if there's any subdirectories, or if the files are not 3D
-  [level_5]
-  all=true
-  conditions=["is_3d_img", ["endswith", "[1,2].tif"]]
-  actions = ["show_warning"]
-  ```
+```toml
+[global]
+hierarchical=true
+inputdirectory = "inputdirectory"
+```
+The actual template
+```toml
+[any]
+conditions=["never"]
+actions = ["show_warning"]
+```
+Levels:
+```toml
+## Top directory, only sub directories
+[level_1]
+conditions=["isdir"]
+actions = ["show_warning"]
+## Replicate directory, should be an integer
+[level_2]
+all=true
+conditions=["isdir", "integer_name"]
+actions = ["show_warning"]
+## We don't care what cell types are named, as long as there's not unexpected data
+[level_3]
+conditions=["isdir"]
+actions = ["show_warning"]
+## Final level, directory with 2 files, and should end with cell nr
+[level_4]
+all=true
+conditions=["isdir", ["has_n_files", 2], ["ends_with_integer"]]
+actions = ["show_warning"]
+## The actual files, we complain if there's any subdirectories, or if the files are not 3D
+[level_5]
+all=true
+conditions=["is_3d_img", ["endswith", "[1,2].tif"]]
+actions = ["show_warning"]
+```
+
 ##### Early exit:
 sometimes you want the validation or processing to stop immediately based on a condition, e.g. finding corrupt data, or because you're just looking for 1 specific type of conditions. This can be achieved fairly easily, illustrated with a trivial example that stops after finding something other than .txt files.
-  ```toml
-  [global]
-  act_on_success = false
-  inputdirectory = "testdir"
-  [any]
-  all = true
-  conditions = ["isfile", ["endswith", ".txt"]]
-  actions = ["halt"]
-  ```
+```toml
+[global]
+act_on_success = false
+inputdirectory = "testdir"
+[any]
+all = true
+conditions = ["isfile", ["endswith", ".txt"]]
+actions = ["halt"]
+```
 ##### Regular expressions:
 For more advanced users, when you write "startswith" "*.txt", it will not match anything, because by default regular expressions are disabled. Enabling them is easy though
-  ```toml
-  [global]
-  regex=true
-  ...
-  condition = ["startswith", "[0-9]+"]
-  ```
-  This will now match files with 1 or more integers at the beginning of the file name. **Note** If you try to pass a regex such as *.txt, you'll get an error complaining about PCRE not being able to compile your Regex. The reason for this is the lookahead/lookback functionality in the Regex engine not allowing such wildcards at the beginning of a regex. When you write *.txt, what you probably meant was 'anything with extension txt', but not the name ".txt", which " *.txt " will also match. Instead, use "\.\*.txt". When in doubt, don't use a regex if you can avoid it. Similar to Kruger-Dunning, those who believe they can wield a regex with confidence, probably shouldn't.
+```toml
+[global]
+regex=true
+...
+condition = ["startswith", "[0-9]+"]
+```
+This will now match files with 1 or more integers at the beginning of the file name. **Note** If you try to pass a regex such as *.txt, you'll get an error complaining about PCRE not being able to compile your Regex. The reason for this is the lookahead/lookback functionality in the Regex engine not allowing such wildcards at the beginning of a regex. When you write *.txt, what you probably meant was 'anything with extension txt', but not the name ".txt", which " *.txt " will also match. Instead, use "\.\*.txt". When in doubt, don't use a regex if you can avoid it. Similar to Kruger-Dunning, those who believe they can wield a regex with confidence, probably shouldn't.
 
 ##### Negating conditions:
 By default your conditions are 'OR'ed, and by setting all=yes, you have 'AND'. By flipping action_on_succes you can negate all conditions. So in essence you don't need more than that for all combinations, but if you need to specifically flip 1 condition, this will get messy. Instead, you can negate any condition by giving it a prefix argumet of "not".
-  ```toml
-  [global]
-  act_on_success = true
-  inputdirectory = "testdir"
-  regex=true
-  [any]
-  all=true
-  conditions = ["isfile", ["not", "endswith", ".*.txt"]]
-  actions = [["flatten_to", "outdir"], "show_warning"]
-  ```
+```toml
+[global]
+act_on_success = true
+inputdirectory = "testdir"
+regex=true
+[any]
+all=true
+conditions = ["isfile", ["not", "endswith", ".*.txt"]]
+actions = [["flatten_to", "outdir"], "show_warning"]
+```
 
 ##### Counteractions:
 When you're validating you'll want to warn/log invalid files/folders. But at the same time, you may want to do the actual preprocessing as well. This is where counteractions come in, they allow you to specify
-  - Do x when condition = true
-  - Do y when condition = false
-  A simple example, filtering by file type:
-  ```toml
-  [global]
-  act_on_success=true
-  inputdirectory = "testdir"
-  [any]
-  conditions=["is_csv_file"]
-  actions=[["log_to_file", "csvs.txt"]]
-  counter_actions = [["log_to_file", "non_csvs.txt"]]
-  ```
-  or another use case is deleting a file that's incorrect, while transforming correct files in preparation for a pipeline, in 1 step.
+- Do x when condition = true
+- Do y when condition = false
+A simple example, filtering by file type:
+
+```toml
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+conditions=["is_csv_file"]
+actions=[["log_to_file", "csvs.txt"]]
+counter_actions = [["log_to_file", "non_csvs.txt"]]
+```
+or another use case is deleting a file that's incorrect, while transforming correct files in preparation for a pipeline, in 1 step.
 
 ##### Export to HDF5/MAT
-  ```toml
-  [global]
-  act_on_success=true
-  inputdirectory = "testdir"
-  [any]
-  conditions = ["is_tif_file", "is_csv_file"]
-  actions=[["add_to_hdf5", "img.hdf5"], ["add_to_mat", "csv.mat"]]
-  ```
+```toml
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+conditions = ["is_tif_file", "is_csv_file"]
+actions=[["add_to_hdf5", "img.hdf5"], ["add_to_mat", "csv.mat"]]
+```
 
 ## Modifying files and content
 When you want precise control over what function runs on the content, versus the name of files, you can do so.
 This example finds all 3D tif files, does a median projection along Z, then masks (binarizes) the image as a copy with original filename in lowercase.
+
 ```toml
 [global]
 act_on_success=true
@@ -275,20 +279,23 @@ inputdirectory = "testdir"
 [any]
 conditions=["is_3d_img"]
 actions=[{name_transform=["tolowercase"], content_transform=[["reduce_image", ["maximum", 2]], "mask"], mode="copy"}]
-
 ```
+
 The examples so far use `syntactic sugar`, they're shorter ways of writing the below, but in certain case where you need to get a lot done, this full syntax is more descriptive, and less error prone.
 It also gives DataCurator the opportunity to save otherwise excessive intermediate copies.
 
 The full syntax for actions of this kind:
-```toml
+
+```
 actions=[{name_transform=[entry+], content_transform=[entry+], mode="copy" | "move" | "inplace"}+]
 ```
+
 Where `entry` is any set of functions with arguments. The + sign indicates "one or more".
 The | symbol indicates 'OR', e.g. either copy, move, or inplace.
 
-### Aggregation <a name="mapreduce"></a>
+### Aggregation
 When you need group data before processing it, such as collecting files to count their size, write input-output pairs, or stack images, and so forth, you're performing a pattern of the form
+
 ```julia
 output = reduce(aggregator, map(transform, filter(test, data)))
 ```
