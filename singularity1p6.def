@@ -7,7 +7,7 @@ From: fedora:35
 
 %post
     ## Get the tools we'll need
-    dnf install -y wget unzip gcc
+    dnf install -y wget unzip gcc g++
 
     ## Setup Julia
     export JLMJV=1.6
@@ -39,7 +39,7 @@ From: fedora:35
     ln -s /dev/shm/ /opt/juliadepot/scratchspaces
 
     ## Cleanup
-    dnf remove -y wget unzip gcc
+    dnf remove -y wget unzip
     dnf clean all
 
 %environment
