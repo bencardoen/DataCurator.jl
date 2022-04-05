@@ -12,10 +12,16 @@ DataCurator is a Swiss army knife that ensures:
 
 ![Concept](whatami.png)
 
-## Documentation
+## Documentation [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://bencardoen.github.io/DataCurator.jl/stable)
 After cloning / downloading, please open docs/build/index.html with a browser.
 This will be replaced by github pages + actions.
-[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://bencardoen.github.io/DataCurator.jl/stable)
+Or build yourself
+```bash
+cd docs
+julia make.jl
+```
+Then open docs/build/index.html
+
 
 ## Table of Contents
 1. Quickstart
