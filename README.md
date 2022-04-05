@@ -2,6 +2,8 @@
 
 A multithreaded package to validate, curate, and transform large heterogeneous datasets using reproducible recipes, which can be created both in TOML human readable format, or in Julia.
 
+A key aim of this package is that recipes can read/written by any STEM researcher without the need for being able to write code, making data sharing/validation faster, more accurate, and reproducible.
+
 ![Concept](venn.png)
 
 DataCurator is a Swiss army knife that ensures:
