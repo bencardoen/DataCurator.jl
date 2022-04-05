@@ -33,6 +33,8 @@ From: fedora:35
     julia --project=. src/setupimage.jl
     echo "Checking if sysimg exists"
     ls -lahst *.so
+    cd $LOCALPKG/docs
+    julia --project=. make.jl
     rm -rf /opt/juliadepot/logs
     rm -rf /opt/juliadepot/scratchspaces
     ln -s /dev/shm/ /opt/juliadepot/logs
@@ -53,6 +55,7 @@ From: fedora:35
 
 %runscript
     echo "Starting DataCurator.jl"
+    echo "Documentation available at /opt/juliadepot/DataCurator.jl/docs/build/index.html"
     echo "Version 0.1"
     echo `pwd`
     echo "Expected usage : ./image.sif --recipe your_recipe.toml [--verbose]"

@@ -15,7 +15,7 @@ DataCurator is a Swiss army knife that ensures:
 ![Concept](whatami.png)
 
 ## Documentation [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://bencardoen.github.io/DataCurator.jl/stable)
-After cloning / downloading, please open docs/build/index.html with a browser.
+After cloning / downloading, please open [docs/build/index.html](docs/build/index.html) with a browser.
 This will be replaced by github pages + actions.
 Or build yourself
 ```bash
