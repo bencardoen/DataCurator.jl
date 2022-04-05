@@ -9,6 +9,8 @@ using DataFrames
 @testset "DataCurator.jl" begin
 
     @testset "aggregator_pattern" begin
+        c = global_logger()
+        global_logger(NullLogger())
         l = make_shared_list()
         adder = x::AbstractString -> add_to_file_list(x, l)
         transformer = identity
@@ -20,6 +22,8 @@ using DataFrames
     end
 
     @testset "loadsavecontent" begin
+        c = global_logger()
+        global_logger(NullLogger())
         a = zeros(3,3,3)
         af = "test.tif"
         remove(af)
@@ -39,6 +43,8 @@ using DataFrames
     end
 
     @testset "reductions" begin
+        c = global_logger()
+        global_logger(NullLogger())
         a = zeros(3,3,3)
         Images.save("test.tif", a)
         X = Images.load("test.tif")
@@ -49,6 +55,8 @@ using DataFrames
     end
 
     @testset "transform_api" begin
+        c = global_logger()
+        global_logger(NullLogger())
         remove("test.tif")
         remove("TEST.tif")
         Images.save("TEST.tif", zeros(3,3))
@@ -72,6 +80,8 @@ using DataFrames
     end
 
     @testset "tmp" begin
+        c = global_logger()
+        global_logger(NullLogger())
         for _ in 1:1000
             a="a.test"
             if isfile(a)
@@ -87,6 +97,8 @@ using DataFrames
     end
 
     @testset "mode" begin
+        c = global_logger()
+        global_logger(NullLogger())
         a = "test.txt"
         if isfile(a)
             rm(a)
@@ -116,6 +128,8 @@ using DataFrames
     end
 
     @testset "pattern_removal" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = mktempdir()
         T1= "20x_NR12-55_16_P1_Cy3-FITC-DAPI-Image Export-28_h0t0z0c0-3x0-2048y0-2048.tif"
         T2= "20x_2008-037_27_C1_Cy3-FITC-DAPI-Image Export-21_h0t0z0c0-3x0-2048y0-2048.tif"
@@ -131,6 +145,8 @@ using DataFrames
     end
 
     @testset "extend_removal" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = mktempdir()
         T1= "20x_NR12-55_16_P1_Cy3-FITC-DAPI-Image Export-28_h0t0z0c0-3x0-2048y0-2048.tif"
         T2= "20x_2008-037_27_C1_Cy3-FITC-DAPI-Image Export-21_h0t0z0c0-3x0-2048y0-2048.tif"
@@ -147,6 +163,8 @@ using DataFrames
     end
 
     @testset "tf-copy+remove" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = mktempdir()
         T1= "20x_NR12-55_16_P1_Cy3-FITC-DAPI-Image Export-28_h0t0z0c0-3x0-2048y0-2048.tif"
         T2= "20x_2008-037_27_C1_Cy3-FITC-DAPI-Image Export-21_h0t0z0c0-3x0-2048y0-2048.tif"
@@ -164,6 +182,8 @@ using DataFrames
     end
 
     @testset "RMV" begin
+        c = global_logger()
+        global_logger(NullLogger())
         a = ["remove_from_to", "DAPI", ".tif"]
         z = decode_function(a, Dict("regex"=>true))("DAPI-Unage.tif")
         @test z==".tif"
@@ -173,6 +193,8 @@ using DataFrames
     end
 
     @testset "rmv_aliases" begin
+        c = global_logger()
+        global_logger(NullLogger())
         F = "ABC_CDE.txt"
         R1=remove_from_to_inclusive(F, "_", ".txt")
         @test R1=="ABC"
@@ -186,13 +208,15 @@ using DataFrames
     end
 
     @testset "sl_issue2" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN="testdir"
         delete_folder(IN)
         mkdir(IN)
         touch(joinpath(IN, "20x_2008-037_27_C1_Cy3-FITC-DAPI-Image Export-21_h0t0z0c0-3x0-2048y0-2048.tif"))
         Q = readdir("testdir") |> collect
         @test length(Q) == 1
-        res = create_template_from_toml("../example_recipes/remove_pattern.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","remove_pattern.toml"))
         c, t = res
         t[1].action("abc.txt")
         cts, cls, rv = delegate(c, t)
@@ -202,6 +226,8 @@ using DataFrames
     end
 
     @testset "content_and_names" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN="testdir"
         delete_folder(IN)
         mkdir(IN)
@@ -209,7 +235,7 @@ using DataFrames
         D[2,2] = 0.75
         D[2,1] = 0.5
         Images.save(joinpath(IN, "TEST.tif"), D)
-        res = create_template_from_toml("../example_recipes/content_and_naming.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","content_and_naming.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         Q = readdir(IN) |> collect
@@ -221,6 +247,8 @@ using DataFrames
     end
 
     @testset "list_table" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
         mkpath(IN)
@@ -230,7 +258,7 @@ using DataFrames
         # touch("/dev/shm/inputspaces/2/3/4 .txt")
         # touch("/dev/shm/inputspaces/top .txt")
         # mkpath("/dev/shm/flattened_path")
-        res = create_template_from_toml("../example_recipes/collect_csvs_in_table.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","collect_csvs_in_table.toml"))
         c, t = res
         # t[1].action(csv1)
         cts, cls, rv = delegate(c, t)
@@ -239,6 +267,8 @@ using DataFrames
     end
 
     @testset "list_stack_images" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
         mkpath(IN)
@@ -249,7 +279,7 @@ using DataFrames
         # touch("/dev/shm/inputspaces/2/3/4 .txt")
         # touch("/dev/shm/inputspaces/top .txt")
         # mkpath("/dev/shm/flattened_path")
-        res = create_template_from_toml("../example_recipes/aggregate_new_api_images.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","aggregate_new_api_images.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         isfile("3dstack.tif")
@@ -257,6 +287,8 @@ using DataFrames
     end
 
     @testset "max_project" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
         mkpath(IN)
@@ -267,7 +299,7 @@ using DataFrames
         # touch("/dev/shm/inputspaces/2/3/4 .txt")
         # touch("/dev/shm/inputspaces/top .txt")
         # mkpath("/dev/shm/flattened_path")
-        res = create_template_from_toml("../example_recipes/max_projection_2d.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","max_projection_2d.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         isfile("3dstack.tif")
@@ -275,6 +307,8 @@ using DataFrames
     end
 
     @testset "list_table_napi" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
         mkpath(IN)
@@ -284,7 +318,7 @@ using DataFrames
         # touch("/dev/shm/inputspaces/2/3/4 .txt")
         # touch("/dev/shm/inputspaces/top .txt")
         # mkpath("/dev/shm/flattened_path")
-        res = create_template_from_toml("../example_recipes/aggregate_new_api.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","aggregate_new_api.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         df = CSV.read("table.csv", DataFrame)
@@ -292,6 +326,8 @@ using DataFrames
     end
 
     @testset "lists_outpath" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
         mkpath(IN)
@@ -301,7 +337,7 @@ using DataFrames
         # touch("/dev/shm/inputspaces/2/3/4 .txt")
         # touch("/dev/shm/inputspaces/top .txt")
         # mkpath("/dev/shm/flattened_path")
-        res = create_template_from_toml("../example_recipes/input_output_lists.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","input_output_lists.toml"))
         c, t = res
         # t[1].action(csv1)
         cts, cls, rv = delegate(c, t)
@@ -339,7 +375,7 @@ using DataFrames
         mkpath(IN)
         f1 = joinpath(IN, "aB c.txt")
         touch(f1)
-        res = create_template_from_toml("../example_recipes/spaces_to_.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","spaces_to_.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         @test ~isfile(f1)
@@ -362,7 +398,7 @@ using DataFrames
         mkpath(IN)
         CSV.write(joinpath(IN, "test.csv"), DataFrame(zeros(3,3),:auto))
         Images.save(joinpath(IN, "test.tif"), zeros(3,3,3))
-        res = create_template_from_toml("../example_recipes/export_to_mat_h5.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","export_to_mat_h5.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         @test isfile("img.hdf5")
@@ -446,7 +482,7 @@ using DataFrames
         f2 = joinpath(IN, "deeper", "cd.txt")
         touch(f1)
         touch(f2)
-        res = create_template_from_toml("../example_recipes/early_exit.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","early_exit.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         @test rv == :quit
@@ -463,7 +499,7 @@ using DataFrames
         mkpath(IN)
         f1 = joinpath(IN, "aB c.txt")
         touch(f1)
-        res = create_template_from_toml("../example_recipes/spaces_to_0.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","spaces_to_0.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         @test isfile(f1)
@@ -478,7 +514,7 @@ using DataFrames
         mkpath(IN)
         f1 = joinpath(IN, "test.txt")
         touch(f1)
-        res = create_template_from_toml("../example_recipes/hierarchical_validation.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","hierarchical_validation.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         @test isfile(f1)
@@ -496,7 +532,7 @@ using DataFrames
         # touch("/dev/shm/inputspaces/2/3/4 .txt")
         # touch("/dev/shm/inputspaces/top .txt")
         # mkpath("/dev/shm/flattened_path")
-        res = create_template_from_toml("../example_recipes/collect_csvs_in_table.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","collect_csvs_in_table.toml"))
         c, t = res
         t[1][2]
         cts, cls, rv = delegate(c, t)
@@ -525,7 +561,7 @@ using DataFrames
             rm("outdir", recursive=true)
         end
         mkpath("outdir")
-        res = create_template_from_toml("../example_recipes/flatten.toml")
+        res = create_template_from_toml(joinpath("..","example_recipes","flatten.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
         @test isfile("outdir/top.txt")
@@ -592,13 +628,6 @@ using DataFrames
         @test ~is_upper(TF)
     end
 
-
-    @testset "parser" begin
-        c = global_logger()
-        global_logger(NullLogger())
-        c = create_template_from_toml("test.toml")
-        @test ~isnothing(c)
-    end
 
     @testset "regex" begin
         c = global_logger()

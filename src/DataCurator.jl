@@ -80,16 +80,18 @@ function save_content(ct::DataFrame, sink::AbstractString)
 end
 
 function mode_copy(old::AbstractString, tmp::AbstractString, new::AbstractString)
-    @info "Moving $tmp to $new"
+    @debug "Mode copy: $tmp to $new"
     mv(tmp, new)
 end
 
 function mode_move(old::AbstractString, tmp::AbstractString, new::AbstractString)
+    @debug "Mode move: $tmp to $new"
     mv(tmp, new, force=true)
     rm(old)
 end
 
 function mode_inplace(old::AbstractString, tmp::AbstractString, new::AbstractString)
+    @debug "Mode inplace with:$old $tmp $new"
     if old!=new
         @warn "Chaning in place and changing the name is not meaningful --> mode_move"
         mode_move(old, tmp, new)
@@ -103,7 +105,7 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
     tmp = tmpcopy(file)
     path, fname = splitdir(file)
     newname = joinpath(path, nametransform(fname))
-    @info "Transforming $file with $path + $fname to $newname"
+    @debug "Transforming $file with $path + $fname to $newname"
     oldcontent = load_content(file)
     newcontent = contenttransform(oldcontent)
     save_content(newcontent, tmp)
@@ -120,9 +122,9 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
         end
     end
     # save_content(newcontent, tmp)
-    @info "Transform $file -> $newname complete"
+    @debug "Transform $file -> $newname complete"
     mode(file, tmp, newname)
-    @info "File IO complete for $file -> $newname"
+    @debug "File IO complete for $file -> $newname"
 end
 
 """
@@ -179,7 +181,7 @@ end
 
 function reduce_image(img::Array{T}, op::AbstractVector) where {T<:Images.Colorant}
     fs = lookup(op[1])
-    @info "Reduce Image with $op"
+    @debug "Reduce Image with $op"
     if isnothing(fs)
         throw(ArgumentError("Not a valid function $op for reduction"))
     end
@@ -204,14 +206,14 @@ function ifnotsetdefault(key, new, def)
 end
 
 function mask(x::T) where {T<:AbstractString}
-    @info "File version"
+    @debug "File version"
     img = Images.load(x)
     masked = mask(img)
     Images.save(x, masked)
 end
 
 function mask(q::Array{T}) where {T<:Images.Colorant}
-    @info "Data version"
+    @debug "Data version"
     q[abs.(q).>0] .= 1
     return q
 end
@@ -304,7 +306,7 @@ end
 function handlecounters!(val, key, glob_defaults)
     counter_entries = val
     cts = Dict()
-    @info "Processing counters $(counter_entries)"
+    @debug "Processing counters $(counter_entries)"
     for ce in counter_entries
         d = decode_counter(ce)
         if isnothing(d)
@@ -326,12 +328,12 @@ function decode_filelist(fe::AbstractString, glob)
     transformer = identity
     aggregator = shared_list_to_file
     Q = make_aggregator(fe, l, adder, aggregator, transformer)
-    @info "Creating aggregator --> $fe save file list to txt file."
+    @debug "Creating aggregator --> $fe save file list to txt file."
     return (fe, Q)
 end
 
 function decode_filelist(fe::AbstractVector, glob)
-    @info "DF with $fe and $glob"
+    @debug "DF with $fe and $glob"
     ### Can only be 2 special cases
     ### name, outpath
     ### name, concat_to_table
@@ -342,13 +344,13 @@ function decode_filelist(fe::AbstractVector, glob)
     listname, second = fe[1], fe[2]
     l = make_shared_list()
     if second == "concat_to_table"
-        @info "Shortcode for table concatenation found"
+        @debug "Shortcode for table concatenation found"
         # change_path = x->new_path(glob["inputdirectory"], x, alter_root)
         adder = x::AbstractString -> add_to_file_list(x, l)
         Q = make_aggregator(listname, l, adder, shared_list_to_table, identity)
         return (listname, Q)
     else
-        @info "Assuming $second is a path and you want to compile in/out filelists"
+        @warn "During creation of lists with $(fe), assuming $second is a path and you want to compile in/out filelists"
         change_path = x->new_path(glob["inputdirectory"], x, second)
         adder = x::AbstractString -> add_to_file_list(change_path(x), l)
         Q = make_aggregator(listname, l, adder, shared_list_to_file, change_path)
@@ -361,7 +363,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     #Here check for
     # KEys name, transformer, aggregator
     default=Dict([("transformer", identity), ("aggregator", shared_list_to_file)])
-    @info "Decoding $fe , default = $default"
+    @debug "Decoding $fe , default = $default"
     if ~haskey(fe, "name")
         @error "Invalid file list entry $fe"
         throw(ArgumentError("Your list should have at least a name, use file_lists=[{\"name\":\"mylistname\",...}]"))
@@ -371,7 +373,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     ag = default["aggregator"]
     if haskey(fe, "transformer")
         TF = fe["transformer"]
-        @info "Found a transformer entry $TF"
+        @debug "Found a transformer entry $TF"
         tf = decode_symbol(TF, glob;condition=false)
         if isnothing(tf)
             @error "Invalid $TF"
@@ -381,12 +383,12 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     if haskey(fe, "aggregator")
         AG = fe["aggregator"]
         ag = decode_aggregator(AG, glob)
-        @info "Found a aggregator entry $AG -> $ag"
+        @debug "Found a aggregator entry $AG -> $ag"
     end
-    @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
+    @debug "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
     if tf != identity
-        @info "Custom transform, wrapping with copy"
+        @debug "Custom transform, wrapping with copy"
         adder = x::AbstractString -> add_to_file_list(tf(wrap_transform(x)), l)
     else
         adder = x::AbstractString -> add_to_file_list(x, l)
@@ -413,7 +415,7 @@ end
 
 function decode_aggregator(ag::AbstractVector, glob::AbstractDict)
     an = ag[1]
-    @info "Decoding aggregator $(ag)"
+    @debug "Decoding aggregator $(ag)"
     if length(ag) < 2
         throw(ArgumentError("Invalid aggregator $ag"))
     end
@@ -428,24 +430,17 @@ end
 
 function wrap_transform(x::AbstractString)
     c = joinpath(tempdir(), "$(Random.randstring(40)).tmp")
-    @info "Temporary copy for x -> $c"
+    @debug "Temporary copy for x -> $c"
     cp(x, c)
     return c
 end
-#
-# function wrap_transform(x::AbstractString, transform=identity)
-#     c = joinpath(tempdir(), "$(Random.randstring(40)).tmp")
-#     @info "Temporary copy $c"
-#     cp(x, c)
-#     return transform(c)
-# end
 
 function extract_columns(csv, columns)
-    @info "Extracting columns $columns for $csv"
+    @debug "Extracting columns $columns for $csv"
     df = CSV.read(csv, DataFrame)
-    @info "DF = $(df)"
+    @debug "DF = $(df)"
     extracted=df[!,columns]
-    @info "Extracted = $(extracted))"
+    @debug "Extracted = $(extracted))"
     CSV.write(csv, df[!,columns])
     return csv
 end
@@ -453,8 +448,6 @@ end
 function handlefilelists!(val, key, glob_defaults)
     file_entries = val
     cts = Dict()
-    @info file_entries
-    @info key
     for ce in file_entries
         d = decode_filelist(ce, glob_defaults)
         if isnothing(d)
@@ -513,7 +506,7 @@ end
 
 function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
     fs = lookup(f)
-    @info "0 argument function lookup for $f"
+    @debug "0 argument function lookup for $f"
     if isnothing(fs)
         @error "$f is not a valid function"
         return nothing
@@ -530,7 +523,6 @@ end
 function decode_function(f::AbstractDict, glob::AbstractDict; condition=false)
     tomode = Dict([("copy", mode_copy),("move", mode_move),("inplace", mode_inplace)])
     nt = f["name_transform"]
-    @info nt
     nts = [DataCurator.decode_function(_nt, glob; condition=false) for _nt in nt]
     if any(isnothing.(nts))
         throw(ArgumentError("Failed decoding $f"))
@@ -656,7 +648,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     # @info f
     negate = false
     if f[1] == "not"
-        @info "Negate switched on"
+        @debug "Negate switched on"
         negate=true
     end
     if typeof(f[1])<:AbstractVector
@@ -665,10 +657,10 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
             rem_f = f[1][2:end]
             subfs = [decode_function(_f, glob; condition=condition) for _f in rem_f]
             if condition
-                @info "Nested condition"
+                @debug "Nested condition"
                 return x->all_of(subfs, x)
             else
-                @info "Nested action"
+                @debug "Nested action"
                 return x->apply_all(subfs, x)
             end
         else
@@ -692,7 +684,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     end
     if negate
         f = f[2:end]
-        @info "Negate so function is $f"
+        @debug "Negate so function is $f"
     end
     fname = f[1]
     if startswith(fname, "transform_")
@@ -745,8 +737,8 @@ function lookup_filelists(tpl, glob)
     if haskey(glob, "file_lists")
         @debug "Checking file list table"
         fl_table = glob["file_lists"]
-        @info "TABLE == "
-        @info fl_table
+        @debug "TABLE == "
+        @debug fl_table
         if haskey(fl_table, fn)
             fl_object = fl_table[fn]
             if fl_object.name != fn
@@ -795,8 +787,8 @@ function delegate(config, template)
         push!(counters, read_counter(count))
     end
     for (list_name, ag) in config["file_lists"]
-        @info "Processing with list $(ag.name)"
-        @info ag.list
+        @debug "Processing with list $(ag.name)"
+        @debug ag.list
         if list_name != ag.name
             @error "Invalid entry!! $ag $list_name"
             throw(ArgumentError("Invalid entry"))
@@ -881,7 +873,7 @@ concat_to_table = shared_list_to_table
 
 function validate_top_config(cfg)
     keys_c = keys(cfg)|>collect
-    @info "Top level keys : $(keys_c)"
+    @debug "Top level keys : $(keys_c)"
     if haskey(cfg, "global")
         if haskey(cfg["global"], "hierarchical")
             for k in keys_c
@@ -946,7 +938,7 @@ function create_template_from_toml(tomlfile)
         @error "Invalid configuration"
         return nothing
     end
-    @info "Succesfully decoded your template."
+    @info "!!! Succesfully decoded your template !!!"
     @debug "Decoded template to $template"
     return glob, template
 end
@@ -1069,25 +1061,6 @@ function decode_level(level_config, globalconfig)
         @debug "Decode level success"
         return lvl
     end
-    # ### If counteractions
-    # ### tolevel(a,b,c)
-    # ### else
-    # ### tolevel(a,b)
-    # level = []
-    # @debug "Parsing actions & conditions"
-    # # If actions < conditions, is this dropping things if all=true
-    # if all_mode == false
-    #     parsed_conditions = parse_all(conditions, globalconfig)
-    #     parsed_actions = parse_all(actions, globalconfig)
-    #     level = [[c,a] for (c,a) in zip(parsed_conditions, parsed_actions)]
-    #     return level
-    # else
-    #     cs = parse_all(conditions, globalconfig)
-    #     cas = parse_all(actions, globalconfig)
-    #     @info "Fusing actions and conditions"
-    #     level = [(x->all_of(cs, x), x->apply_all(cas, x) )]
-    #     return level
-    # end
 end
 
 
@@ -1323,7 +1296,7 @@ function shared_list_to_file(list, fname)
     open(fname, "w"; lock=true) do f
         for sublist in list
             for entry in sublist
-                @info "Writing $entry"
+                @debug "Writing $entry"
                 write(f, pad(entry))
             end
         end
@@ -1669,7 +1642,7 @@ end
 
 function add_to_mat(fname::AbstractString, m::AbstractString)
     vname = match(r"[a-z,A-Z]+",fname).match
-    @info "Writing $fname to $vname in $m"
+    @debug "Writing $fname to $vname in $m"
     return add_to_mat(fname, vname, m)
 end
 
@@ -1689,11 +1662,11 @@ function add_csv_to_mat_as(csvfile, name, mfile)
 	if ~isfile(mfile)
 		touch(mfile)
 	end
-    @info "Opening csv $csvfile"
+    @debug "Opening csv $csvfile"
 	d = CSV.read(csvfile, DataFrame)
 	D = Dict([(nm, d[!,nm]) for nm in names(d)])
 	# file = matopen(mfile, "w")
-    @info "Writing to $mfile"
+    @debug "Writing to $mfile"
 	matwrite(mfile, D)
 	# close(file)
 end
