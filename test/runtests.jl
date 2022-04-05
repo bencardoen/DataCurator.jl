@@ -330,6 +330,8 @@ using DataFrames
     end
 
     @testset "example_transform_chained" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = "testdir/input_spaces_upper"
         if isdir(IN)
             rm(IN, recursive=true)
@@ -345,6 +347,8 @@ using DataFrames
     end
 
     @testset "testhdf5mat" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = "testdir"
         if isdir(IN)
             rm(IN, recursive=true)
@@ -366,6 +370,8 @@ using DataFrames
     end
 
     @testset "tupletypes" begin
+        c = global_logger()
+        global_logger(NullLogger())
         i = 1
         f = x-> begin; i= i+1;end
         g = x-> begin; i= i+2;end
@@ -389,6 +395,8 @@ using DataFrames
     end
 
     @testset "tupledispatch" begin
+        c = global_logger()
+        global_logger(NullLogger())
         f = x->1
         g = x->2
         e = iseven
@@ -400,6 +408,8 @@ using DataFrames
     end
 
     @testset "dostep" begin
+        c = global_logger()
+        global_logger(NullLogger())
         f = x->1
         g = x->2
         e = iseven
@@ -412,7 +422,8 @@ using DataFrames
     end
 
     @testset "tolevel" begin
-
+        c = global_logger()
+        global_logger(NullLogger())
         a=to_level([sin], [iseven], [cos];all=true)
         b=to_level([sin],[iseven] ,[cos];all=false)
         c=to_level([sin],[iseven];all=true)
@@ -423,6 +434,8 @@ using DataFrames
     end
 
     @testset "example_early_exit" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = joinpath("testdir", "void")
         if isdir(IN)
             rm(IN, recursive=true)
@@ -441,6 +454,8 @@ using DataFrames
     end
 
     @testset "example_transform_chained_2" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = joinpath("testdir","input_spaces_upper")
         if isdir(IN)
             rm(IN, recursive=true)
@@ -456,7 +471,8 @@ using DataFrames
     end
 
     @testset "example_hierarchical" begin
-
+        c = global_logger()
+        global_logger(NullLogger())
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
         mkpath(IN)
@@ -469,6 +485,8 @@ using DataFrames
     end
 
     @testset "example_csv" begin
+        c = global_logger()
+        global_logger(NullLogger())
         IN = "testdir"
         isdir(IN) ? rm(IN, recursive=true) : nothing
         mkpath(IN)
@@ -487,6 +505,8 @@ using DataFrames
     end
 
     @testset "collapse" begin
+        c = global_logger()
+        global_logger(NullLogger())
         XF = collapse_functions([sin, cos]; left_to_right=true)
         @test XF(2) == cos(sin(2))
         XF = collapse_functions([sin, cos]; left_to_right=false)
@@ -494,6 +514,8 @@ using DataFrames
     end
 
     @testset "example_flatten" begin
+        c = global_logger()
+        global_logger(NullLogger())
         mkpath("outdir")
         mkpath("testdir/input")
         mkpath("testdir/input/2/3/4/5")
@@ -808,22 +830,6 @@ using DataFrames
         rm(root, force=true, recursive=true)
         global_logger(c)
     end
-
-#
-# Q = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
-# countsize = x -> _parallel_increment(Q; inc=filesize(x))
-# template = [(isfile, countsize)]
-# verify_template(root, template; act_on_success=true)
-# sum(Q.data)
-
-    ### Count triggers
-    ### Count filesizes
-    ###
-
-    # @testset "counter" begin
-    #     QT = ParallelCounter(zeros(Int64, Base.Threads.nthreads()))
-    #     # Count file sizes
-    # end
 
     @testset "transformer" begin
         c = global_logger()
