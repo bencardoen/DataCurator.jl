@@ -77,7 +77,7 @@ git clone git@github.com:bencardoen/DataCurator.jl.git ## Assumes ssh
 # git clone https://github.com/bencardoen/DataCurator.jl.git ## For non SSH
 cd DataCurator.jl
 julia
-julia>using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.Test();
+julia>using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.test();
 ```
 
 
