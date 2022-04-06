@@ -25,6 +25,8 @@ pkg 1.x> add https://github.com/bencardoen/DataCurator.jl
 pkg 1.x> test DataCurator
 ```
 
+Note: When we show julia>, it's the prompt you'll see, not part of the command.
+
 Note: when this repo is private this will prompt for username and github token (not psswd)
 
 #### As a local repository
@@ -37,7 +39,7 @@ git clone git@github.com:bencardoen/DataCurator.jl.git ## Assumes ssh
 # git clone https://github.com/bencardoen/DataCurator.jl.git ## For non SSH
 cd DataCurator.jl
 julia
-julia>using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.Test();
+julia>using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.test();
 ```
 
 
