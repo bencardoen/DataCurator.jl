@@ -225,6 +225,20 @@ using DataFrames
         rm(IN; recursive=true)
     end
 
+    @testset "dataframe_ops" begin
+        IN = "testdir"
+        isdir(IN) ? rm(IN, recursive=true) : nothing
+        mkpath(IN)
+        csv1 = CSV.write(joinpath(IN, "One.csv"),  DataFrame(zeros(3,3), :auto))
+        csv2 = CSV.write(joinpath(IN, "Two.csv"),  DataFrame(zeros(3,3), :auto))
+        res = create_template_from_toml(joinpath("..", "example_recipes", "dataframeops.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        X = CSV.read(joinpath(IN,"one.csv"), DataFrame)
+        @test size(X) == (3,3)
+        @test sum(sum(eachcol(X))) == 0
+    end
+
     @testset "content_and_names" begin
         c = global_logger()
         global_logger(NullLogger())
@@ -322,7 +336,7 @@ using DataFrames
         c, t = res
         cts, cls, rv = delegate(c, t)
         df = CSV.read("table.csv", DataFrame)
-        @test size(df) == (6,3)
+        @test size(df) == (6,1)
     end
 
     @testset "lists_outpath" begin

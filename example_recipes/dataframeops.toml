@@ -1,8 +1,8 @@
 [global]
-act_on_success=false
+act_on_success=true
 inputdirectory = "testdir"
 [any]
 # Whatever is not defined below, e.g. too deep of a level --> fail and delete
 all=true
-conditions=["is_csv_file"]
-actions=[{name_transform=["tolowercase"], content_transform=[["extract", ["x1"], ["less"], [1]]], mode="copy"}]
+conditions=["is_csv_file", "has_upper"]
+actions=[{name_transform=["tolowercase"], content_transform=[["extract", ["x1"], ["less"], [10]]], mode="copy"}]

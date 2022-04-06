@@ -34,6 +34,7 @@ act_on_success=false # default
 ```
 We can also specify how we traverse data, from the deepest to the top (`bottomup`), or `topdown`.
 If you intend to modify files/directories in place, `bottomup` is the safer option.
+
 ```toml
 traversal="bottomup" # or topdown
 ```
@@ -45,9 +46,11 @@ We can validate or curate data in parallel, to maximize throughput. Especially o
 ```toml
 parallel=true #default false
 ```
+
 By default your rules are applied without knowing how deep your are in your dataset. However, at times you will need to know this, for example, to verify that certain files only appear in certain locations, or check naming patterns of directories.
 For example, a path like `top/celltype/cellnr` will have a rule to check for a cell number (integer) at level 3, not anywhere else.
 To enable this:
+
 ```toml
 # If true, your template is more precise, because you know what to look for at certain levels [level_i]
 # If false, define your template in [any]
@@ -56,6 +59,7 @@ hierarchical=true
 
 
 For more complex pattern matching you may want to use Regular Expressions (regex), to enable this:
+
 ```toml
 # If true, functions accepting patterns (endswith, startswith), will have their argument converted to a regular expression (using PRCE syntax)
 regex = false
@@ -292,6 +296,31 @@ actions=[{name_transform=[entry+], content_transform=[entry+], mode="copy" | "mo
 
 Where `entry` is any set of functions with arguments. The + sign indicates "one or more".
 The | symbol indicates 'OR', e.g. either copy, move, or inplace.
+
+#### Select rows from CSVs and save them
+```toml
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+all=true
+conditions=["is_csv_file", "has_upper"]
+actions=[{name_transform=["tolowercase"], content_transform=[["extract", ["Count"], ["less"], [10]]], mode="copy"}]
+```
+Table extraction has the following syntax:
+```
+["extract", [Col1, ...], [operator1, ...], [value_1, ...]]
+```
+Wich then turns into:
+```
+select where (Col1 op1 val1) AND (Col2 op2 val2) AND ...
+```
+Operators are "less", "equal", "greater".
+For example:
+```toml
+["extract", ["name", "count"], ["equal", "less"], ["Bert", 10]]
+```
+This would give you all the rows where Bert has a count of < 10.
 
 ### Aggregation
 When you need group data before processing it, such as collecting files to count their size, write input-output pairs, or stack images, and so forth, you're performing a pattern of the form

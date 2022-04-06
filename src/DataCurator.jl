@@ -56,11 +56,12 @@ not_hidden = x -> ~is_hidden(x)
 
 
 function load_content(x::AbstractString)
+    @info "Trying to load content for $x"
     ex = splitext(x)[2]
     if ex ∈ [".tif", ".png"]
         return Images.load(x)
     end
-    if ex ∈ [".csv"]
+    if ex ∈ [".csv", ".txt"]
         return CSV.read(x, DataFrames.DataFrame)
     end
     @warn "No matching file type (img, csv), assuming your functions know how to handle this"
@@ -76,6 +77,7 @@ function save_content(ct::Array{T}, sink::AbstractString) where {T<:AbstractFloa
 end
 
 function save_content(ct::DataFrame, sink::AbstractString)
+    @info "Saving dataframe content to $sink"
     CSV.write(sink, ct)
 end
 
@@ -102,10 +104,15 @@ function mode_inplace(old::AbstractString, tmp::AbstractString, new::AbstractStr
 end
 
 function transform_wrapper(file::AbstractString, nametransform, contenttransform, mode)
+    if isdir(file)
+        @warn "You're selecting directories with you condition but are trying to modify a file, I'm ignoring it for now"
+        @warn file
+        return
+    end
     tmp = tmpcopy(file)
     path, fname = splitdir(file)
     newname = joinpath(path, nametransform(fname))
-    @debug "Transforming $file with $path + $fname to $newname"
+    @info "Transforming $file with $path + $fname to $newname"
     oldcontent = load_content(file)
     newcontent = contenttransform(oldcontent)
     save_content(newcontent, tmp)
@@ -122,9 +129,9 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
         end
     end
     # save_content(newcontent, tmp)
-    @debug "Transform $file -> $newname complete"
+    @info "Transform $file -> $newname complete"
     mode(file, tmp, newname)
-    @debug "File IO complete for $file -> $newname"
+    @info "File IO complete for $file -> $newname"
 end
 
 """
@@ -641,9 +648,19 @@ end
 
 function execute_dataframe_function(df::DataFrame, command, columns, operators, values)
     _df = copy(df)
+    cols = names(df)
+    @info "Dataframe --> Cols = $cols"
+    check = x::AbstractString -> x ∈ cols
+    valid = reduce(&, map(check, columns))
+    if ~valid
+        throw(ArgumentError("You're specifying conditions on $columns but frame only has $cols"))
+    end
     if command == "extract"
         BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
-        return _df[BV, :]
+        sel = _df[BV, :]
+        @info "Remainder selection is"
+        @info sel
+        return copy(_df[BV, :])
     else
         throw(ArgumentError("Invalid comman $command"))
     end
@@ -657,6 +674,7 @@ function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
     if length(cols) != length(ops) != length(vals)
         throw(ArgumentError("Ops. cols, and values do not match in length"))
     end
+    @info "Dataframe modifier with $command $cols $ops $vals"
     return x -> execute_dataframe_function(x, command, cols, ops, vals)
 end
 
@@ -679,7 +697,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     end
     if f[1] == "extract"
         @warn "DataFrame extraction call needed"
-        return decode_dataframe_function_dataframe(f, glob)
+        return decode_dataframe_function(f, glob)
     end
     if typeof(f[1])<:AbstractVector
         @debug "Nested function"
@@ -850,11 +868,14 @@ function shared_list_to_table(list, name::AbstractString)
             end
         end
     end
+    @info "Saving total of $(length(tables)) to csv"
     DF = vcat(tables...)
     if ~endswith(name, ".csv")
+        @info "Postfixing .csv"
         name="$(name).csv"
     end
-    CSV.write("$name.csv", DF)
+    @info "Writing to $name"
+    CSV.write("$name", DF)
 end
 
 function stack_list_to_image(list, name)
