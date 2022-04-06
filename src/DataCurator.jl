@@ -639,12 +639,47 @@ function remove_pattern(x::AbstractString, ptrn::AbstractString)
     return replace_pattern(x, ptrn, "")
 end
 
+function execute_dataframe_function(df::DataFrame, command, columns, operators, values)
+    _df = copy(df)
+    if command == "extract"
+        BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
+        return _df[BV, :]
+    else
+        throw(ArgumentError("Invalid comman $command"))
+    end
+end
+
+function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
+    command = x[1]
+    cols::AbstractVector{T} where {T<:AbstractString} = x[2]
+    ops::AbstractVector{T} where {T<:AbstractString} = x[3]
+    vals::AbstractVector = x[4]
+    if length(cols) != length(ops) != length(vals)
+        throw(ArgumentError("Ops. cols, and values do not match in length"))
+    end
+    return x -> execute_dataframe_function(x, command, cols, ops, vals)
+end
+
+function buildcomp(df, col, op, val)
+    ops = Dict([("less", .<), ("more", .>), ("equals", .==)])
+    return @match op begin
+        "less" => return df[:,col] .< val
+        "more" => return df[:,col] .> val
+        "equals" => return df[:,col] .== val
+        _ => throw(ArgumentError("Op $op is invalid"))
+    end
+end
+
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     # @info f
     negate = false
     if f[1] == "not"
         @debug "Negate switched on"
         negate=true
+    end
+    if f[1] == "extract"
+        @warn "DataFrame extraction call needed"
+        return decode_dataframe_function_dataframe(f, glob)
     end
     if typeof(f[1])<:AbstractVector
         @debug "Nested function"
