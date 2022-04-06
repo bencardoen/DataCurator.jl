@@ -2,7 +2,7 @@
 
 ### Actions
 ```julia
-whitespace_to
+whitespace_to   usage: ["whitespace_to", "_"]
 quit
 proceed
 filename
@@ -19,16 +19,17 @@ delete_folder
 path_only
 show_warning
 log_to_file_with_message
-remove_from_to
+remove_from_to                    usage: ["remove_from_to", "from_pattern", "to_pattern"], see example_recipes/remove_pattern.toml
 remove_from_to_extension_inclusive
 remove_from_to_extension_exclusive
 remove_from_to_exclusive
 remove_from_to_inclusive
 remove_pattern
 replace_pattern
-reduce_images
+reduce_images    usage: ["reduce_images", ["maximum", 3]] for max projection on Z
 concat_table
-extract_columns
+extract_columns  usage: ["extract_columns", ["x1", "x2"]]
+extract          usage: ["extract", [col1, col2], [op1, op2], [val1, val2]]
 stack_images
 reduce_image + maximum, minimum, median, mean + dim : 1-N
 ```
