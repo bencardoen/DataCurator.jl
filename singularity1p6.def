@@ -34,6 +34,7 @@ From: fedora:35
     echo "Checking if sysimg exists"
     ls -lahst *.so
     cd $LOCALPKG/docs
+    julia --project=. -e 'using Pkg; Pkg.add("Documenter");'
     julia --project=. make.jl
     rm -rf /opt/juliadepot/logs
     rm -rf /opt/juliadepot/scratchspaces
