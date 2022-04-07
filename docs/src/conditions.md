@@ -168,39 +168,28 @@ is_8bit_img
 is_16bit_img
 ```
 #### Table specific
+Table refers here to tabular data contained in CSV files, loading into Julia DataFrames. In short, if it has columns and rows, in a csv, it's a table.
+
+Useful before you concatenate tables:
 ```
 has_n_columns
 has_less_than_n_columns
 has_more_than_or_n_columns
+```
+Checking if your table has the right columns:
+```
 has_columns_named  # usage ["has_columns_named", ["Age", "Heart Rate"]]
 ```
 ### General
 ```
 always, never
 ```
+Self-explanatory, sometimes handly:
 ```julia
-integer_name # file or directory name is an integer, e.g. "2", "003", but not "One" or "_1"
-is_lower
-is_upper
-has_whitespace
-is_img
-is_kd_img
-is_2d_img
-is_3d_img
-is_rgb
-read_dir
-files
-always
-never
-read_postfix_int
-read_prefix_int
-read_int
-read_postfix_float
-read_prefix_float
-read_float
-less_than_n_subdirs
-is_hidden[_dir, _file]
+always = x -> true
+never = x -> false
 ```
+If you're testing conditions, you can use these as placeholders, for example.
 
 If you're not familiar with Julia, the following are builtin
 
