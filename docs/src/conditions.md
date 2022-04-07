@@ -1,8 +1,9 @@
-## Actions and Conditions you can use in recipes
+# Actions and Conditions you can use in recipes
 
-### Actions
+## Actions
+### File/folder name:
 ```julia
-whitespace_to   usage: ["whitespace_to", "_"]
+whitespace_to  usage: ["whitespace_to", "_"]
 quit
 proceed
 filename
@@ -26,10 +27,41 @@ remove_from_to_exclusive
 remove_from_to_inclusive
 remove_pattern
 replace_pattern
-reduce_images    usage: ["reduce_images", ["maximum", 3]] for max projection on Z
-
+read_postfix_int
+read_prefix_int
+read_int
+read_postfix_float
+read_prefix_float
+read_float
+```
+### Content:
+#### Image operations
+These operations fall into 3 categories:
+- Increase dimension, e.g. 10 2D images to 1 3D
+- Decrease/reduce dimension, e.g. 10 2D images to 1 2D, or 1 3D to 1 2D
+- Change voxels, but not dimension, e.g. mask, filter, ...
+##### N to N+1 dimension:
+```
 stack_images
+```
+See the aggregation section for details.
+##### N to N-1 dimension:
+For aggregation (combine many images in N x 2D to 1 x 2D):
+```
+reduce_images
+#usage
+["reduce_images", ["maximum", 3]] for max projection on Z
+```
+For per image reduction (1 image, 3D -> 2D):
+```
 reduce_image + maximum, minimum, median, mean + dim : 1-N
+# example:
+["reduce_image" ,["maximum", 2]]
+```
+##### N to N
+The image dimensions stay the same, but the voxels are modified
+```
+mask
 ```
 #### Table operations
 ```
@@ -51,7 +83,7 @@ table operators : less, leq, geq, more, greater, equal, equals, isnan, isnothing
     ["a", "b", "c"], ["less", "isnan", "more"], [3, "NaN", 5]
     ```
 
-#### Between
+##### Between
 To express 1 < a < 2, where a is a column name, you could write
 ```julia
 ["a", "a"], ["greater", "less"], [1, 2]
@@ -62,24 +94,92 @@ You can save yourself typing, and just write:
 ```
 !!! warning
     Make sure you pass a vector of 2 values!!
-#### in
+##### in
 To find all values of a column in a defined set:
 ```
 ["a"], ["in"], [[2,3,5]]
 ```
-#### Negating
+##### Negating
 You can also negate an operator, if that makes sense for your use case:
 ```
 ["a"], ["not" "in"], [[2,3,5]]
 ["a"], ["not" "between"], [[1, 2]]
 ```
 
-### Conditions
-```julia
+## Conditions
+Each action can only be applied if a condition fires.
+This is a list of all conditions you can use, alone, in action-condition pairs, combined (with all=true), or nested:
+
+### File/directory name conditions
+```
+integer_name # file or directory name is an integer, e.g. "2", "003", but not "One" or "_1"
+is_lower
+is_upper
+has_whitespace
+has_upper
+has_lower
+is_hidden[_dir, _file]
+has_integer_in_name
+has_float_in_name
+```
+
+### Directories
+```
+has_n_files
+n_files_or_more
+less_than_n_files
+has_n_subdirs
+less_than_n_subdirs
+```
+
+### File type checks
+These check by file extension, they do NOT open files.
+```
 is_csv_file
 is_tif_file
 is_png_file
-integer_name
+has_image_extension
+is_type_file # usage : ["is_type_file", ".csv"]
+file_extension_one_of # usage : ["file_extension_one_of", [".csv", ".txt", ".xyz"]]
+```
+
+#### Image specific
+!!! note Content type testing
+    Testing if a file is an image means passing it to the image library and letting it try loading the file. For large files this can be expensive.
+    So instead of:
+    ```
+    is_img
+    ```
+    it's smarter to do:
+    ```
+    ["is_file", "is_tif_file", "is_img"]
+    ```
+
+!!! note RGB v 3D
+    Julia uses the convention that RGB != 3D, which saves you from a lot of disambiguation. For example, is 10x10x10 32bit an RGB+alpha 3D image? Or just a 32bit Float 3D image? Julia will load the right type from the file, so it's one less worry.
+
+```
+is_img    # NOT the same as has_image_extension, this will try to load the file
+is_kd_img # usage ["is_kd_img", 3]
+is_2d_img
+is_3d_img
+is_rgb
+is_8bit_img
+is_16bit_img
+```
+#### Table specific
+```
+has_n_columns
+has_less_than_n_columns
+has_more_than_or_n_columns
+has_columns_named  # usage ["has_columns_named", ["Age", "Heart Rate"]]
+```
+### General
+```
+always, never
+```
+```julia
+integer_name # file or directory name is an integer, e.g. "2", "003", but not "One" or "_1"
 is_lower
 is_upper
 has_whitespace
@@ -88,14 +188,8 @@ is_kd_img
 is_2d_img
 is_3d_img
 is_rgb
-is_rgb
 read_dir
 files
-has_n_files
-n_files_or_more
-less_than_n_files
-subdirs
-has_n_subdirs
 always
 never
 read_postfix_int
@@ -104,10 +198,6 @@ read_int
 read_postfix_float
 read_prefix_float
 read_float
-is_8bit_img
-is_16bit_img
-column_names
-has_n_columns
 less_than_n_subdirs
 is_hidden[_dir, _file]
 ```

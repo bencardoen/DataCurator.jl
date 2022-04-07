@@ -37,15 +37,21 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
+halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate,
-less_than_n_subdirs, tmpcopy, has_n_columns, load_content, save_content, transform_wrapper, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
+less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
 column_names = x -> names(CSV.read(x, DataFrame))
-has_n_columns = (x, k) -> length(CSV.read(x, DataFrame))
+has_n_columns = (x, k) -> length(column_names(x)) == k
+has_less_than_n_columns = (x, k) -> length(column_names(x)) < k
+has_more_than_or_n_columns = (x, k) -> length(column_names(x)) >= k
+function has_columns_named(x::AbstractString, nms::AbstractVector{T}) where T<:AbstractString
+    cn = column_names(x)
+    return all(c ∈ cn for c in nms)
+end
 path_only = x -> splitdir(x)[1]
 remove = x -> delete_if_exists(x)
 is_hidden_file = x-> isfile(x) && startswith(basename(x), ".")
@@ -1220,8 +1226,10 @@ end
 
 FR = r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?"
 
-is_type_file = (x, t) -> isfile(x) & endswith(x, t)
+is_type_file = (x, t) -> isfile(x) && endswith(x, t)
 is_csv_file = x -> is_type_file(x, ".csv")
+has_image_extension = x -> splitext(x)[2] ∈ [".tif", '.png', ".jpg", ".jpeg"]
+file_extension_one_of = (x, _set) -> splitext(x)[2] ∈ _set
 is_tif_file = x -> is_type_file(x, ".tif")
 is_png_file = x -> is_type_file(x, ".png")
 whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
@@ -1237,18 +1245,20 @@ halt = x -> begin @info "Triggered early exit for $x"; return :quit; end
 quit = x -> return :quit
 keep_going = x-> :proceed
 filename = x->basename(x)
-integer_name = x->~isnothing(tryparse(Int, filename(x)))
+integer_name = x->~isnothing(tryparse(Int, basename(x)))
+has_integer_in_name = x->read_int(basename(x))
+has_float_in_name = x->read_float(basename(x))
 quit_on_fail = x -> begin @warn "$x"; return :quit; end
 is_img = x -> isfile(x) & ~isnothing(try Images.load(x) catch e end;)
 is_kd_img = (x, k) -> is_img(x) & (length(size(Images.load(x)))==k)
 is_2d_img = x -> is_kd_img(x, 2)
 is_3d_img = x -> is_kd_img(x, 3)
-is_rgb = x -> is_img(x) & (eltype(Images.load(x)) <: RGB)
+is_rgb = x -> is_img(x) && (eltype(Images.load(x)) <: RGB)
 read_dir = x -> isdir(x) ? (readdir(x, join=true) |>collect) : []
 files = x -> [_x for _x in read_dir(x) if isfile(_x)]
-has_n_files = (x, k) -> isdir(x) & (length(files(x))==k)
-n_files_or_more = (x, k) -> isdir(x) & (length(files(x))>=k)
-less_than_n_files = (x, k) -> isdir(x) & (length(files(x))<k)
+has_n_files = (x, k) -> isdir(x) && (length(files(x))==k)
+n_files_or_more = (x, k) -> isdir(x) && (length(files(x))>=k)
+less_than_n_files = (x, k) -> isdir(x) && (length(files(x))<k)
 subdirs = x -> [_x for _x in read_dir(x) if isdir(x)]
 has_n_subdirs = (x, k) -> (length(subdirs(x))==k)
 less_than_n_subdirs = (x, k) -> (length(subdirs(x))<k)
