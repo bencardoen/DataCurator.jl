@@ -1228,7 +1228,7 @@ FR = r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?"
 
 is_type_file = (x, t) -> isfile(x) && endswith(x, t)
 is_csv_file = x -> is_type_file(x, ".csv")
-has_image_extension = x -> splitext(x)[2] ∈ [".tif", '.png', ".jpg", ".jpeg"]
+has_image_extension = x -> splitext(x)[2] ∈ [".tif", ".png", ".jpg", ".jpeg"]
 file_extension_one_of = (x, _set) -> splitext(x)[2] ∈ _set
 is_tif_file = x -> is_type_file(x, ".tif")
 is_png_file = x -> is_type_file(x, ".png")
