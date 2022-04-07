@@ -655,14 +655,15 @@ function execute_dataframe_function(df::DataFrame, command, columns, operators, 
     if ~valid
         throw(ArgumentError("You're specifying conditions on $columns but frame only has $cols"))
     end
-    if command == "extract"
-        BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
-        sel = _df[BV, :]
-        @info "Remainder selection is"
-        @info sel
-        return copy(_df[BV, :])
-    else
-        throw(ArgumentError("Invalid comman $command"))
+    # if command == "extract"
+    BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
+    sel = _df[BV, :]
+    @debug "Remainder selection is"
+    @debug sel
+    return match command begin
+        "extract" => copy(_df[BV, :])
+        "delete" => copy(_df[Not(BV), :])
+        _ => throw(ArgumentError("Invalid comman $command"))
     end
 end
 
@@ -678,12 +679,48 @@ function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
     return x -> execute_dataframe_function(x, command, cols, ops, vals)
 end
 
-function buildcomp(df, col, op, val)
-    ops = Dict([("less", .<), ("more", .>), ("equals", .==)])
-    return @match op begin
-        "less" => return df[:,col] .< val
-        "more" => return df[:,col] .> val
-        "equals" => return df[:,col] .== val
+
+### Specialize for negate
+function buildcomp(df::DataFrames, col, op::AbstractVector, val)
+
+    if length(op) != 2
+        throw(ArgumentError("Expecting not <operator> , got $op"))
+    end
+    oper = op[2]
+    n = op[1]
+    if n != "not"
+        throw(ArgumentError("Expecting not <operator> , got $op"))
+    end
+    return ~.(buildcomp(df, col, op[2], val))
+end
+
+function buildcomp(df::DataFrames, col, op::AbstractString, val::AbstractVector)
+    ## between or in
+
+    if length(val) < 2
+        throw(ArgumentError("Expecting not array of values , got $val"))
+    end
+    c = x-> x in val
+    return match op begin
+        "between" => val[1] .< df[:,col] .< val[2]
+        "in" => BitVector(map(c,df[:,col]))
+    end
+end
+
+function buildcomp(df::DataFrames, col, op::AbstractString, val)
+    return = @match oper begin
+        "less" => df[:,col] .< val
+        "leq" => df[:,col] .<= val
+        "smaller than" => df[:,col] .< val
+        "more" => df[:,col] .> val
+        "greater than" => df[:,col] .> val
+        "equals" => df[:,col] .== val
+        "equal" => df[:,col] .== val
+        "is" => df[:,col] .== val
+        "geq" => df[:,col] .>= val
+        "isnan" => isnan.(df[:,col])
+        "isnothing" => isnothing.(df[:,col])
+        "ismissing" => ismissing.(df[:,col])
         _ => throw(ArgumentError("Op $op is invalid"))
     end
 end
