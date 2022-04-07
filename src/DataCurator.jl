@@ -646,7 +646,7 @@ function remove_pattern(x::AbstractString, ptrn::AbstractString)
     return replace_pattern(x, ptrn, "")
 end
 
-function execute_dataframe_function(df::DataFrame, command, columns, operators, values)
+function execute_dataframe_function(df::DataFrame, command::AbstractString, columns::AbstractVector, operators::AbstractVector, values::AbstractVector)
     _df = copy(df)
     cols = names(df)
     @info "Dataframe --> Cols = $cols"
@@ -660,7 +660,7 @@ function execute_dataframe_function(df::DataFrame, command, columns, operators, 
     sel = _df[BV, :]
     @debug "Remainder selection is"
     @debug sel
-    return match command begin
+    return @match command begin
         "extract" => copy(_df[BV, :])
         "delete" => copy(_df[Not(BV), :])
         _ => throw(ArgumentError("Invalid comman $command"))
@@ -681,8 +681,7 @@ end
 
 
 ### Specialize for negate
-function buildcomp(df::DataFrames, col, op::AbstractVector, val)
-
+function buildcomp(df::DataFrame, col::AbstractString, op::AbstractVector, val)
     if length(op) != 2
         throw(ArgumentError("Expecting not <operator> , got $op"))
     end
@@ -691,32 +690,60 @@ function buildcomp(df::DataFrames, col, op::AbstractVector, val)
     if n != "not"
         throw(ArgumentError("Expecting not <operator> , got $op"))
     end
-    return ~.(buildcomp(df, col, op[2], val))
+    return .~(buildcomp(df, col::AbstractString, op[2], val))
 end
 
-function buildcomp(df::DataFrames, col, op::AbstractString, val::AbstractVector)
-    ## between or in
-
+### Specialize for between/in
+function buildcomp(df::DataFrame, col::AbstractString, op::AbstractString, val::AbstractVector)
     if length(val) < 2
         throw(ArgumentError("Expecting not array of values , got $val"))
     end
     c = x-> x in val
-    return match op begin
+    return @match op begin
         "between" => val[1] .< df[:,col] .< val[2]
         "in" => BitVector(map(c,df[:,col]))
+        _ => throw(ArgumentError("Op $op is invalid, between or in"))
     end
 end
 
-function buildcomp(df::DataFrames, col, op::AbstractString, val)
-    return = @match oper begin
+"""
+    buildcomp(dataframe, column, operator, value)
+
+    Dispatches to the correct form of operator.(df[:,col], value)
+
+    operator (String) can be one of:
+    less, leq, smaller than, more, greater than, equals, euqal, is, geq, isnan, isnothing, ismissing, iszero, <, >, <=, >=, ==
+
+    The operator can be negated: ["not", "less"]
+    Multi-argument comparison are also supported:
+    - between [x, y]
+    - in [x, y, z]
+
+    You can repeat columns, but non-existing columns are an error.
+
+    ```julia
+    df = DataFrame(zeros(2,2),:auto)
+    df[1,:] .= 5
+    cols, ops, vals = ["x1", "x1", "x1"], [["not", "in"],"less", ["not", "isnan"]], [[1,2,3,5],10, "NaN"]
+    @info reduce(&., buildcomp(df, c, o, v) for (c, o, v) in zip(["x1", "x1", "x1"], )
+    ```
+"""
+function buildcomp(df::DataFrame, col, op::AbstractString, val)
+    return @match op begin
         "less" => df[:,col] .< val
+        "<" => df[:,col] .< val
         "leq" => df[:,col] .<= val
+        "<=" => df[:,col] .<= val
         "smaller than" => df[:,col] .< val
         "more" => df[:,col] .> val
+        ">" => df[:,col] .> val
         "greater than" => df[:,col] .> val
         "equals" => df[:,col] .== val
         "equal" => df[:,col] .== val
+        "==" => df[:,col] .== val
         "is" => df[:,col] .== val
+        ">=" => df[:,col] .>= val
+        "iszero" => df[:,col] .== 0
         "geq" => df[:,col] .>= val
         "isnan" => isnan.(df[:,col])
         "isnothing" => isnothing.(df[:,col])
