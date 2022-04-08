@@ -1149,53 +1149,29 @@ function stack_list_to_image(list, name)
 end
 
 
-### TODO use type dispatch
-function list_to_image(list::AbstractVector{T}) where {T<:AbstractVector}
-    return nested_list_to_image(list)
-end
-
-function list_to_image(list::AbstractVector{T}) where {T<:AbstractString}
-    return flat_list_to_image(list)
-end
-
-function nested_list_to_image(list)
-    sz = nothing
-    ims = []
-    for sublist in list
-        for img in sublist
-            @debug "Reading $img"
-            try
-                tb = Images.load(img)
-                if isnothing(sz)
-                    sz = size(tb)
-                end
-                push!(ims, tb)
-            catch e
-                @error "Reading $img failed because of $e"
-                throw(e)
-            end
-        end
-    end
-    N = length(ims)
-    if N < 1
-        @warn "No images to process for list"
+function list_to_image(list::AbstractVector{<:AbstractVector})
+    @info "Nested list with $(length(list))"
+    ls = [list_to_image(li) for li in list if length(li) > 0]
+    if length(ls) == 0
+        @warn "No entries at all to process"
         return
     end
-    ET = eltype(ims[1])
-    if length(sz) > 2
-        throw(ArgumentError("Stacking images dim > 2 not supported yet"))
-    end
-    res = zeros(ET, sz[1], sz[2], N)
-    for i in 1:N
-        res[:,:,i] .= ims[i]
-    end
-    return res
+    SZ = size(ls[1])
+    D = length(SZ)
+    @info "Cat with $length(ls) and $D from $SZ"
+    return cat(ls..., dims=D) #D, because each list is already flattened
 end
 
-function flat_list_to_image(list)
+function list_to_image(list::AbstractVector{<:Any})
+    @info "List with $(length(list))"
+    return _list_to_image(list)
+end
+
+
+function _list_to_image(list)
     sz = nothing
     ims = []
-    for img in sublist
+    for img in list
         @debug "Reading $img"
         try
             tb = Images.load(img)
@@ -1615,7 +1591,11 @@ function addentry!(sharedlist, entry)
 end
 
 ## Fixme to use AG objects
-add_to_file_list= (x, list) -> addentry!(list, x)
+function add_to_file_list(x, list)
+    @info "adding $x to $list"
+    addentry!(list, x)
+end
+# add_to_file_list= (x, list) -> addentry!(list, x)
 
 add_path_to_file_list = (x, list) -> addentry!(list, splitdir(x)[1])
 
