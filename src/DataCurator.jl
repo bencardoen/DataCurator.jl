@@ -25,7 +25,7 @@ import TOML
 using HDF5
 using MAT
 
-export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
+export topdown, bottomup, expand_filesystem, stack_images_by_prefix, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -1148,6 +1148,44 @@ function stack_list_to_image(list, name)
     Images.save(name, res)
 end
 
+
+
+
+function sort_stack(lists; aggregator=list_to_image)
+    prefixes = Dict()
+    for f in list
+        b = basename(f)
+        name, ext = splitext(b)
+        m = match(r"[0-9]+$", name)
+        if isnothing(m)
+            @warn "Not ending with slice integer, skipping"
+            continue
+        end
+        mi = m.match
+        index = parse(Int, mi)
+        N = length(m.match)
+        prefix = name[1:end-N-1]
+        key = "$(prefix)$(ext)"
+        @info "For file $f -> prefix $prefix and slice $index"
+        if key ∈ keys(prefixes)
+            prefixes[key][index] = f
+        else
+            prefixes[key]=Dict(index=>f)
+        end
+    end
+    @info "have a total of $(keys(prefixes))"
+    for prefix in keys(prefixes)
+        slicedict = prefixes[prefix]
+        s = sort(keys(slicedict) |> collect)
+        @info s
+        fs = [slicedict[_s] for _s in s]
+        agg = aggregator(fs)
+        @info "Saving aggregation for $prefix"
+        Images.save(prefix, agg)
+    end
+end
+
+stack_images_by_prefix = x -> sort_stack(x)
 
 function list_to_image(list::AbstractVector{<:AbstractVector})
     @info "Nested list with $(length(list))"
