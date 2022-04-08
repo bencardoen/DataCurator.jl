@@ -40,7 +40,7 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate,
-less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
+less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -58,7 +58,82 @@ is_hidden_file = x-> isfile(x) && startswith(basename(x), ".")
 is_hidden_dir = x-> isdir(x) && (startswith(basename(x), ".") || contains(basename(x), "__MACOSX"))
 is_hidden = x -> is_hidden_file(x) || is_hidden_dir(x)
 not_hidden = x -> ~is_hidden(x)
-# log_to_file_message = (x, m) -> log_to_file()
+
+function describe_image(x::AbstractString, axis::Int)
+    @info "Describe: loading $x with $axis"
+    img = load_content(x)
+    df = describe_image(img, axis)
+    df[!,:source].=basename(x)
+    return df
+end
+
+function describe_image(x::AbstractString)
+    @info "Describe: loading $x"
+    img = load_content(x)
+    df = describe_image(img)
+    df[!,:source].=basename(x)
+    df[!,:slice] .= 1
+    return df
+end
+
+function describe_image(x::AbstractArray)
+    ds = zeros(Float64, 1, 8)
+    ds[1,:] .= dimg(x)
+    # end
+    columns = [:minimum, :Q1, :mean, :median, :Q3, :maximum, :std, :kurtosis]
+    df = DataFrame()
+    for (i,c) in enumerate(columns)
+        df[!,c] = ds[:,i]
+    end
+    df[!,:axis] .= 0
+    return df
+end
+
+"""
+    describe_image(x::AbstractArray, axis::Int64)::DataFrame
+
+    Describe the array x sliced along axis.
+"""
+function describe_image(x::AbstractArray, axis::Int64)
+    SZ = size(x)
+    if ~ (0 < axis <= length(SZ))
+        throw(ArgumentError("Describing along invalid axis $axis of image with dimensions $SZ"))
+    end
+    N = SZ[axis]
+    @info SZ
+    @info N
+    ds = zeros(Float64, N, 8)
+    for (i,s) in enumerate(eachslice(x; dims=axis))
+        # @info s
+        ds[i,:] .= dimg(s)
+    end
+    columns = [:minimum, :Q1, :mean, :median, :Q3, :maximum, :std, :kurtosis]
+    df = DataFrame()
+    for (i,c) in enumerate(columns)
+        df[!,c] = ds[:,i]
+    end
+    df[!,:slice]=1:N|>collect
+    df[!,:axis].=axis
+    return df
+end
+
+
+function dimg(x)
+    ys = Float64.(x[:])
+    if iszero(ys)
+        @warn "Return NaN for zeroed image. Describing zero is unlikely what you wanted."
+        return [NaN for _ in 1:8]
+    end
+    ys = ys[ys .> 0]
+    Q1, med, Q3 = quantile(ys, [0.25, 0.5, .75])
+    mx = mean(ys)
+    N = length(ys)
+    m2 = sum((ys .- mx).^2)/N
+    m4 = sum((ys .- mx).^4)/N
+    kurt = m2/m4
+    m, M = minimum(ys), maximum(ys)
+    return m, Q1, mx, med, Q3, M, std(ys), kurt
+end
 
 
 function load_content(x::AbstractString)
@@ -70,8 +145,8 @@ function load_content(x::AbstractString)
     if ex ∈ [".csv", ".txt"]
         return CSV.read(x, DataFrames.DataFrame)
     end
-    @warn "No matching file type (img, csv), assuming your functions know how to handle this"
-    return x
+    @error "No matching file type (img, csv), assuming your functions know how to handle this"
+    throw(ArgumentError("Invalid file content or not yet supported $x"))
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Colorant}
@@ -336,12 +411,12 @@ function decode_filelist(fe::AbstractString, glob)
     transformer = identity
     aggregator = shared_list_to_file
     Q = make_aggregator(fe, l, adder, aggregator, transformer)
-    @debug "Creating aggregator --> $fe save file list to txt file."
+    @info "Creating aggregator --> $fe save file list to txt file."
     return (fe, Q)
 end
 
 function decode_filelist(fe::AbstractVector, glob)
-    @debug "DF with $fe and $glob"
+    @info "DF with $fe and $glob"
     ### Can only be 2 special cases
     ### name, outpath
     ### name, concat_to_table
@@ -391,12 +466,12 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     if haskey(fe, "aggregator")
         AG = fe["aggregator"]
         ag = decode_aggregator(AG, glob)
-        @debug "Found a aggregator entry $AG -> $ag"
+        @info "Found a aggregator entry $AG -> $ag"
     end
-    @debug "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
+    @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
     if tf != identity
-        @debug "Custom transform, wrapping with copy"
+        @info "Custom transform, wrapping with copy"
         adder = x::AbstractString -> add_to_file_list(tf(wrap_transform(x)), l)
     else
         adder = x::AbstractString -> add_to_file_list(x, l)
@@ -435,16 +510,24 @@ function decode_aggregator(ag::AbstractVector, glob::AbstractDict)
     return (list, name) -> (fs(list, name, ag[2:end]...))
 end
 
+"""
+    wrap_transform(x::AbstractString)
 
+    For file x, generate a temp copy before aggregation on a file list
+"""
 function wrap_transform(x::AbstractString)
-    c = joinpath(tempdir(), "$(Random.randstring(40)).tmp")
-    @debug "Temporary copy for x -> $c"
+    c = joinpath(tempdir(), "_datacuratorjl", "$(Random.randstring(40))")
+    @info "Making path $c"
+    mkpath(c)
+    c = joinpath(c, basename(x))
+    @info "Temporary copy for x -> $c"
     cp(x, c)
+    @info "Returning $c"
     return c
 end
 
 function extract_columns(csv, columns)
-    @debug "Extracting columns $columns for $csv"
+    @info "Extracting columns $columns for $csv"
     df = CSV.read(csv, DataFrame)
     @debug "DF = $(df)"
     extracted=df[!,columns]
@@ -1003,18 +1086,27 @@ function delegate(config, template)
 end
 
 
+function load_table(x::AbstractString)
+    try
+        tb = CSV.read(x, DataFrame)
+        return tb
+    catch e
+        @error "Reading $x failed because of $e"
+        throw(e)
+    end
+end
+
+function load_table(x::DataFrame)
+    return x
+end
+
 function shared_list_to_table(list, name::AbstractString)
     tables = []
     for sublist in list
         for csv_file in sublist
-            @info "Reading $csv_file"
-            try
-                tb = CSV.read(csv_file, DataFrame)
-                push!(tables, tb)
-            catch e
-                @error "Reading $csv_file failed because of $e"
-                throw(e)
-            end
+            @info "Loading table $csv_file"
+            tb = load_table(csv_file)
+            push!(tables, tb)
         end
     end
     @info "Saving total of $(length(tables)) to csv"

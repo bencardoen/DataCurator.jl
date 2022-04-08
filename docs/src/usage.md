@@ -1,5 +1,11 @@
 ## Usage
 
+```@contents
+Pages = ["usage.md"]
+Depth = 5
+```
+
+
 ## Using recipes only
 ```bash
 ./DataCurator.sif -r myrecipe.toml [---verbose]
@@ -25,12 +31,19 @@ julia 1.x>
 
 ## Recipes + Julia
 Either run this in the image, or with the package
-```
+```julia
 using DataCurator
 result = create_template_from_toml("recipe.toml")
 if ~isnothing(result) # result will be nothing if something went wrong creating your template
   c, t = res
   counters, lists, returnvalue = delegate(c, t)
+end
+```
+You can next iterate over the counters or lists, if needed.
+Note that aggregation operations at that point have completed.
+```julia
+for counter in counters
+    @info counter
 end
 ```
 See the API reference for full details.

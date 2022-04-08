@@ -1,6 +1,13 @@
 # Actions and Conditions you can use in recipes
 
+```@contents
+Pages = ["conditions.md"]
+Depth = 5
+```
+
+
 ## Actions
+
 ### File/folder name:
 ```julia
 whitespace_to  usage: ["whitespace_to", "_"]

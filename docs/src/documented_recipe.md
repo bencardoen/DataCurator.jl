@@ -1,7 +1,14 @@
-# A recipe using all/most of the possible features
+## A recipe using all/most of the possible features
+
 First, a recipe is a plain text file, in TOML format, designed to be as human friendly as possible.
 
 We'll run through all, or most of the features you can use, with example TOML snippets.
+
+```@contents
+Pages = ["documented_recipe.md"]
+Depth = 5
+```
+
 
 Any `recipe` needs 2 parts, the global configuration, and the actual template.
 
@@ -256,7 +263,10 @@ regex=true
 ...
 condition = ["startswith", "[0-9]+"]
 ```
-This will now match files with 1 or more integers at the beginning of the file name. **Note** If you try to pass a regex such as *.txt, you'll get an error complaining about PCRE not being able to compile your Regex. The reason for this is the lookahead/lookback functionality in the Regex engine not allowing such wildcards at the beginning of a regex. When you write *.txt, what you probably meant was 'anything with extension txt', but not the name ".txt", which " *.txt " will also match. Instead, use "\.\*.txt". When in doubt, don't use a regex if you can avoid it. Similar to Kruger-Dunning, those who believe they can wield a regex with confidence, probably shouldn't.
+This will now match files with 1 or more integers at the beginning of the file name.
+
+!!! note Regex compilation errors on "*patterns"
+    If you try to pass a regex such as "*.txt", you'll get an error complaining about PCRE not being able to compile your Regex. The reason for this is the lookahead/lookback functionality in the Regex engine not allowing such wildcards at the beginning of a regex. When you write " *.txt ", what you probably meant was 'anything with extension txt', but not the name ".txt", which " *.txt " will also match. Instead, use "\.\*.txt". When in doubt, don't use a regex if you can avoid it. Similar to Kruger-Dunning, those who believe they can wield a regex with confidence, probably shouldn't.
 
 ##### Negating conditions:
 By default your conditions are 'OR'ed, and by setting all=yes, you have 'AND'. By flipping action_on_succes you can negate all conditions. So in essence you don't need more than that for all combinations, but if you need to specifically flip 1 condition, this will get messy. Instead, you can negate any condition by giving it a prefix argumet of "not".
@@ -289,14 +299,16 @@ counter_actions = [["log_to_file", "non_csvs.txt"]]
 or another use case is deleting a file that's incorrect, while transforming correct files in preparation for a pipeline, in 1 step.
 
 ##### Export to HDF5/MAT
+You can save/export directly to HDF5 and MAT, so if you're curating a dataset consisting of files, but your pipeline (for good reason) works on HDF5, you can do so easily.
 ```toml
 [global]
-act_on_success=true
-inputdirectory = "testdir"
+...
 [any]
 conditions = ["is_tif_file", "is_csv_file"]
 actions=[["add_to_hdf5", "img.hdf5"], ["add_to_mat", "csv.mat"]]
 ```
+!!! note
+    The filename will be used as entry/variable in the MAT or HDF5 file, e.g. file->content.
 
 ## Modifying files and content
 When you want precise control over what function runs on the content, versus the name of files, you can do so.
