@@ -5,4 +5,4 @@ inputdirectory = "testdir"
 # Whatever is not defined below, e.g. too deep of a level --> fail and delete
 all=true
 conditions=["is_csv_file", "has_upper"]
-actions=[{name_transform=["tolowercase"], content_transform=[["extract", ["x1"], ["less"], [10]]], mode="copy"}]
+actions=[{name_transform=["tolowercase"], content_transform=[["extract", ["x1", "less", 10]]], mode="copy"}]

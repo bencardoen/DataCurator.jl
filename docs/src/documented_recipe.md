@@ -305,23 +305,42 @@ inputdirectory = "testdir"
 [any]
 all=true
 conditions=["is_csv_file", "has_upper"]
-actions=[{name_transform=["tolowercase"], content_transform=[["extract", ["Count"], ["less"], [10]]], mode="copy"}]
+actions=[{name_transform=["tolowercase"], content_transform=[["extract", ("Count", "less", 10)]], mode="copy"}]
 ```
 Table extraction has the following syntax:
+```toml
+["extract", (col, op, vals)]
 ```
-["extract", [Col1, ...], [operator1, ...], [value_1, ...]]
+or
+```toml
+["extract", (col, op)]
 ```
 Wich then turns into:
+```julia
+select rows where op1(col1, vals1) && op2(col2, vals2)
 ```
-select where (Col1 op1 val1) AND (Col2 op2 val2) AND ...
-```
-Operators are "less", "equal", "greater".
 For example:
 ```toml
-["extract", ["name", "count"], ["equal", "less"], ["Bert", 10]]
+["extract", ("name","=","Bert"),  ("count", "<", 10)]
 ```
-This would give you all the rows where Bert has a count of < 10.
+Gives you a copy of the table with only rows where name='Bert' and count<10.
 
+List of operators:
+```julia
+less, leq, smaller than, more, greater than, equals, euqal, is, geq, isnan, isnothing, ismissing, iszero, <, >, <=, >=, ==, =, in, between, [not, operator]
+```
+The operators `in` and `between` expect an array of values:
+```julia
+('count', 'in', [2,3,5])
+```
+and
+```julia
+('count', 'between', [0,100])
+```
+where the last is equivalent, but shorter (and faster) than:
+```julia
+('count', '>', 0), ('count', '<', 100) 
+```
 ### Aggregation
 When you need group data before processing it, such as collecting files to count their size, write input-output pairs, or stack images, and so forth, you're performing a pattern of the form
 

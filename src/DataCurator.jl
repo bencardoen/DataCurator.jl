@@ -672,18 +672,94 @@ function execute_dataframe_function(df::DataFrame, command::AbstractString, colu
         _ => throw(ArgumentError("Invalid comman $command"))
     end
 end
+#
+# function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
+#     ### Change to accept vector of tuples
+#     ### (col, op, values)
+#     ###
+#     command = x[1]
+#     cols::AbstractVector{T} where {T<:AbstractString} = x[2]
+#     ops::AbstractVector{T} where {T<:AbstractString} = x[3]
+#     vals::AbstractVector = x[4]
+#     if length(cols) != length(ops) != length(vals)
+#         throw(ArgumentError("Ops. cols, and values do not match in length"))
+#     end
+#     @info "Dataframe modifier with $command $cols $ops $vals"
+#     return x -> execute_dataframe_function(x, command, cols, ops, vals)
+# end
 
+
+function decode_df_entry(ent::Tuple{AbstractString, AbstractString, Any})
+    return ent
+end
+
+
+function decode_df_entry(ent::Tuple{AbstractString, AbstractString})
+    return ent[1], ent[2], nothing
+end
+
+"""
+    decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
+
+    Decodes an entry of the form [command, [(col, op, vals)+]] into a function object for the template
+
+    Both the single tuple version
+        command, (col, op, vals)
+    and longer version
+        command, [(col, op, vals), ...]
+    are valid, and dealt by m dispatch.
+
+    Note that an entry can be any of:
+        - col, op   (for isnan, isnothing, ...)
+        - col, op, val (for <, >, ...)
+        - col, op, vals (for in, between, ....)
+"""
 function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
-    command = x[1]
-    cols::AbstractVector{T} where {T<:AbstractString} = x[2]
-    ops::AbstractVector{T} where {T<:AbstractString} = x[3]
-    vals::AbstractVector = x[4]
+    if length(x) != 2
+        throw(ArgumentError("Invalid dataframe conditions $x, expecting [command, [(col, op, vals),...]]"))
+    end
+    command::AbstractString = x[1]
+    cols, ops, vals = decode_df_entries(x[2])
+    @info "Decoded $x into "
+    @info cols
+    @info ops
+    @info vals
     if length(cols) != length(ops) != length(vals)
         throw(ArgumentError("Ops. cols, and values do not match in length"))
     end
     @info "Dataframe modifier with $command $cols $ops $vals"
     return x -> execute_dataframe_function(x, command, cols, ops, vals)
 end
+
+function decode_df_entries(entries::AbstractVector{<:AbstractVector})
+    @info "Vector of entries"
+    cols::Vector{AbstractString} = []
+    ops::Vector{AbstractString} = []
+    vals = []
+    for entry in entries
+        col, op, val = decode_df_entry(Tuple(entry))
+        push!(cols, col)
+        push!(ops, op)
+        push!(vals, val)
+    end
+    return cols, ops, vals
+end
+
+function decode_df_entries(entries::AbstractVector)
+    @info "Singular entry"
+    if length(entries) ∉ [2,3]
+        throw(ArgumentError("Invalid entry for dataframe operation $entries"))
+    end
+    cols::Vector{AbstractString} = []
+    ops::Vector{AbstractString} = []
+    vals = []
+    col, op, val = decode_df_entry(Tuple(entries))
+    push!(cols, col)
+    push!(ops, op)
+    push!(vals, val)
+    return cols, ops, vals
+end
+
 
 
 ### Specialize for negate
@@ -747,6 +823,7 @@ function buildcomp(df::DataFrame, col, op::AbstractString, val)
         "equals" => df[:,col] .== val
         "equal" => df[:,col] .== val
         "==" => df[:,col] .== val
+        "=" => df[:,col] .== val
         "is" => df[:,col] .== val
         ">=" => df[:,col] .>= val
         "iszero" => df[:,col] .== 0

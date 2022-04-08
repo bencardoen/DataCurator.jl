@@ -64,24 +64,29 @@ The image dimensions stay the same, but the voxels are modified
 mask
 ```
 #### Table operations
-```
+##### Aggregation
+```toml
 concat_table
+```
+##### Select columns
+```toml
 extract_columns  usage: ["extract_columns", ["x1", "x2"]]
-extract          usage: ["extract", [col1, col2], [op1, op2], [val1, val2]]
-delete          usage: ["delete", [col1, col2], [op1, op2], [val1, val2]
-table operators : less, leq, geq, more, greater, equal, equals, isnan, isnothing, ismissing, between, in, not <operator>
+```
+##### Select/extract/delete rows based on column values
+```toml
+[command, [(columnname, operator, arguments),...]]
+# or
+[command, (columnname, operator, arguments)]
+```
+where 'command' is one of `extract`, `delete`.
+
+The `operator` is one of:
+```toml
+less, leq, smaller than, more, greater than, equals, euqal, is, geq, isnan, isnothing, ismissing, iszero, <, >, <=, >=, ==, =, in, between, [not, operator]
 ```
 
-!!! note
-    isnan/missing/nothing: you do need to add a value, but it won't be used internally, e.g. NaN == NaN is never true, but we correct this internally to match your intent
-    This is invalid:
-    ```
-    ["a", "b", "c"], ["less", "isnan", "more"], [3, 5]
-    ```
-    This is valid
-    ```
-    ["a", "b", "c"], ["less", "isnan", "more"], [3, "NaN", 5]
-    ```
+!!! warning
+    Do not use 'col','=','NaN' but `'col', 'isnan'`. Similar for iszero, isnothing, ... . Floating point rules specify that Nan!=Nan, so your condition will always be false.
 
 ##### Between
 To express 1 < a < 2, where a is a column name, you could write
