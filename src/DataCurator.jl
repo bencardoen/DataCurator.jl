@@ -27,7 +27,7 @@ using MAT
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
-transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential,
+transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file, stack_images, list_to_image,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, decode_filelist,
@@ -657,12 +657,14 @@ function execute_dataframe_function(df::DataFrame, command::AbstractString, colu
     cols = names(df)
     @info "Dataframe --> Cols = $cols"
     check = x::AbstractString -> x ∈ cols
-    valid = reduce(&, map(check, columns))
+    # valid = reduce(&, map(check, columns))
+    valid = all(map(check, columns)) # reduce doesn't short circuit, even with short circuit operators, because it can't know the reducer
     if ~valid
         throw(ArgumentError("You're specifying conditions on $columns but frame only has $cols"))
     end
     # if command == "extract"
-    BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
+    # BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
+    BV = reduce(.&, (buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
     sel = _df[BV, :]
     @debug "Remainder selection is"
     @debug sel
@@ -769,8 +771,8 @@ function buildcomp(df::DataFrame, col::AbstractString, op::AbstractVector, val)
     end
     oper = op[2]
     n = op[1]
-    if n != "not"
-        throw(ArgumentError("Expecting not <operator> , got $op"))
+    if n ∉ ["not", "NOT", "!", "~"]
+        throw(ArgumentError("Expecting 'not <operator>' , got $op"))
     end
     return .~(buildcomp(df, col::AbstractString, op[2], val))
 end
@@ -1345,6 +1347,7 @@ ignore = x -> nothing
 always = x->true
 always_triggers = always
 never = x->false
+fail = never
 always_fails = never
 sample = x->Random.rand()>0.5
 size_of_file = x -> isfile(x) ? filesize(x) : 0
@@ -2026,15 +2029,16 @@ end
 
 
 function all_of(fs, x)
-    @debug "Applying all of $fs to $x"
-    for f in fs
-        if f(x) == false
-            @debug "Condition in sequence failed"
-            return false
-        end
-    end
-    @debug "All passed"
-    return true
+    return all(f(x) for f in fs)
+    # @debug "Applying all of $fs to $x"
+    # for f in fs
+    #     if f(x) == false
+    #         @debug "Condition in sequence failed"
+    #         return false
+    #     end
+    # end
+    # @debug "All passed"
+    # return true
 end
 
 function any_of(x, fs)

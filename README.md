@@ -25,6 +25,22 @@ julia --project=.. make.jl
 ```
 Then open docs/build/index.html
 
+## What to find where
+```bash
+repository
+├── example_recipes              ## Start here for easy to copy example recipes
+├── docs
+│   ├── builds
+│   │   ├── index.html           ## Documentation
+│   ├── src                      ## Markdown sources for docs
+│   │   ├── make.jl              ## `cd docs && julia --project=.. make.jl` to rebuild docs
+├── src                          ## source code of the package itself
+├── test                         ## test suit and related files
+└── runjulia.sh                  ## Required for Singularity image
+└── buildimage.sh                ## Rebuilds singularity image for you (Needs root !!)
+└── singularity1p6.def           ## Singularity definition file, also useful if you need to reproduce this work somewhere else without a container or Julia as system installation
+```
+
 **Anything below this line is no longer updated and will be removed**
 
 ## Table of Contents

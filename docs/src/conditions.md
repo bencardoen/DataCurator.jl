@@ -74,9 +74,9 @@ extract_columns  usage: ["extract_columns", ["x1", "x2"]]
 ```
 ##### Select/extract/delete rows based on column values
 ```toml
-[command, [(columnname, operator, arguments),...]]
+[command, [[columnname, operator, arguments],...]]
 # or
-[command, (columnname, operator, arguments)]
+[command, [columnname, operator, arguments]]
 ```
 where 'command' is one of `extract`, `delete`.
 
@@ -91,11 +91,11 @@ less, leq, smaller than, more, greater than, equals, euqal, is, geq, isnan, isno
 ##### Between
 To express 1 < a < 2, where a is a column name, you could write
 ```julia
-["a", "a"], ["greater", "less"], [1, 2]
+["a", ">", 1], ["a","<", 2]
 ```
 You can save yourself typing, and just write:
 ```toml
-["a"], ["between"], [[1, 2]]
+["a", "between", [1, 2]]
 ```
 
 !!! warning
@@ -105,7 +105,7 @@ You can save yourself typing, and just write:
 To find all values of a column in a defined set:
 
 ```toml
-["a"], ["in"], [[2,3,5]]
+["a", "in", [2,3,5]]
 ```
 
 ##### Negating

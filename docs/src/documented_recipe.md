@@ -168,48 +168,74 @@ Please see the directory [example_recipes](../../example_recipes) for more compl
 ##### Verify a complex, deep dataset layout.
 This is an example of a real world dataset, with comments.
 
-Suppose we expect 2 3D channels (tif) for each cell, and we have a dataset that should look like
+An example of a 'curated' dataset would look like this
+```bash
+root
+├── 1                           # replicate number, > 0
+│   ├── condition_1             # celltype or condition  # <- different types of GANs for generating data
+│   │   ├── Series005           # cell number
+│   │   │   ├── channel_1.tif   # first channel, 3D Gray scale, 16 bit
+│   │   │   ├── channel_2.tif   # second channel, 3D Gray scale, 16 bit
+...
+├── 2
+...
 ```
-Root/Replicatenr/Celltype/Series_Cellnr/[1,2].tif
-```
+Let's create a `recipe` for this dataset that simply warns for anything unexpected.
 
+###### Global section
+We're validating data, so we'll specify what should be true, and only if our rules are violated, do we act.
+Hence `act_on_success=false`, which is the default.
+We have different rules depending on where in the hierarchy we check, so `hierarchical=true`.
+And finally, we need a place to start, so `inputdirectory=root`
 ```toml
 [global]
 hierarchical=true
-inputdirectory = "inputdirectory"
+inputdirectory = "root"
 ```
-The actual template
+###### The template
+We specify what to do if we see anything that does not catch our (5-level) deep `recipe`, in the `[any]` section.
 ```toml
 [any]
-conditions=["never"]
+conditions=["always_fails"]        #if this rule ever is checked, say at level 10, it fails immediately
 actions = ["show_warning"]
 ```
+Next, we define rules for each level.
 Levels:
 ```toml
-## Top directory, only sub directories
+## Top directory 'root', should only contain sub directories
+
 [level_1]
 conditions=["isdir"]
-actions = ["show_warning"]
+actions = ["show_warning"]   # if we see a file, isdir->false, so show a warning
 ## Replicate directory, should be an integer
+
 [level_2]
 all=true
-conditions=["isdir", "integer_name"]
+conditions=["isdir", "integer_name"]  # again, no files, only subdirectories
 actions = ["show_warning"]
+
 ## We don't care what cell types are named, as long as there's not unexpected data
+
 [level_3]
 conditions=["isdir"]
 actions = ["show_warning"]
+
 ## Final level, directory with 2 files, and should end with cell nr
 [level_4]
 all=true
 conditions=["isdir", ["has_n_files", 2], ["ends_with_integer"]]
 actions = ["show_warning"]
+
 ## The actual files, we complain if there's any subdirectories, or if the files are not 3D
 [level_5]
 all=true
-conditions=["is_3d_img", ["endswith", "[1,2].tif"]]
+conditions=["is_tif_file", ["endswith", "[1,2].tif"], ["not", "is_rgb"], "is_3d_img",]
 actions = ["show_warning"]
 ```
+
+!!! tip "Short circuit to help to speed up conditions"
+    Note that we first check the file extension `is_tif_file`, and only then check the pattern `endswidth ...`, and only then actually look at the image type. Checking if an image is 3D or RGB requires loading it. Loading (potentially huge) files is slow and expensive, so this could mean we'd check 'is_3d_img' for a csv file, which would fail, but in a very expensive way.
+    Instead, our conditions `short circuit`. We specified `all=true`, so each of them has to be true, if 1 fails we don't need to check the others. By putting `is_tif_file` first, we avoid having to even load the file to check its contents. This is done **automatically** for you, as long as you keep to the left-right ordering, in general of `cheap`(or least strict) to `expensive` (most strict). In practice for this dataset, this means a runtime gain of 50-90% depending on how much invalid data there is.
 
 ##### Early exit:
 sometimes you want the validation or processing to stop immediately based on a condition, e.g. finding corrupt data, or because you're just looking for 1 specific type of conditions. This can be achieved fairly easily, illustrated with a trivial example that stops after finding something other than .txt files.
@@ -339,7 +365,7 @@ and
 ```
 where the last is equivalent, but shorter (and faster) than:
 ```julia
-('count', '>', 0), ('count', '<', 100) 
+('count', '>', 0), ('count', '<', 100)
 ```
 ### Aggregation
 When you need group data before processing it, such as collecting files to count their size, write input-output pairs, or stack images, and so forth, you're performing a pattern of the form
