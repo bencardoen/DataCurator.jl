@@ -139,6 +139,7 @@ has_lower
 is_hidden[_dir, _file]
 has_integer_in_name
 has_float_in_name
+filename_ends_with_integer
 ```
 
 ### Directories

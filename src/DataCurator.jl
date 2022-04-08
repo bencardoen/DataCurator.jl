@@ -27,7 +27,7 @@ using MAT
 
 export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
-transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails,
+transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
 any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file, stack_images, list_to_image, normalize_linear,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, decode_filelist,
@@ -1148,7 +1148,17 @@ function stack_list_to_image(list, name)
     Images.save(name, res)
 end
 
-function list_to_image(list)
+
+### TODO use type dispatch
+function list_to_image(list::AbstractVector{T}) where {T<:AbstractVector}
+    return nested_list_to_image(list)
+end
+
+function list_to_image(list::AbstractVector{T}) where {T<:AbstractString}
+    return flat_list_to_image(list)
+end
+
+function nested_list_to_image(list)
     sz = nothing
     ims = []
     for sublist in list
@@ -1164,6 +1174,38 @@ function list_to_image(list)
                 @error "Reading $img failed because of $e"
                 throw(e)
             end
+        end
+    end
+    N = length(ims)
+    if N < 1
+        @warn "No images to process for list"
+        return
+    end
+    ET = eltype(ims[1])
+    if length(sz) > 2
+        throw(ArgumentError("Stacking images dim > 2 not supported yet"))
+    end
+    res = zeros(ET, sz[1], sz[2], N)
+    for i in 1:N
+        res[:,:,i] .= ims[i]
+    end
+    return res
+end
+
+function flat_list_to_image(list)
+    sz = nothing
+    ims = []
+    for img in sublist
+        @debug "Reading $img"
+        try
+            tb = Images.load(img)
+            if isnothing(sz)
+                sz = size(tb)
+            end
+            push!(ims, tb)
+        catch e
+            @error "Reading $img failed because of $e"
+            throw(e)
         end
     end
     N = length(ims)
@@ -1462,7 +1504,7 @@ fail = never
 always_fails = never
 sample = x->Random.rand()>0.5
 size_of_file = x -> isfile(x) ? filesize(x) : 0
-
+filename_ends_with_integer = x -> isfile(x) && endswith(splitext(basename(x))[1], r"[0-9]+$")
 safe_match = (x, regex) -> isnothing(match(regex, x)) ? nothing : match(regex, x).match
 read_type = (x, regex, type) -> isnothing(safe_match(x, regex)) ? nothing : tryparse(type, safe_match(x, regex))
 read_postfix_int = x -> read_type(x, r"[0-9]+$", Int) #tryparse(Int, safe_match(x, r"[0-9]+$"))
