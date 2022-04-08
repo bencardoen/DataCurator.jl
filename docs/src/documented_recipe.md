@@ -111,6 +111,20 @@ file_lists = [{name="3dstack.tif", aggregator="stack_images"}]
 ```toml
 file_lists = [{name="3dstack.tif", transformer=["reduce_images", ["maximum", 2]],aggregator="stack_images"}]
 ```
+
+###### Describe intensity of each image, per slice, and concatenate to table
+```toml
+file_lists = [{name="image_stats", transformer=["describe_image", 3], aggregator="concat_to_table"}]
+```
+For each image added to the list, it'll slice the image along the z axis and create a table with statistics on intensity (min, mean, std, kurtosis, Q1, ...), for example:
+```bash
+│  Row │ minimum     Q1        mean      median    Q3        maximum   std       kurtosis  slice  axis   source
+│      │ Float64     Float64   Float64   Float64   Float64   Float64   Float64   Float64   Int64  Int64  String7
+│─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────
+│    1 │ 0.00784314  0.245098  0.508418  0.501961  0.760784  0.996078  0.291711   6.71003      1      3  1.tif
+│    2 │ 0.00392157  0.242157  0.490539  0.482353  0.741176  1.0       0.290982   6.60052      2      3  1.tif
+...
+```
 And so on ...
 ##### Table aggregation
 ```toml

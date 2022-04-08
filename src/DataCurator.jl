@@ -29,7 +29,7 @@ export topdown, bottomup, expand_filesystem, visit_filesystem, verifier, transfo
 verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
-any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file, stack_images, list_to_image,
+any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file, stack_images, list_to_image, normalize_linear,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, decode_filelist,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault,
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
@@ -39,7 +39,7 @@ read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatt
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
 halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
-remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate,
+remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
@@ -87,6 +87,14 @@ function describe_image(x::AbstractArray)
     end
     df[!,:axis] .= 0
     return df
+end
+
+function gaussian(img, sigma::Int)
+    return imfilter(img, Kernel.gaussian(sigma));
+end
+
+function laplacian(img)
+    return imfilter(img, Kernel.Laplacian());
 end
 
 """
@@ -524,6 +532,17 @@ function wrap_transform(x::AbstractString)
     cp(x, c)
     @info "Returning $c"
     return c
+end
+
+
+function normalize_linear(ci)
+    img = copy(ci)
+    MK = img.>0
+    A = img[MK]
+    m, M = minimum(A), maximum(A)
+    ran = M-m
+    img[MK] .= (A .- m)/ran
+    return img
 end
 
 function extract_columns(csv, columns)

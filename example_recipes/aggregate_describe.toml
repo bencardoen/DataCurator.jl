@@ -1,0 +1,12 @@
+
+[global]
+act_on_success=true
+file_lists = [{name="image_stats", transformer=["describe_image", 3], aggregator="concat_to_table"}]
+inputdirectory = "testdir"
+[any]
+all=true
+# conditions=[["endswith", "*.tif"]]
+conditions = ["is_tif_file"]
+# actions=[["count", "c1"]]
+actions=[["add_to_file_list", "image_stats"]]
+#actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]

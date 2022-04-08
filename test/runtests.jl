@@ -260,6 +260,25 @@ using DataFrames
         rm(IN; recursive=true)
     end
 
+    @testset "describe" begin
+        c = global_logger()
+        global_logger(NullLogger())
+        IN="testdir"
+        delete_folder(IN)
+        mkdir(IN)
+        Images.save(joinpath(IN, "1.tif"), rand(20, 20, 5))
+        Images.save(joinpath(IN, "2.tif"), rand(20, 20, 5))
+        res = create_template_from_toml(joinpath("..","example_recipes","aggregate_describe.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+
+        df = CSV.read("image_stats.csv", DataFrame)
+        @test size(df)[1] == 10
+        rm("image_stats.csv")
+        # should be 10, 1 row per slice, 3 axis
+        rm(IN; recursive=true)
+    end
+
     @testset "list_table" begin
         c = global_logger()
         global_logger(NullLogger())
