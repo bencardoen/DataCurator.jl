@@ -73,11 +73,12 @@ regex = false
 ```
 
 #### Aggregation
-Aggregation is a complex word for use case like:
+Aggregation is a complex word for use cases like:
 - counting certain files
 - counting total size of a selection of files
 - making lists of input/output pairs for pipelines
 - combining 2D images into 1 3D image
+- combining 2D images, sorted by prefix (e.g. abc_1.tif, abc_2.tif, cde_1.tif, cde_2.tif -> abc.tif, cde.tif)
 - selecting specific columns from each csv you find, and fusing all in 1 table
 - ...
 You can do any of these all at the same time with `counters` and `file_lists` in the global section:
@@ -125,7 +126,30 @@ For each image added to the list, it'll slice the image along the z axis and cre
 │    2 │ 0.00392157  0.242157  0.490539  0.482353  0.741176  1.0       0.290982   6.60052      2      3  1.tif
 ...
 ```
-And so on ...
+###### Stack images, sorting by prefix
+Sometimes image datasets have files like
+```bash
+root
+├── patient1
+│   ├── patient1_slice_1.tif
+│   └── patient1_slice_2.tif
+│   └── ...
+├── patient2
+│   ├── patient2_slice_1.tif
+│   └── patient2_slice_2.tif
+│   └── ...
+...
+```
+We'd like to combine these into
+```bash
+- patient1.tif (3D)
+- patient2.tif (3D)
+```
+The solution is straightforward, we aggregate but ask to group by prefix
+```toml
+file_lists = [{name="slices", aggregator="stack_images_by_prefix"}]
+```
+
 ##### Table aggregation
 ```toml
 file_lists = [{name="all_ab_columns.csv", transformer=["extract_columns", ["A", "B"]], aggregator="concat_to_table"}]

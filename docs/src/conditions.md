@@ -51,6 +51,13 @@ These operations fall into 3 categories:
 ```
 stack_images
 ```
+A special case:
+```
+stack_images_by_prefix
+```
+This assumes you have files with a pattern like `A_1.tif, A_2.tif, ..., B_1.tif`.
+If each has K dimensions, you'll end up with 1 file per prefix (here 2), with K+1 dimensions.
+
 See the aggregation section for details.
 ##### N to N-1 dimension:
 For aggregation (combine many images in N x 2D to 1 x 2D):

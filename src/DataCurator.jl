@@ -1151,26 +1151,28 @@ end
 
 
 
-function sort_stack(lists; aggregator=list_to_image)
+function sort_stack(list; aggregator=list_to_image)
     prefixes = Dict()
-    for f in list
-        b = basename(f)
-        name, ext = splitext(b)
-        m = match(r"[0-9]+$", name)
-        if isnothing(m)
-            @warn "Not ending with slice integer, skipping"
-            continue
-        end
-        mi = m.match
-        index = parse(Int, mi)
-        N = length(m.match)
-        prefix = name[1:end-N-1]
-        key = "$(prefix)$(ext)"
-        @info "For file $f -> prefix $prefix and slice $index"
-        if key ∈ keys(prefixes)
-            prefixes[key][index] = f
-        else
-            prefixes[key]=Dict(index=>f)
+    for sl in list
+        for f in sl
+            b = basename(f)
+            name, ext = splitext(b)
+            m = match(r"[0-9]+$", name)
+            if isnothing(m)
+                @warn "Not ending with slice integer, skipping"
+                continue
+            end
+            mi = m.match
+            index = parse(Int, mi)
+            N = length(m.match)
+            prefix = name[1:end-N-1]
+            key = "$(prefix)$(ext)"
+            @info "For file $f -> prefix $prefix and slice $index"
+            if key ∈ keys(prefixes)
+                prefixes[key][index] = f
+            else
+                prefixes[key]=Dict(index=>f)
+            end
         end
     end
     @info "have a total of $(keys(prefixes))"
@@ -1185,7 +1187,7 @@ function sort_stack(lists; aggregator=list_to_image)
     end
 end
 
-stack_images_by_prefix = x -> sort_stack(x)
+stack_images_by_prefix = (x, n) -> sort_stack(x)
 
 function list_to_image(list::AbstractVector{<:AbstractVector})
     @info "Nested list with $(length(list))"

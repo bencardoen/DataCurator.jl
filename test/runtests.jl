@@ -279,6 +279,29 @@ using DataFrames
         rm(IN; recursive=true)
     end
 
+    @testset "aggregate_by_prefix" begin
+        c = global_logger()
+        global_logger(NullLogger())
+        IN="testdir"
+        delete_folder(IN)
+        mkdir(IN)
+        Images.save(joinpath(IN, "abc_1.tif"), zeros(4,4))
+        Images.save(joinpath(IN, "abc_2.tif"), ones(4,4))
+        Images.save(joinpath(IN, "abc_3.tif"), ones(4,4)./2)
+        Images.save(joinpath(IN, "cde_1.tif"), zeros(4,4))
+        Images.save(joinpath(IN, "cde_2.tif"), ones(4,4))
+        res = create_template_from_toml(joinpath("..","example_recipes","aggregate_stack_images_by_prefix.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        A = Images.load("abc.tif")
+        @test size(A) == (4,4,3)
+        D = Images.load("cde.tif")
+        @test size(D) == (4,4,2)
+        rm(IN, recursive=true)
+        remove("abc.tif")
+        remove("cde.tif")
+    end
+
     @testset "list_table" begin
         c = global_logger()
         global_logger(NullLogger())

@@ -1,0 +1,8 @@
+
+[global]
+act_on_success=true
+file_lists = [{name="slices", aggregator="stack_images_by_prefix"}]
+inputdirectory = "testdir"
+[any]
+conditions = ["is_tif_file"]
+actions=[["add_to_file_list", "slices"]]
