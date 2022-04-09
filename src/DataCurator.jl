@@ -730,9 +730,9 @@ function lookup_common(fname::AbstractString, glob::AbstractDict, condition)
         return nothing
     end
     cc = glob[tkey]
-    @info "Checking common $fname in global configuration $cc"
+    @info "Checking common $fname in global configuration"
     if fname ∈ keys(cc)
-        @info "Found common $fname in global configuration $cc"
+        @info "Found common $fname in global configuration"
         return cc[fname]
     end
     return nothing
