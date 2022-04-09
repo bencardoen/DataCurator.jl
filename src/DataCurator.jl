@@ -1191,7 +1191,13 @@ end
 """
 function delegate(config, template)
     parallel = config["parallel"] ? "parallel" : "sequential"
-    #TODO if outputdirectory, --> make and change dir
+    if haskey(config, "outputdirectory")
+        _c = pwd()
+        odir = config["outputdirectory"]
+        mkpath(odir)
+        cd(odir)
+        @info "Changed output directory from $(_c) to odir"
+    end
     rval =  verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
     @debug "Return value == $rval"
     counters, lists = [], []
