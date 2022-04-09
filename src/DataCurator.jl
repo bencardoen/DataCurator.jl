@@ -730,9 +730,9 @@ function lookup_common(fname::AbstractString, glob::AbstractDict, condition)
         return nothing
     end
     cc = glob[tkey]
-    @info "Checking common $f in global configuration $cc"
+    @info "Checking common $fname in global configuration $cc"
     if fname ∈ keys(cc)
-        @info "Found common $f in global configuration $cc"
+        @info "Found common $fname in global configuration $cc"
         return cc[fname]
     end
     return nothing
@@ -1191,7 +1191,7 @@ end
 """
 function delegate(config, template)
     parallel = config["parallel"] ? "parallel" : "sequential"
-    if haskey(config, "outputdirectory")
+    if haskey(config, "outputdirectory") && ~isnothing(config["outputdirectory"])
         _c = pwd()
         odir = config["outputdirectory"]
         mkpath(odir)
@@ -1670,7 +1670,7 @@ end
 
 
 function validate_global(config)
-    glob_defaults = Dict([("parallel", false),("common_conditions", Dict()), ("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    glob_defaults = Dict([("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     # glob = config["global"]
     glob_default_types = Dict([("parallel", Bool), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
@@ -1701,7 +1701,7 @@ function validate_global(config)
                 "inputdirectory" => nothing
                 "common_actions" => nothing
                 "common_conditions" => nothing
-                "outputdirectory" => (@warn "Not yet supported!!")
+                "outputdirectory" => nothing
                 _ => handle_default!(val, key, glob_defaults)
             end
         else
