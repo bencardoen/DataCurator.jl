@@ -210,8 +210,6 @@ function describe_image(x::AbstractArray, axis::Int64)
         throw(ArgumentError("Describing along invalid axis $axis of image with dimensions $SZ"))
     end
     N = SZ[axis]
-    @info SZ
-    @info N
     ds = zeros(Float64, N, 8)
     for (i,s) in enumerate(eachslice(x; dims=axis))
         # @info s
@@ -247,7 +245,7 @@ end
 
 
 function load_content(x::AbstractString)
-    @info "Trying to load content for $x"
+    @debug "Trying to load content for $x"
     ex = splitext(x)[2]
     if ex ∈ [".tif", ".png"]
         return Images.load(x)
@@ -296,14 +294,14 @@ end
 
 function transform_wrapper(file::AbstractString, nametransform, contenttransform, mode)
     if isdir(file)
-        @warn "You're selecting directories with you condition but are trying to modify a file, I'm ignoring it for now"
+        @warn "You're selecting directories with your condition, but you are trying to modify a file, I'm ignoring it for now"
         @warn file
         return
     end
     tmp = tmpcopy(file)
     path, fname = splitdir(file)
     newname = joinpath(path, nametransform(fname))
-    @info "Transforming $file with $path + $fname to $newname"
+    @debug "Transforming $file with $path + $fname to $newname"
     oldcontent = load_content(file)
     newcontent = contenttransform(oldcontent)
     save_content(newcontent, tmp)
@@ -320,9 +318,9 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
         end
     end
     # save_content(newcontent, tmp)
-    @info "Transform $file -> $newname complete"
+    @debug "Transform $file -> $newname complete"
     mode(file, tmp, newname)
-    @info "File IO complete for $file -> $newname"
+    @debug "File IO complete for $file -> $newname"
 end
 
 """
@@ -576,12 +574,12 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     if haskey(fe, "aggregator")
         AG = fe["aggregator"]
         ag = decode_aggregator(AG, glob)
-        @info "Found a aggregator entry $AG -> $ag"
+        @debug "Found a aggregator entry $AG -> $ag"
     end
     @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
     if tf != identity
-        @info "Custom transform, wrapping with copy"
+        @debug "Custom transform, wrapping with copy"
         adder = x::AbstractString -> add_to_file_list(tf(wrap_transform(x)), l)
     else
         adder = x::AbstractString -> add_to_file_list(x, l)
@@ -623,12 +621,12 @@ end
 """
 function wrap_transform(x::AbstractString)
     c = joinpath(tempdir(), "_datacuratorjl", "$(Random.randstring(40))")
-    @info "Making path $c"
+    @debug "Making path $c"
     mkpath(c)
     c = joinpath(c, basename(x))
-    @info "Temporary copy for x -> $c"
+    @debug "Temporary copy for x -> $c"
     cp(x, c)
-    @info "Returning $c"
+    @debug "Returning $c"
     return c
 end
 
@@ -644,7 +642,7 @@ function normalize_linear(ci)
 end
 
 function extract_columns(csv, columns)
-    @info "Extracting columns $columns for $csv"
+    @debug "Extracting columns $columns for $csv"
     df = CSV.read(csv, DataFrame)
     @debug "DF = $(df)"
     extracted=df[!,columns]
@@ -734,9 +732,9 @@ function lookup_common(fname::AbstractString, glob::AbstractDict, condition)
         return nothing
     end
     cc = glob[tkey]
-    @info "Checking common $fname in global configuration"
+    @debug "Checking common $fname in global configuration"
     if fname ∈ keys(cc)
-        @info "Found common $fname in global configuration"
+        @debug "Found common $fname in global configuration"
         return cc[fname]
     end
     return nothing
@@ -804,7 +802,7 @@ end
 function remove_from_to(x, from, to; inclusive_first=true, inclusive_second=false)
     path, FN = splitdir(x)
     @debug "$x -> \n $path \n $FN"
-    # @info FN
+    # @debug FN
     @debug "Remove [$from - $to] from FN"
     B = findfirst(from, FN)
     if isnothing(B)
@@ -839,7 +837,7 @@ function remove_from_to_extension(x::AbstractString, from::AbstractString; inclu
     path, FN = splitdir(x)
     FN, ext = splitext(FN)
     @debug "$x -> $path \n $FN \n $ext"
-    # @info FN
+    # @debug FN
     @debug "Remove [$from - $ext] from FN"
     B = findfirst(from, FN)
     if isnothing(B)
@@ -875,7 +873,7 @@ end
 function execute_dataframe_function(df::DataFrame, command::AbstractString, columns::AbstractVector, operators::AbstractVector, values::AbstractVector)
     _df = copy(df)
     cols = names(df)
-    @info "Dataframe --> Cols = $cols"
+    @debug "Dataframe --> Cols = $cols"
     check = x::AbstractString -> x ∈ cols
     # valid = reduce(&, map(check, columns))
     valid = all(map(check, columns)) # reduce doesn't short circuit, even with short circuit operators, because it can't know the reducer
@@ -942,10 +940,10 @@ function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
     end
     command::AbstractString = x[1]
     cols, ops, vals = decode_df_entries(x[2])
-    @info "Decoded $x into "
-    @info cols
-    @info ops
-    @info vals
+    @debug "Decoded $x into "
+    @debug cols
+    @debug ops
+    @debug vals
     if length(cols) != length(ops) != length(vals)
         throw(ArgumentError("Ops. cols, and values do not match in length"))
     end
@@ -954,7 +952,7 @@ function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
 end
 
 function decode_df_entries(entries::AbstractVector{<:AbstractVector})
-    @info "Vector of entries"
+    @debug "Vector of entries"
     cols::Vector{AbstractString} = []
     ops::Vector{AbstractString} = []
     vals = []
@@ -968,7 +966,7 @@ function decode_df_entries(entries::AbstractVector{<:AbstractVector})
 end
 
 function decode_df_entries(entries::AbstractVector)
-    @info "Singular entry"
+    @debug "Singular entry"
     if length(entries) ∉ [2,3]
         throw(ArgumentError("Invalid entry for dataframe operation $entries"))
     end
@@ -1198,7 +1196,7 @@ function delegate(config, template)
     # if haskey(config, "outputdirectory")
     CWD = pwd()
     if isnothing(config["outputdirectory"])
-        @info "Using default outputdirectory"
+        @debug "Using default outputdirectory"
     else
         odir = config["outputdirectory"]
         mkpath(odir)
@@ -1211,7 +1209,7 @@ function delegate(config, template)
     counters, lists = [], []
     for c in config["counters"]
         name, (count, counter) = c
-        @debug "Counter named $name has value $count"
+        @info "Counter named $name has value $count"
         push!(counters, read_counter(count))
     end
     for (list_name, ag) in config["file_lists"]
@@ -2108,7 +2106,7 @@ end
 
 
 function expand_threaded(node, expander, visitor, context)
-    @warn "Threaded"
+    @debug "Threaded"
     @threads for _node in expander(node)
         if isnothing(context)
             ncontext = context

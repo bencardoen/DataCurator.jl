@@ -101,19 +101,27 @@ This is useful because:
     - for Julia, instead of multiple executable rules, there's now 1
 
 The reference syntax is
-```toml
+```
 common_..={name1=[["all", f1, f2, f3, ...]], name2=...}
 ```
+Where f1, f2, ... are conditions/actions, and `name1` will be a placeholder you can reference later to.
+
+!!! note "Nested [[]]"
+    Here you need to use the explicit nested form for anything more than 1 action/condition, because `all=true` is implied. Note that this section is parsed before the template itself is seen at all.
+
+!!! warning Common actions/conditions cannot refer to others when you're defining them.
+    If this was possible, we'd run the risk of deadlock, where actions refer to themselves in a loop, for example. If you need this kind of functionality, it's better to use the Julia API.
 
 #### Aggregation
 Aggregation is a complex word for use cases like:
-- counting certain files
+- counting files matching a pattern
 - counting total size of a selection of files
 - making lists of input/output pairs for pipelines
 - combining 2D images into 1 3D image
-- combining 2D images, sorted by prefix (e.g. abc_1.tif, abc_2.tif, cde_1.tif, cde_2.tif -> abc.tif, cde.tif)
+- combining 2D images, sorted by prefix (e.g. 'abc_1.tif', 'abc_2.tif', 'cde_1.tif', 'cde_2.tif' -> abc.tif, cde.tif)
 - selecting specific columns from each csv you find, and fusing all in 1 table
 - ...
+
 You can do any of these all at the same time with `counters` and `file_lists` in the global section:
 
 ##### Counters
