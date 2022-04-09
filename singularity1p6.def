@@ -29,7 +29,7 @@ From: fedora:35
     ## Build the precompiled image for faster start
     #julia --project=$LOCALPKG $LOCALPKG/src/setupimage.jl
     julia --project=. src/mktest.jl
-    julia --project=. --trace-compile=dc_precompile.jl src/curator.jl -r example_recipes/aggregate_new_api.toml
+    julia --project=. --trace-compile=dc_precompile.jl src/curator.jl -r example_recipes/full_api.toml
     julia --project=. src/setupimage.jl
     echo "Checking if sysimg exists"
     ls -lahst *.so
