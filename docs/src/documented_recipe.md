@@ -85,6 +85,20 @@ For example:
 common_actions = {react=[["all", "show_warning", ["log_to_file", "errors.txt"], "remove"]]}
 common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]]}
 ```
+In your template you can then do
+```toml
+actions=["react"]
+```
+instead of
+```toml
+actions=[["all", "show_warning", ["log_to_file", "errors.txt"], "remove"]]]
+```
+This is useful because:
+    - default actions/conditions are more concisely expressed and reused
+    - composing complex rules without running out of screen real estate
+    - more legible
+    - if you want to change a complex rule, you only need to do so in 1 place
+    - for Julia, instead of multiple executable rules, there's now 1
 
 The reference syntax is
 ```toml

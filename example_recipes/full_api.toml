@@ -1,0 +1,27 @@
+
+[global]
+act_on_success=true
+hierarchical=true
+parallel=true
+regex=true
+file_lists = [{name="table", transformer=["extract_columns", ["x1"]], aggregator="concat_to_table"}]
+inputdirectory = "testdir"
+outputdirectory = "outputdir"
+common_actions = {react=[["all", "show_warning", ["log_to_file", "errors.txt"], "remove"]]}
+common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]]}
+[any]
+conditions=["is_csv_file", "is_tif_file"]
+actions=[["add_to_file_list", "table"], {name_transform=["tolowercase"], content_transform=[ ["gaussian", 3], "laplacian", ["threshold_image", "abs >", 0.01], ["apply_to_image", ["abs"]], "otsu_threshold_image", "erode_image"], mode="copy"}]
+#actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]
+[level_1]
+conditions = ["isdir"]
+actions = ["show_warning"]
+[level_2]
+conditions = ["isfile"]
+actions = ["show_warning"]
+[level_3]
+conditions=["is_tif_file"]
+actions=[{name_transform=["tolowercase"], content_transform=[["reduce_image", ["maximum", 2]], "mask"], mode="copy"}]
+[level_4]
+conditions=["is_3d_channel"]
+actions=["react"]
