@@ -31,7 +31,7 @@ using DataFrames
         res = create_template_from_toml(joinpath("..","example_recipes","image_pipeline.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
-        @test isfile(joinpath(IN, "abc_1.tif")))
+        @test isfile(joinpath(IN, "abc_1.tif"))
         ~iszero(Images.load(joinpath(IN, "abc_1.tif")))
         rm(IN, recursive=true)
     end
