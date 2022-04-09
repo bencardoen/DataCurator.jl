@@ -20,6 +20,8 @@ using LoggingExtras
 using Match
 using CSV
 using DataFrames
+using ImageFiltering
+using ImageMorphology
 using Statistics
 import TOML
 using HDF5
@@ -97,7 +99,7 @@ end
     Gaussian blur with σ
 """
 function gaussian(img, sigma::Int)
-    return imfilter(img, Kernel.gaussian(sigma));
+    return ImageFiltering.imfilter(img, ImageFiltering.Kernel.gaussian(sigma));
 end
 
 """
@@ -106,16 +108,16 @@ end
     Laplacian of image (2nd derivative of intensity)
 """
 function laplacian(img)
-    return imfilter(img, Kernel.Laplacian());
+    return ImageFiltering.imfilter(img, ImageFiltering.Kernel.Laplacian());
 end
 
 function erode_image(img)
-    erode!(img)
+    ImageMorphology.erode!(img)
     return img
 end
 
 function dilate_image(img)
-    dilate!(img)
+    ImageMorphology.dilate!(img)
     return img
 end
 
@@ -134,6 +136,10 @@ function select_from_image(image, selection)
     error(-1)
 end
 
+
+function threshold_image(x::AbstractArray, operator::AbstractString, value::AbstractString)
+    return threshold_image(x, operator, parse(Float64, value))
+end
 
 """
     treshold(image, operator, value)
@@ -164,14 +170,22 @@ function invert(x::AbstractArray)
 end
 
 function otsu_threshold_image(x::AbstractArray)
-    thres = otsu_threshold(Gray.(img))
+    thres = Images.otsu_threshold(x, 100)
     x[x.<thres] .= 0
     return x
 end
 
-function apply_to_image(img, operators::AbstractVector)
+
+"""
+    apply_to_image(img, operators::AbstractVector{T}) where {T<:AbstractString}
+
+    Apply each of the operators, left to right, to the image (in place.)
+
+    Operators can be any unary operators in scope that can be vectorized, e.g. log, sin, cos, abs, ...
+"""
+function apply_to_image(img, operators::AbstractVector{T}) where {T<:AbstractString}
     for op in operators
-        apply_to_image(img, op)
+        apply_to_image!(img, op)
     end
     return img
 end

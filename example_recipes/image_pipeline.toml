@@ -1,0 +1,11 @@
+
+# Example of the full transformation notation
+# For each tif file, do a max projection along Y, then binarize the resulting image
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+conditions=["is_tif_file"]
+actions=[{name_transform=["tolowercase"], content_transform=[ ["gaussian", 3], "laplacian", ["threshold_image", "abs >", 0.01], ["apply_to_image", ["abs"]], "otsu_threshold_image", "erode_image"], mode="copy"}]
+# Full syntax
+# {name_transform=[entry+], content_transform=[entry+], mode={copy, move, inplace}}

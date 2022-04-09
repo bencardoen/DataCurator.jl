@@ -21,6 +21,21 @@ using DataFrames
         Q.adder("1")
     end
 
+    @testset "pipelineops" begin
+        IN="testdir"
+        delete_folder(IN)
+        mkdir(IN)
+        A  = rand(40,40)./10
+        A[10:20, 10:30] .= min.(1, 0.5 .+ rand(11, 21))
+        Images.save(joinpath(IN, "ABC_1.tif"), A)
+        res = create_template_from_toml(joinpath("..","example_recipes","image_pipeline.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        @test isfile(joinpath(IN, "abc_1.tif")))
+        ~iszero(Images.load(joinpath(IN, "abc_1.tif")))
+        rm(IN, recursive=true)
+    end
+
     @testset "loadsavecontent" begin
         c = global_logger()
         global_logger(NullLogger())
