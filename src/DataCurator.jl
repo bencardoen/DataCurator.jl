@@ -40,7 +40,9 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, gaussian, laplacian,
-less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension, remove_from_to, stack_list_to_image, concat_to_table, make_aggregator
+less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
+remove_from_to, stack_list_to_image, concat_to_table, make_aggregator,
+gaussian, laplacian, dilate_image, erode_image, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
@@ -89,12 +91,100 @@ function describe_image(x::AbstractArray)
     return df
 end
 
+"""
+    gaussian(img, sigma)
+
+    Gaussian blur with σ
+"""
 function gaussian(img, sigma::Int)
     return imfilter(img, Kernel.gaussian(sigma));
 end
 
+"""
+    laplacian(image)
+
+    Laplacian of image (2nd derivative of intensity)
+"""
 function laplacian(img)
     return imfilter(img, Kernel.Laplacian());
+end
+
+function erode_image(img)
+    erode!(img)
+    return img
+end
+
+function dilate_image(img)
+    dilate!(img)
+    return img
+end
+
+
+function opening_image(img)
+    return dilate_image(erode_image(img))
+end
+
+function closing_image(img)
+    return erode_image(dilate_image(img))
+end
+
+### TODO
+### Slice/ROI/Range
+function select_from_image(image, selection)
+    error(-1)
+end
+
+
+"""
+    treshold(image, operator, value)
+
+    Set the image to zero where operator(image, value) == true.
+    Operator can be one of '<', '>', 'abs >', 'abs <'.
+"""
+# function threshold_image(x::AbstractArray, operator::AbstractString, value::Number)
+#     @match operator begin
+#         "<" => x[x.<value].= 0
+#         ">" => x[x.>value].= 0
+#         "abs >" => x[abs.(x) .> value].= 0
+#         "abs <" => x[abs.(x) .<value].= 0
+#     end
+#     return x
+# end
+function threshold_image(x::AbstractArray, operator::AbstractString, value::Number)
+    @match operator begin
+        # "<" => x[x.<value].= 0
+        "a" => 42
+#         ">" => x[x.>value].= 0
+#         "abs >" => x[abs.(x) .> value].= 0
+#         "abs <" => x[abs.(x) .<value].= 0
+    end
+    return x
+end
+
+"""
+    invert(image)
+
+    For a normed ([0-1]) image, return  1 - image
+"""
+function invert(x::AbstractArray)
+    if ~ all(0 .<= x .<= 1)
+        @warn "Inverting assumes your input is [0-1], this not the case!!"
+    end
+    return 1 .- x
+end
+
+function otsu_threshold_image(x::AbstractArray)
+    thres = otsu_threshold(Gray.(img))
+    x[x.<thres] .= 0
+    return x
+end
+
+function apply_to_image(img, operators::AbstractVector)
+    error(-1)
+end
+
+function apply_to_image(img, operator::AbstractString)
+    error(-1)
 end
 
 """
@@ -2102,7 +2192,6 @@ end
     Dispatched function to verify at recursion level with conditions set in template for node.
     Level is ignored for now, except to debug
 """
-# Todo : change to Vector[namedtuple]  and use dispatch
 function verifier(node, template::Vector, level::Int; on_success=false)
     for step in template
         rv = dostep(node, step, on_success)
