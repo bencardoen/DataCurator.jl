@@ -1,9 +1,10 @@
 [global]
 hierarchical=true
 inputdirectory = "testdir"
+outputdirectory = "outdir" ## deal with this by if not exists, make, then cd and keep current dir
 ## Define common conditions and actions
-common_actions = {react=["show_warning", ["log_to_file", "errors.txt"], "remove"]}
-common_conditions = {is_3d_channel=["is_tif_file", "is_3d_img", "ends_with_integer"]}
+common_actions = {react=[["show_warning", ["log_to_file", "errors.txt"], "remove"]]}
+common_conditions = {is_3d_channel=[["is_tif_file", "is_3d_img", "ends_with_integer"]]}
 [any]
 conditions=["always_fails"]
 actions=["react"]

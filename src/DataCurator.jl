@@ -597,10 +597,6 @@ function decode_aggregator(name::AbstractString, glob::AbstractDict)
     end
     return fs
 end
-#
-# function reduce_images(list, name, op)
-#     stack_list_to_image(list, name)
-# end
 
 function decode_aggregator(ag::AbstractVector, glob::AbstractDict)
     an = ag[1]
@@ -1195,6 +1191,7 @@ end
 """
 function delegate(config, template)
     parallel = config["parallel"] ? "parallel" : "sequential"
+    #TODO if outputdirectory, --> make and change dir
     rval =  verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
     @debug "Return value == $rval"
     counters, lists = [], []
@@ -1696,8 +1693,9 @@ function validate_global(config)
                 "file_lists" => handlefilelists!(val, key, glob_defaults)
                 "file_aggregators" => handlefilelists!(val, key, glob_defaults)
                 "inputdirectory" => nothing
-                "common_actions" => handle_common_actions(glob_config, glob_defaults)
-                "common_conditions" => handle_common_conditions(glob_config, glob_defaults)
+                "common_actions" => nothing
+                "common_conditions" => nothing
+                "outputdirectory" => (@warn "Not yet supported!!")
                 _ => handle_default!(val, key, glob_defaults)
             end
         else
@@ -1705,16 +1703,45 @@ function validate_global(config)
             return nothing
         end
     end
+    if haskey(glob_config, "common_actions")
+        handle_common_actions(glob_config, glob_defaults)
+    end
+    if haskey(glob_config, "common_conditions")
+        handle_common_conditions(glob_config, glob_defaults)
+    end
     return glob_defaults
 end
 
 
 function handle_common_actions(config, default)
-    @error "Implement me"
+    entry = config["common_actions"]
+    for name in keys(entry)
+        @info "Found $name with $(entry[name])"
+        fun_desc = entry[name]
+        fs = decode_function(fun_desc, default, condition=false)
+        if isnothing(fs)
+            @warn "Invalid common action $fun_desc for $name"
+        else
+            @info "Created common action for $name"
+            default["common_actions"][name]=fs
+        end
+    end
 end
 
+
 function handle_common_conditions(config, default)
-    @error "Implement me"
+    entry = config["common_conditions"]
+    for name in keys(entry)
+        @info "Found $name with $(entry[name])"
+        fun_desc = entry[name]
+        fs = decode_function(fun_desc, default, condition=true)
+        if isnothing(fs)
+            @warn "Invalid common action $fun_desc for $name"
+        else
+            @info "Created common action for $name"
+            default["common_actions"][name]=fs
+        end
+    end
 end
 
 function lookup(sym)
