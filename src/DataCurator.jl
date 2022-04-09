@@ -1252,12 +1252,12 @@ function shared_list_to_table(list, name::AbstractString)
     tables = []
     for sublist in list
         for csv_file in sublist
-            @info "Loading table $csv_file"
+            @debug "Loading table $csv_file"
             tb = load_table(csv_file)
             push!(tables, tb)
         end
     end
-    @info "Saving total of $(length(tables)) to csv"
+    @info "Saving total of $(length(tables)) to $name csv"
     DF = vcat(tables...)
     if ~endswith(name, ".csv")
         @debug "Postfixing .csv"
