@@ -713,6 +713,11 @@ function decode_counter(c::AbstractVector)
 end
 
 function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
+    # Global first
+    fs = lookup_common(f, glob, condition)
+    if ~isnothing(fs)
+        return fs
+    end
     fs = lookup(f)
     @debug "0 argument function lookup for $f"
     if isnothing(fs)
@@ -720,6 +725,21 @@ function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
         return nothing
     end
     return x -> fs(x)
+end
+
+function lookup_common(fname::AbstractString, glob::AbstractDict, condition)
+    tkey = condition ? "common_conditions" : "common_actions"
+    if ~haskey(glob, tkey)
+        @warn "Global section has missing $tkey. This isn't a critical problem but unexpected."
+        return nothing
+    end
+    cc = glob[tkey]
+    @info "Checking common $f in global configuration $cc"
+    if fname ∈ keys(cc)
+        @info "Found common $f in global configuration $cc"
+        return cc[fname]
+    end
+    return nothing
 end
 
 
@@ -1647,7 +1667,7 @@ end
 
 
 function validate_global(config)
-    glob_defaults = Dict([("parallel", false),("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    glob_defaults = Dict([("parallel", false),("common_conditions", Dict()), ("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     # glob = config["global"]
     glob_default_types = Dict([("parallel", Bool), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
@@ -1676,6 +1696,8 @@ function validate_global(config)
                 "file_lists" => handlefilelists!(val, key, glob_defaults)
                 "file_aggregators" => handlefilelists!(val, key, glob_defaults)
                 "inputdirectory" => nothing
+                "common_actions" => handle_common_actions(glob_config, glob_defaults)
+                "common_conditions" => handle_common_conditions(glob_config, glob_defaults)
                 _ => handle_default!(val, key, glob_defaults)
             end
         else
@@ -1686,6 +1708,14 @@ function validate_global(config)
     return glob_defaults
 end
 
+
+function handle_common_actions(config, default)
+    @error "Implement me"
+end
+
+function handle_common_conditions(config, default)
+    @error "Implement me"
+end
 
 function lookup(sym)
     try
