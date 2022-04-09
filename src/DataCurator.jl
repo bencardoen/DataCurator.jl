@@ -266,7 +266,7 @@ function save_content(ct::Array{T}, sink::AbstractString) where {T<:AbstractFloa
 end
 
 function save_content(ct::DataFrame, sink::AbstractString)
-    @info "Saving dataframe content to $sink"
+    @debug "Saving dataframe content to $sink"
     CSV.write(sink, ct)
 end
 
@@ -1260,7 +1260,7 @@ function shared_list_to_table(list, name::AbstractString)
     @info "Saving total of $(length(tables)) to csv"
     DF = vcat(tables...)
     if ~endswith(name, ".csv")
-        @info "Postfixing .csv"
+        @debug "Postfixing .csv"
         name="$(name).csv"
     end
     @info "Writing to $name"
@@ -1271,7 +1271,7 @@ function stack_list_to_image(list, name)
     res = list_to_image(list)
     @info "Saving aggregated image"
     if ~endswith(name, ".tif")
-        @info "Postfixing tif"
+        @debug "Postfixing tif"
         name = "$(name).tif"
     end
     Images.save(name, res)
@@ -1296,7 +1296,7 @@ function sort_stack(list; aggregator=list_to_image)
             N = length(m.match)
             prefix = name[1:end-N-1]
             key = "$(prefix)$(ext)"
-            @info "For file $f -> prefix $prefix and slice $index"
+            @debug "For file $f -> prefix $prefix and slice $index"
             if key ∈ keys(prefixes)
                 prefixes[key][index] = f
             else
@@ -1304,14 +1304,14 @@ function sort_stack(list; aggregator=list_to_image)
             end
         end
     end
-    @info "have a total of $(keys(prefixes))"
+    @debug "have a total of $(keys(prefixes))"
     for prefix in keys(prefixes)
         slicedict = prefixes[prefix]
         s = sort(keys(slicedict) |> collect)
-        @info s
+        @debug s
         fs = [slicedict[_s] for _s in s]
         agg = aggregator(fs)
-        @info "Saving aggregation for $prefix"
+        @debug "Saving aggregation for $prefix"
         Images.save(prefix, agg)
     end
 end
@@ -1319,7 +1319,7 @@ end
 stack_images_by_prefix = (x, n) -> sort_stack(x)
 
 function list_to_image(list::AbstractVector{<:AbstractVector})
-    @info "Nested list with $(length(list))"
+    @debug "Nested list with $(length(list))"
     ls = [list_to_image(li) for li in list if length(li) > 0]
     if length(ls) == 0
         @warn "No entries at all to process"
@@ -1327,12 +1327,12 @@ function list_to_image(list::AbstractVector{<:AbstractVector})
     end
     SZ = size(ls[1])
     D = length(SZ)
-    @info "Cat with $length(ls) and $D from $SZ"
+    @debug "Cat with $length(ls) and $D from $SZ"
     return cat(ls..., dims=D) #D, because each list is already flattened
 end
 
 function list_to_image(list::AbstractVector{<:Any})
-    @info "List with $(length(list))"
+    @debug "List with $(length(list))"
     return _list_to_image(list)
 end
 
@@ -1805,7 +1805,7 @@ end
 
 ## Fixme to use AG objects
 function add_to_file_list(x, list)
-    @info "adding $x to $list"
+    @debug "adding $x to $list"
     addentry!(list, x)
 end
 # add_to_file_list= (x, list) -> addentry!(list, x)
@@ -1855,7 +1855,7 @@ end
 function shared_list_to_file(list, fname)
     @info "Writing $list to $fname"
     if ~endswith(fname, ".txt")
-        @info "Changing extension to .txt"
+        @debug "Changing extension to .txt"
         fname="$(fname).txt"
     end
     open(fname, "w"; lock=true) do f
