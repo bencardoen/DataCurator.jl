@@ -36,6 +36,24 @@ using DataFrames
         rm(IN, recursive=true)
     end
 
+    @testset "saved_actions" begin
+
+        IN="testdir"
+        delete_folder("outputdir")
+        delete_folder(IN)
+        mkdir(IN)
+        A  = zeros(30,30,30)
+        Images.save(joinpath(IN, "ABC_1.tif"), A)
+        res = create_template_from_toml(joinpath("..","example_recipes","saved_actions.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+
+        @test ~isfile(joinpath(IN, "ABC_1.tif"))
+        @test isdir("outputdir")
+        @test length(readlines(joinpath("outputdir", "errors.txt")))==1
+        delete_folder("outputdir")
+    end
+
     @testset "loadsavecontent" begin
         c = global_logger()
         global_logger(NullLogger())

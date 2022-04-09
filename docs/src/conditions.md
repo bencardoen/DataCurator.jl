@@ -2,9 +2,11 @@
 
 ```@contents
 Pages = ["conditions.md"]
-Depth = 5
+Depth = 8
 ```
 
+!!! tip "Don't repeat yourself"
+    Quite often you will want to apply certain conditions or actions several times in a hierarchical template. In that case you can define `common_actions` and `common_condtions` in the `[global]` section, which you can refer to by name. Any of the actions and conditions below can be used to compose more complex actions and conditions.
 
 ## Actions
 

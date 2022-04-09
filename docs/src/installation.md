@@ -3,7 +3,7 @@ Installation depends on what you plan to do, and what is available to you.
 
 ```@contents
 Pages = ["installation.md"]
-Depth = 5
+Depth = 8
 ```
 
 

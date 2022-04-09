@@ -1191,13 +1191,17 @@ end
 """
 function delegate(config, template)
     parallel = config["parallel"] ? "parallel" : "sequential"
-    if haskey(config, "outputdirectory") && ~isnothing(config["outputdirectory"])
-        _c = pwd()
+    # if haskey(config, "outputdirectory")
+    CWD = pwd()
+    if isnothing(config["outputdirectory"])
+        @info "Using default outputdirectory"
+    else
         odir = config["outputdirectory"]
         mkpath(odir)
         cd(odir)
-        @info "Changed output directory from $(_c) to odir"
+        @info "Changed output directory from $(CWD) to $odir"
     end
+    # end
     rval =  verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
     @debug "Return value == $rval"
     counters, lists = [], []
@@ -1222,6 +1226,8 @@ function delegate(config, template)
     else
         @info "Dataset processing completed without early exit"
     end
+    @info "Changing back to current directory $CWD"
+    cd(CWD)
     return counters, lists, rval
 end
 
@@ -1714,6 +1720,10 @@ function validate_global(config)
     end
     if haskey(glob_config, "common_conditions")
         handle_common_conditions(glob_config, glob_defaults)
+    end
+    if haskey(glob_config, "outputdirectory")
+        @info "Setting outputdirectory to $(glob_config["outputdirectory"])"
+        glob_defaults["outputdirectory"] = glob_config["outputdirectory"]
     end
     return glob_defaults
 end

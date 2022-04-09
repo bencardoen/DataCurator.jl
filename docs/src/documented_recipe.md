@@ -6,7 +6,7 @@ We'll run through all, or most of the features you can use, with example TOML sn
 
 ```@contents
 Pages = ["documented_recipe.md"]
-Depth = 5
+Depth = 8
 ```
 
 
@@ -72,6 +72,25 @@ For more complex pattern matching you may want to use Regular Expressions (regex
 regex = false
 ```
 
+The inputdirectory should point to your dataset. The outputdirectory is where global output is written, e.g. output of aggregation.
+```toml
+inputdirectory=...
+outputdirectory=...
+```
+
+#### Saved actions and conditions
+Quite often you will define actions and conditions several time. Instead of repeating yourself, you can define actions and conditions globally, and then refer from your template to them later.
+For example:
+```toml
+common_actions = {react=[["all", "show_warning", ["log_to_file", "errors.txt"], "remove"]]}
+common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]]}
+```
+
+The reference syntax is
+```toml
+common_..={name1=[["all", f1, f2, f3, ...]], name2=...}
+```
+
 #### Aggregation
 Aggregation is a complex word for use cases like:
 - counting certain files
@@ -83,7 +102,7 @@ Aggregation is a complex word for use cases like:
 - ...
 You can do any of these all at the same time with `counters` and `file_lists` in the global section:
 
-###### Counters
+##### Counters
 ```toml
 counters = ["C1", ["C2", "size_of_file"]]
 ```
@@ -91,7 +110,7 @@ Here we created 2 counters, one that is incremented whenever you refer to it, an
 When the program finishes, these counters are printed.
 
 
-###### Files to process
+##### Files to process
 The simplest kind just adds a file each time you refer to it, and writes them out in traversal order (per thread if parallel) at the end to "infiles.txt"
 ```toml
 file_lists = ["infiles"]
