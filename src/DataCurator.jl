@@ -141,22 +141,12 @@ end
     Set the image to zero where operator(image, value) == true.
     Operator can be one of '<', '>', 'abs >', 'abs <'.
 """
-# function threshold_image(x::AbstractArray, operator::AbstractString, value::Number)
-#     @match operator begin
-#         "<" => x[x.<value].= 0
-#         ">" => x[x.>value].= 0
-#         "abs >" => x[abs.(x) .> value].= 0
-#         "abs <" => x[abs.(x) .<value].= 0
-#     end
-#     return x
-# end
 function threshold_image(x::AbstractArray, operator::AbstractString, value::Number)
     @match operator begin
-        # "<" => x[x.<value].= 0
-        "a" => 42
-#         ">" => x[x.>value].= 0
-#         "abs >" => x[abs.(x) .> value].= 0
-#         "abs <" => x[abs.(x) .<value].= 0
+        "<" => (x[x.<value].= 0)
+        ">" => (x[x.>value].= 0)
+        "abs >" => (x[abs.(x) .> value].= 0)
+        "abs <" => (x[abs.(x) .<value].= 0)
     end
     return x
 end
@@ -180,11 +170,15 @@ function otsu_threshold_image(x::AbstractArray)
 end
 
 function apply_to_image(img, operators::AbstractVector)
-    error(-1)
+    for op in operators
+        apply_to_image(img, op)
+    end
+    return img
 end
 
-function apply_to_image(img, operator::AbstractString)
-    error(-1)
+function apply_to_image!(img, operator::AbstractString)
+    op = lookup(operator)
+    img = op.(img)
 end
 
 """
