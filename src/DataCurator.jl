@@ -170,6 +170,10 @@ function invert(x::AbstractArray)
 end
 
 function otsu_threshold_image(x::AbstractArray)
+    if iszero(x)
+        @warn "Image is zero, thresholding will fail."
+        return 0
+    end
     thres = Images.otsu_threshold(x, 100)
     x[x.<thres] .= 0
     return x
