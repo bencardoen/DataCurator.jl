@@ -151,8 +151,10 @@ function threshold_image(x::AbstractArray, operator::AbstractString, value::Numb
     @match operator begin
         "<" => (x[x.<value].= 0)
         ">" => (x[x.>value].= 0)
+        "=" => (x[x.==value].= 0)
         "abs >" => (x[abs.(x) .> value].= 0)
         "abs <" => (x[abs.(x) .<value].= 0)
+        "abs =" => (x[abs.(x) .==value].= 0)
     end
     return x
 end

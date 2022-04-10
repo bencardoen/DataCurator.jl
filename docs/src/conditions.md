@@ -48,7 +48,8 @@ read_float
 These operations fall into 3 categories:
 - Increase dimension, e.g. 10 2D images to 1 3D
 - Decrease/reduce dimension, e.g. 10 2D images to 1 2D, or 1 3D to 1 2D
-- Change voxels, but not dimension, e.g. mask, filter, ...
+- Keep dimension, but change voxels, but not dimension, e.g. mask, filter, ...
+- Keep dimension, but reduce size: image slicing
 ##### N to N+1 dimension:
 ```
 stack_images
@@ -75,10 +76,47 @@ reduce_image + maximum, minimum, median, mean + dim : 1-N
 ["reduce_image" ,["maximum", 2]]
 ```
 ##### N to N
-The image dimensions stay the same, but the voxels are modified
-```
+The image dimensions stays the same, but the voxels are modified
+
+###### Transform image
+```toml
 mask
+laplacian
+gaussian, sigma
+image_opening
+image_closing
+erode_image
+dilate_image
 ```
+
+###### Image thresholding
+```toml
+threshold_image, operator, value
+otsu_threshold_image
+```
+where operator can be any of "<", ">", "=", "abs operator"
+
+For example
+```toml
+"threshold_image", "abs >", 0.2
+```
+Sets all voxels where the magnitude (unsigned) > 0.2 to 0.
+
+`otsu_threshold` computes the threshold automatically.
+
+###### Resize/slice
+```
+slice_image, dimension, slice
+slice_image, dimension, slice_from, slice_to
+slice_image, [dimensions], [slices]
+```
+For example
+```toml
+"slice_image", [1,3], [[200,210],[1,200]]
+```
+
+!!! warning Julia indexing starts at 1, not 0
+
 #### Table operations
 ##### Aggregation
 ```toml
