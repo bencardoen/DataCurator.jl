@@ -1,0 +1,2 @@
+/home/mszsl5/DataCurator.jl/test/testdir/1.csv
+/home/mszsl5/DataCurator.jl/test/testdir/2.csv

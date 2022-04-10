@@ -896,9 +896,8 @@ function execute_dataframe_function(df::DataFrame, command::AbstractString, colu
     end
     # if command == "extract"
     # BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
-    # BV = reduce(.&, (buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
-
-    BV = fix1p5((buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
+    fx = (x, y) -> x .& y
+    BV = reduce( fx , (buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
     sel = _df[BV, :]
     @debug "Remainder selection is"
     @debug sel
