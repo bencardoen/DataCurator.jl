@@ -21,6 +21,23 @@ using DataFrames
         Q.adder("1")
     end
 
+    @testset "testslicing" begin
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        A  = zeros(30,30,30)
+        Images.save(joinpath(IN, "ABC_1.tif"), A)
+        res = create_template_from_toml(joinpath("..","example_recipes","image_roi.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+
+        @test isfile(joinpath(IN, "ABC_1.tif"))
+        a = Images.load(joinpath(IN, "abc_1.tif"))
+        @test size(a) == (6, 30, 4)
+        delete_folder(IN)
+    end
+
     @testset "pipelineops" begin
         IN="testdir"
         delete_folder(IN)

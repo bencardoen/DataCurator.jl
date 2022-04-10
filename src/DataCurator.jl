@@ -247,7 +247,7 @@ end
 
 
 function load_content(x::AbstractString)
-    @debug "Trying to load content for $x"
+    @info "Trying to load content for $x"
     ex = splitext(x)[2]
     if ex ∈ [".tif", ".png"]
         return Images.load(x)
@@ -260,10 +260,12 @@ function load_content(x::AbstractString)
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Colorant}
+    @info "Saving image to $sink"
     Images.save(sink, ct)
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:AbstractFloat}
+    @info "Saving image to $sink"
     save_content(Images.N0f16.(ct), sink)
 end
 
@@ -301,9 +303,10 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
         return
     end
     tmp = tmpcopy(file)
+    @info "Copying $file to $tmp"
     path, fname = splitdir(file)
     newname = joinpath(path, nametransform(fname))
-    @debug "Transforming $file with $path + $fname to $newname"
+    @info "Transforming $file with $path + $fname to $newname"
     oldcontent = load_content(file)
     newcontent = contenttransform(oldcontent)
     save_content(newcontent, tmp)
@@ -320,9 +323,9 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
         end
     end
     # save_content(newcontent, tmp)
-    @debug "Transform $file -> $newname complete"
+    @info "Transform $file -> $newname complete"
     mode(file, tmp, newname)
-    @debug "File IO complete for $file -> $newname"
+    @info "File IO complete for $file -> $newname"
 end
 
 """
