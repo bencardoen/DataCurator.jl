@@ -114,8 +114,14 @@ For example
 ```toml
 "slice_image", [1,3], [[200,210],[1,200]]
 ```
+which is equivalent to
+```julia
+img[200:210,:,1:200]
+```
 
-!!! warning Julia indexing starts at 1, not 0
+!!! warning Indexing
+    Julia indices into array, image, tables, start at **1**, not 0. This is similar to Matlab, but unlike C/Python.
+    Dimension=1 refers to the X-axis, and so forth.
 
 #### Table operations
 ##### Aggregation
