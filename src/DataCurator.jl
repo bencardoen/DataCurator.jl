@@ -247,7 +247,7 @@ end
 
 
 function load_content(x::AbstractString)
-    @info "Trying to load content for $x"
+    @debug "Trying to load content for $x"
     ex = splitext(x)[2]
     if ex ∈ [".tif", ".png"]
         return Images.load(x)
@@ -260,12 +260,12 @@ function load_content(x::AbstractString)
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Colorant}
-    @info "Saving image to $sink"
+    @debug "Saving image to $sink"
     Images.save(sink, ct)
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:AbstractFloat}
-    @info "Saving image to $sink"
+    @debug "Saving image to $sink"
     save_content(Images.N0f16.(ct), sink)
 end
 
@@ -303,10 +303,10 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
         return
     end
     tmp = tmpcopy(file)
-    @info "Copying $file to $tmp"
+    @debug "Copying $file to $tmp"
     path, fname = splitdir(file)
     newname = joinpath(path, nametransform(fname))
-    @info "Transforming $file with $path + $fname to $newname"
+    @debug "Transforming $file with $path + $fname to $newname"
     oldcontent = load_content(file)
     newcontent = contenttransform(oldcontent)
     save_content(newcontent, tmp)
@@ -323,9 +323,9 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
         end
     end
     # save_content(newcontent, tmp)
-    @info "Transform $file -> $newname complete"
+    @debug "Transform $file -> $newname complete"
     mode(file, tmp, newname)
-    @info "File IO complete for $file -> $newname"
+    @debug "File IO complete for $file -> $newname"
 end
 
 """
@@ -1798,7 +1798,7 @@ end
 function handle_common_actions(config, default)
     entry = config["common_actions"]
     for name in keys(entry)
-        @info "Found $name with $(entry[name])"
+        @debug "Found $name with $(entry[name])"
         fun_desc = entry[name]
         fs = decode_function(fun_desc, default, condition=false)
         if isnothing(fs)
@@ -1814,7 +1814,7 @@ end
 function handle_common_conditions(config, default)
     entry = config["common_conditions"]
     for name in keys(entry)
-        @info "Found $name with $(entry[name])"
+        @debug "Found $name with $(entry[name])"
         fun_desc = entry[name]
         fs = decode_function(fun_desc, default, condition=true)
         if isnothing(fs)
