@@ -7,5 +7,3 @@ inputdirectory = "testdir"
 [any]
 conditions=["is_tif_file"]
 actions=[{name_transform=["tolowercase"], content_transform=[["reduce_image", ["maximum", 2]], "mask"], mode="copy"}]
-# Full syntax
-# {name_transform=[entry+], content_transform=[entry+], mode={copy, move, inplace}}

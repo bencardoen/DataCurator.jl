@@ -31,7 +31,7 @@ export topdown, bottomup, expand_filesystem, stack_images_by_prefix, visit_files
 verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
-any_of, whitespace_to, has_whitespace, is_lower, is_upper, write_file, stack_images, list_to_image, normalize_linear,
+any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_file, stack_images, list_to_image, normalize_linear,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, decode_filelist,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault,
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
@@ -1246,6 +1246,65 @@ end
 
 function load_table(x::DataFrame)
     return x
+end
+
+function slice_image(img::Array, dim, m::T, M::T) where {T<:Integer}
+    check_slice(img, dim, m, M)
+    return @match dim begin
+        1 => slicex(img, m, M)
+        2 => slicey(img, m, M)
+        3 => slicez(img, m, M)
+    end
+end
+
+function slice_image(img::Array, dim, m::T) where {T<:Integer}
+    check_slice(img, dim, m, m)
+    return @match dim begin
+        1 => slicex(img, m, m)
+        2 => slicey(img, m, m)
+        3 => slicez(img, m, m)
+    end
+end
+
+function slicex(img::Array{<:Images.Colorant, 3}, m::T, M::T) where {T<:Integer}
+    return img[m:M, :, :]
+end
+
+function slicex(img::Array{<:Images.Colorant, 2}, m::T, M::T) where {T<:Integer}
+    return img[m:M, :]
+end
+
+function slicey(img::Array{<:Images.Colorant, 3}, m::T, M::T) where {T<:Integer}
+    return img[:, m:M, :]
+end
+
+function slicey(img::Array{<:Images.Colorant, 2}, m::T, M::T) where {T<:Integer}
+    return img[:,m:M]
+end
+
+function slicez(img::Array{<:Images.Colorant, 3}, m::T, M::T) where {T<:Integer}
+    return img[:,:,m:M]
+end
+
+function slice_image(img, dims::AbstractVector, slices::AbstractVector)
+    @info "Slicing image with size $(size(img)) along $dims with indices $slices"
+    for (d, sl) in zip(dims, slices)
+        img = slice_image(img, d, sl...)
+    end
+    return img
+end
+
+function check_slice(img, d, m, M)
+    SZ = size(img)
+    if 1 <= d <= length(SZ)
+        if 1 <= m <= M
+            if M<=SZ[d]
+                return true
+            end
+        end
+    end
+    throw(ArgumentError("Invalid slice index for image with size $(SZ) , $d, $m, $M"))
+    return false
 end
 
 function shared_list_to_table(list, name::AbstractString)
