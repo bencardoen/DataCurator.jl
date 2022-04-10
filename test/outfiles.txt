@@ -1,2 +1,0 @@
-outpath/1.csv
-outpath/2.csv
