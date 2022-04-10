@@ -28,7 +28,7 @@ using HDF5
 using MAT
 
 export topdown, bottomup, expand_filesystem, stack_images_by_prefix, visit_filesystem, verifier, transformer, logical_and,
-verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of,
+verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
 any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_file, stack_images, list_to_image, normalize_linear,
@@ -875,6 +875,15 @@ function remove_pattern(x::AbstractString, ptrn::AbstractString)
     return replace_pattern(x, ptrn, "")
 end
 
+# Workaround for 1.5, turns out to be faster than original
+function fix1p5(xs::T) where {T<:BitVector}
+    return all.(xs)
+end
+
+function fix1p5(xs)
+    return all.(xs|>collect)
+end
+
 function execute_dataframe_function(df::DataFrame, command::AbstractString, columns::AbstractVector, operators::AbstractVector, values::AbstractVector)
     _df = copy(df)
     cols = names(df)
@@ -887,7 +896,9 @@ function execute_dataframe_function(df::DataFrame, command::AbstractString, colu
     end
     # if command == "extract"
     # BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
-    BV = reduce(.&, (buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
+    # BV = reduce(.&, (buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
+
+    BV = fix1p5((buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
     sel = _df[BV, :]
     @debug "Remainder selection is"
     @debug sel
@@ -1298,6 +1309,61 @@ function slice_image(img, dims::AbstractVector, slices::AbstractVector)
     end
     return img
 end
+
+
+function size_dim(img, d::T) where {T<:Integer}
+    SZ = size(img)
+    if 1 <= d <= length(SZ)
+        return SZ[d]
+    end
+    return -1
+end
+
+function size_image(x, dim::T, op::AbstractString, lim::T) where {T<:Integer}
+    v = size_dim(x, dim)
+    if v == -1
+        return false
+    end
+    @info "Dim $dim lim $lim"
+    @match op begin
+        ">" => v > lim
+        "<" => v < lim
+        "=" => v == lim
+        ">=" => v >= lim
+        "<=" => v <= lim
+        _ => throw(ArgumentError("Invalid dimensions $dim $op $lim"))
+    end
+end
+
+function size_image(x, dim::T, op::AbstractString, lim::AbstractVector{T}) where {T<:Integer}
+    v = size_dim(x, dim)
+    if v == -1
+        return false
+    end
+    @match op begin
+        "between" =>  lim[1] < v < lim[2]
+        "in" => v ∈ lim
+        _ => throw(ArgumentError("Invalid dimensions $dim $op $lim"))
+    end
+end
+
+
+function size_image(x::AbstractString, triples::AbstractVector{<:AbstractVector})
+    return size_image(load_content(x), triples)
+end
+
+function size_image(x::Array, triples::AbstractVector{<:AbstractVector})
+    for (d, op, lims) in triples
+        @info "Checking $d for $op $lims"
+        v=size_image(x, d, op, lims)
+        if v == false
+            return false
+        end
+    end
+    return true
+end
+
+
 
 function check_slice(img, d, m, M)
     SZ = size(img)

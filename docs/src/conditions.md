@@ -246,6 +246,17 @@ is_8bit_img
 is_16bit_img
 ```
 
+##### Checking image dimensions
+Either to verify correct data layout, or when you're going to slice images, it's handy to be able to check dimensions
+```toml
+size_image, [[dimension, operator, limit(s)],..]
+```
+Example:
+```toml
+"size_image", [[1, ">", 4], [2, ">", 4], [3, "between", [1, 1000]]
+```
+Operators: >, <, =, >=, <=, between, in
+
 #### Table specific
 Table refers here to tabular data contained in CSV files, loading into Julia DataFrames. In short, if it has columns and rows, in a csv, it's a table.
 
