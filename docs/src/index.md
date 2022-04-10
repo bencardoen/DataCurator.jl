@@ -48,7 +48,7 @@ actions = [["flatten_to", "outdir"]]
 
 
 #### A more complex example
-In [full_api.toml](example_recipes/full_api.toml) you can see an example of how you can specify an entire image processing pipeline with a simple `recipe`
+In [full_api.toml](../../example_recipes/full_api.toml) you can see an example of how you can specify an entire image processing pipeline with a simple `recipe`.
 ```toml
 ...
 actions=[
