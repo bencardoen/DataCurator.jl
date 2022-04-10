@@ -45,3 +45,25 @@ actions = [["flatten_to", "outdir"]]
 ```bash
 ./DataCurator.sif -r myrecipe.toml
 ```
+
+
+#### A more complex example
+In [full_api.toml](example_recipes/full_api.toml) you can see an example of how you can specify an entire image processing pipeline with a simple `recipe`
+```toml
+...
+actions=[
+        {name_transform=["tolowercase"],
+        content_transform=[
+                        ["slice_image", [1,2],[[20,50],[20,50]]],
+                        ["gaussian", 3],
+                        "laplacian",
+                        ["threshold_image", "abs <", 0.01],
+                        ["apply_to_image", ["abs"]],
+                        ["apply_to_image", ["log"]]
+                        "otsu_threshold_image",
+                        "erode_image"
+                        ],
+                        mode="copy"}
+        ]
+...
+```

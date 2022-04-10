@@ -11,9 +11,11 @@ common_actions = {react=[["all", "show_warning", ["log_to_file", "errors.txt"], 
 common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]]}
 [any]
 conditions=["is_csv_file", "is_tif_file"]
+## An example image processing pipeline
 actions=[
-                ["add_to_file_list", "table"],
-                {name_transform=["tolowercase"], content_transform=[
+        ["add_to_file_list", "table"],
+        {name_transform=["tolowercase"],
+        content_transform=[
                         ["slice_image", [1,2],[[20,50],[20,50]]],
                         ["gaussian", 3],
                         "laplacian",
@@ -21,9 +23,9 @@ actions=[
                         ["apply_to_image", ["abs"]],
                         "otsu_threshold_image",
                         "erode_image"
-                        ], mode="copy"}
+                        ],
+                        mode="copy"}
         ]
-#actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]
 [level_1]
 conditions = ["isdir"]
 actions = ["show_warning"]
