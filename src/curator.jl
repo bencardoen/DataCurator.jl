@@ -32,7 +32,11 @@ function parse_commandline()
             arg_type = String
             required = true
         "--verbose"
-            help = "If set, in --decon mode use channel normalization after background removal."
+            help = "Set logging level to Debug (default Info)"
+            action = :store_true
+            default = false
+        "--quiet"
+            help = "Set logging level to warn only, e.g. only when things go wrong."
             action = :store_true
             default = false
         "--update"
@@ -85,6 +89,10 @@ function runme()
     v = parsed_args["verbose"]
     if v
         defl = Logging.Debug
+    end
+    q = parsed_args["quiet"]
+    if q
+        defl = Logging.Warn
     end
     date_format = "yyyy-mm-dd HH:MM:SS"
     timestamp_logger(logger) = TransformerLogger(logger) do log

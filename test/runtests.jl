@@ -720,11 +720,6 @@ using DataFrames
         global_logger(NullLogger())
         s = decode_symbol("warn_on_fail", Dict())
         @test ~isnothing(s)
-        # Behavior changed to exception
-        # try
-        #     s = decode_symbol("abc", Dict())
-        # catch
-        # @test isnothing(s)
     end
 
     @testset "sc" begin

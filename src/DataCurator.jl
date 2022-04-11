@@ -1305,7 +1305,7 @@ function slicez(img::Array{<:Images.Colorant, 3}, m::T, M::T) where {T<:Integer}
 end
 
 function slice_image(img, dims::AbstractVector, slices::AbstractVector)
-    @info "Slicing image with size $(size(img)) along $dims with indices $slices"
+    @debug "Slicing image with size $(size(img)) along $dims with indices $slices"
     for (d, sl) in zip(dims, slices)
         img = slice_image(img, d, sl...)
     end
