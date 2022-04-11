@@ -312,12 +312,12 @@ function transform_wrapper(file::AbstractString, nametransform, contenttransform
     save_content(newcontent, tmp)
     if newname == file
         if mode == mode_copy
-            @warn "Name is left intact, but copy (not mv) is set, overriding to save new content"
+            # @warn "Name is left intact, but copy (not mv) is set, overriding to save new content"
             if oldcontent == newcontent
                 @warn "Filename nor content changed, noop"
                 return
             else
-                @warn "Changing mode from $mode to mode_inplace"
+                @debug "Name not changed, but you specified copy, changing mode from $mode to mode_inplace"
                 mode=mode_inplace
             end
         end
@@ -1323,7 +1323,7 @@ function size_image(x, dim::T, op::AbstractString, lim::T) where {T<:Integer}
     if v == -1
         return false
     end
-    @info "Dim $dim lim $lim"
+    @debug "Dim $dim lim $lim"
     @match op begin
         ">" => v > lim
         "<" => v < lim
@@ -1353,7 +1353,7 @@ end
 
 function size_image(x::Array, triples::AbstractVector{<:AbstractVector})
     for (d, op, lims) in triples
-        @info "Checking $d for $op $lims"
+        @debug "Checking $d for $op $lims"
         v=size_image(x, d, op, lims)
         if v == false
             return false
@@ -1557,7 +1557,11 @@ function create_template_from_toml(tomlfile)
                 @info "$k with aggregator $(FL[k].aggregator) and transformer $(FL[k].transformer)"
             end
         else
-            @info "$key --> $(glob[key])"
+            if (key == "common_actions") || (key=="common_conditions")
+                @info key
+            else
+                @info "$key --> $(glob[key])"
+            end
         end
     end
     if isnothing(glob)
