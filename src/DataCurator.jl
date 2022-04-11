@@ -454,6 +454,7 @@ function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}
         end
         return :proceed
     else
+        @debug "Condition did not fire for $node with on_success == $(on_success)"
         return :proceed
     end
 end
@@ -737,7 +738,9 @@ function lookup_common(fname::AbstractString, glob::AbstractDict, condition)
         return nothing
     end
     cc = glob[tkey]
-    @debug "Checking common $fname in global configuration"
+    @debug "Checking common $fname in global configuration, condition == $condition"
+    @debug "Total conditions: $(glob["common_conditions"])"
+    @debug "Total actions: $(glob["common_actions"])"
     if fname ∈ keys(cc)
         @debug "Found common $fname in global configuration"
         return cc[fname]
@@ -1559,6 +1562,7 @@ function create_template_from_toml(tomlfile)
         else
             if (key == "common_actions") || (key=="common_conditions")
                 @info key
+                @debug "$key --> $(glob[key])"
             else
                 @info "$key --> $(glob[key])"
             end
@@ -1685,13 +1689,17 @@ function decode_level(level_config, globalconfig)
     coas = []
     if haskey(level_config, "counter_actions")
         counteractions = level_config["counter_actions"]
-        @warn "Enabling Counter Action mode"
+        @debug "Enabling Counter Action mode"
         if (length(actions) != length(conditions)) || (length(actions) != length(conditions))
-            if all_mode ==false
+            if all_mode == false
                 @error "Action and conditions do not align, this is accepted only when all=true"
+                @error "Actions: $actions"
+                @error "Conditions: $conditions"
                 return nothing
             end
         end
+        @debug "Counteractions with glob common actions"
+        @debug "$(globalconfig["common_actions"])"
         lvl = to_level(parse_all(actions,globalconfig;condition=false) , parse_all(conditions,globalconfig;condition=true) , parse_all(counteractions,globalconfig;condition=false) ;all=all_mode)
         @debug "decode level successful"
         return lvl
@@ -1750,6 +1758,7 @@ is_lower = x -> ~has_upper(x)
 is_upper = x -> ~has_lower(x)
 has_whitespace = x -> ~isnothing(match(r"[\s,\t]", x))
 show_warning = x -> @warn x
+show_warn_with_message = (x, y) -> @warn "$x :: $y"
 warn_on_fail = x -> show_warning(x)
 halt = x -> begin @info "Triggered early exit for $x"; return :quit; end
 quit = x -> return :quit
@@ -1851,9 +1860,13 @@ function validate_global(config)
         end
     end
     if haskey(glob_config, "common_actions")
+        @info "Handling common actions"
+        @debug glob_config
         handle_common_actions(glob_config, glob_defaults)
     end
     if haskey(glob_config, "common_conditions")
+        @info "Handling common conditions"
+        @debug glob_config
         handle_common_conditions(glob_config, glob_defaults)
     end
     if haskey(glob_config, "outputdirectory")
@@ -1883,14 +1896,14 @@ end
 function handle_common_conditions(config, default)
     entry = config["common_conditions"]
     for name in keys(entry)
-        @debug "Found $name with $(entry[name])"
+        @debug "Found common condition with $name with $(entry[name])"
         fun_desc = entry[name]
         fs = decode_function(fun_desc, default, condition=true)
         if isnothing(fs)
-            @warn "Invalid common action $fun_desc for $name"
+            @warn "Invalid common condition $fun_desc for $name"
         else
-            @info "Created common action for $name"
-            default["common_actions"][name]=fs
+            @info "Created common condition for $name"
+            default["common_conditions"][name]=fs
         end
     end
 end
@@ -1905,6 +1918,7 @@ function lookup(sym)
             return getfield(Main, Symbol(sym))
         catch
             @error "No such symbol $sym"
+            throw(ArgumentError("Invalid symbol $sym"))
             return nothing
         end
     end
@@ -2507,16 +2521,16 @@ end
 
 
 function all_of(fs, x)
-    return all(f(x) for f in fs)
-    # @debug "Applying all of $fs to $x"
-    # for f in fs
-    #     if f(x) == false
-    #         @debug "Condition in sequence failed"
-    #         return false
-    #     end
-    # end
-    # @debug "All passed"
-    # return true
+    # return all(f(x) for f in fs)
+    @debug "Checking all of $fs to $x"
+    for f in fs
+        if f(x) == false
+            @debug "Condition $f in sequence failed for $x"
+            return false
+        end
+    end
+    @debug "All passed"
+    return true
 end
 
 function any_of(x, fs)

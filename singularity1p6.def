@@ -70,7 +70,7 @@ From: fedora:35
 
 %help
     This is a container to offer DataCurator without altering the local user environment, for testing purposes.
-    Usage (interactively):
+    Usage (interactively)
     singularity shell DataCurator.sif
     Singularity> julia --project=/opt/DataCurator.jl
     or
