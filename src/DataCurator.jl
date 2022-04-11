@@ -1633,6 +1633,7 @@ function parse_acsym(a, glob; condition=false)
 end
 
 function parse_all(acs, glob; condition=false)
+    @debug "Parsing all $acs with condition $condition"
     return [parse_acsym(ac, glob; condition=condition) for ac in acs]
 end
 
@@ -1710,7 +1711,7 @@ function decode_level(level_config, globalconfig)
                 return nothing
             end
         end
-        lvl = to_level(parse_all(actions, globalconfig) , parse_all(conditions, globalconfig) ;all=all_mode)
+        lvl = to_level(parse_all(actions, globalconfig;condition=false) , parse_all(conditions, globalconfig;condition=true) ;all=all_mode)
         @debug "Decode level success"
         return lvl
     end
