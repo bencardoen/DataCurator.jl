@@ -1,8 +1,9 @@
 
 [global]
 act_on_success=true
-file_lists = ["infiles", "outfiles"]
+file_lists = ["table","channel", "objects"]
 inputdirectory = "testdir"
 [any]
-conditions = ["is_tif_file"]
-actions=[["add_to_file_list", ["infiles", "outfiles"]]]
+conditions = ["is_csv_file","is_tif_file"]
+actions=[["->", "table"],
+         ["->", ["channel", "objects"]]]

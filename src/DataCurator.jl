@@ -1261,7 +1261,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
         @debug "Chained transform detected"
         return handle_chained(f, glob; condition=condition)
     end
-	if fname ∈ ["add_to_file_list", "aggregate", "aggregate_to", "->"]
+	if fname ∈ ["add_to_file_list", "aggregate", "aggregate_to", "->", "-->", "=>"]
 		# @warn "Found add to file list for $f"
         @debug "Resolving file_list with key(s) $f"
 		if length(f) != 2
@@ -1332,6 +1332,7 @@ function _lookup_filelist(name, glob)
         end
     end
     @error "failed decoding filelists"
+	throw(ArgumentError("Failed decoding filelist with key $name"))
     return nothing
 end
 
