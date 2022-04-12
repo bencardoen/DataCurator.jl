@@ -5,35 +5,33 @@ act_on_success=true
 hierarchical=true
 parallel=true
 regex=true
-file_lists = [{name="table", transformer=["extract_columns", ["x1"]], aggregator="concat_to_table"},{name="objects", aggregator=[["describe_objects","concat_to_table"]]},{name="channels", aggregator=[["describe_image","concat_to_table"]]}]
+file_lists = [  {name="table", transformer=["extract_columns", ["x1"]], aggregator="concat_to_table"},
+                {name="object", aggregator=[["describe_objects","concat_to_table"]]},
+                {name="channel", aggregator=[["describe_image","concat_to_table"]]}]
+
 inputdirectory = "testdir"
 outputdirectory = "outputdir"
+
 common_actions = {react=[["all", "show_warning", ["log_to_file", "errors.txt"], "remove"]]}
 common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]]}
+
 [any]
 conditions=["is_csv_file", "is_tif_file", "is_tif_file"]
 actions=[["->", "table"],
-         ["->", ["channel", "objects"]],
+         ["->", ["channel", "object"]],
          {name_transform=["tolowercase"], content_transform=[
-                        ["slice_image", [1,2],[[20,50],[20,50]]],
-                        ["gaussian", 3],
-                         "laplacian",
-                        ["threshold_image", "abs >", 0.01],
+                        # ["slice_image", [1,3],[[10,25],[10,25]]],
+                        # ["gaussian", 1],
+                         # "laplacian",
+                        ["threshold_image", "abs >", 0.001],
                         ["apply_to_image", ["abs"]],
-                         "otsu_threshold_image",
-                         "erode_image"
+                         # "otsu_threshold_image",
+                         # "erode_image"
                         ], mode="copy"}
        ]
 [level_1]
-conditions = ["isdir"]
-actions = ["show_warning"]
+conditions = ["is_csv_file"]
+actions=[["->", "table"]]
 [level_2]
-conditions = ["isfile"]
-actions = ["show_warning"]
-[level_3]
-conditions=["is_tif_file"]
+conditions = ["is_3d_channel"]
 actions=[{name_transform=["tolowercase"], content_transform=[["reduce_image", ["maximum", 2]], "mask"], mode="copy"}]
-[level_4]
-all=true
-conditions=["is_3d_channel"]
-actions=["react"]

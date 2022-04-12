@@ -75,8 +75,8 @@ using DataFrames
     @testset "saved_actions" begin
         IN="testdir"
         delete_folder(IN)
-        remove("outfiles.txt")
-        remove("infiles.txt")
+        remove("channel.txt")
+        remove("table.txt")
         mkdir(IN)
         A  = zeros(30,30,30)
         Images.save(joinpath(IN, "ABC_1.tif"), A)
@@ -85,12 +85,12 @@ using DataFrames
         c, t = res
         cts, cls, rv = delegate(c, t)
         delete_folder("outputdir")
-        @test isfile("outfiles.txt")
-        @test isfile("infiles.txt")
-        @test length(readlines("outfiles.txt")) ==2
-        @test length(readlines("infiles.txt")) ==2
-        remove("outfiles.txt")
-        remove("infiles.txt")
+        @test isfile("table.txt")
+        @test isfile("channel.txt")
+        @test length(readlines("table.txt")) ==0
+        @test length(readlines("channel.txt")) ==2
+        remove("table.txt")
+        remove("channel.txt")
     end
 
     @testset "loadsavecontent" begin

@@ -181,7 +181,7 @@ end
     Gaussian blur with σ
 """
 function gaussian(img, sigma::Int)
-    return ImageFiltering.imfilter(img, ImageFiltering.Kernel.gaussian(sigma));
+    return ImageFiltering.imfilter(img, ImageFiltering.Kernel.gaussian([sigma for _ in 1:length(size(img))]));
 end
 
 """
