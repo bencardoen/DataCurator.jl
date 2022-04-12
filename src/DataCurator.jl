@@ -42,7 +42,7 @@ validate_global, decode_level, decode_function, tolowercase, handlecounters!, ha
 halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, gaussian, laplacian,
-less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, add_path_to_file_list, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
+less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
 remove_from_to, stack_list_to_image, concat_to_table, make_aggregator,
 gaussian, laplacian, dilate_image, erode_image, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
 
@@ -56,7 +56,19 @@ function has_columns_named(x::AbstractString, nms::AbstractVector{T}) where T<:A
     cn = column_names(x)
     return all(c ∈ cn for c in nms)
 end
-path_only = x -> splitdir(x)[1]
+function filepath(x::AbstractString)
+    if isdir(x)
+        @warn "Calling `filepath` on directory"
+        @warn "For directory /a/b/c this becomes /a/b"
+    end
+    return splitdir(x)[1]
+end
+
+function filepath(x::AbstractVector)
+    @debug "Vectorized filepath invoked for $x"
+    return filepath.(x)
+end
+
 remove = x -> delete_if_exists(x)
 is_hidden_file = x-> isfile(x) && startswith(basename(x), ".")
 is_hidden_dir = x-> isdir(x) && (startswith(basename(x), ".") || contains(basename(x), "__MACOSX"))
@@ -555,7 +567,6 @@ function decode_filelist(fe::AbstractVector, glob)
     end
 end
 
-
 function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     #Here check for
     # KEys name, transformer, aggregator
@@ -620,6 +631,49 @@ function decode_aggregator(ag::AbstractVector, glob::AbstractDict)
     return (list, name) -> (fs(list, name, ag[2:end]...))
 end
 
+function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractDict)
+    ## Inner vector is a chain of A -> B -> SINK
+    fs = []
+    @debug "Decoding chained aggregator $(ag)"
+    if length(ag) != 1
+        throw(ArgumentError("Invalid aggregator $ag, expecting [[A, B, C, D]] s.t. D(C(B(A)))"))
+    end
+    nested = ag[1]
+    # aggregators=[shared_list_to_file, shared_list_to_table, concat_to_table]
+    @warn "Fixme --> implement transformers $ag"
+    @warn "Fixme --> nested transformers $nested"
+    sink = nested[end]
+    transformers = nested[1:end-1]
+    chain = []
+    for candidate in transformers
+        @debug "Decoding $candidate transformer"
+        cfs = decode_function(candidate, glob; condition=false)
+        if  isnothing(cfs)
+            throw(ArgumentError)
+        end
+        push!(chain, cfs)
+    end
+    @debug "Collapsing chain"
+    functor = collapse_functions(chain; left_to_right=true)
+    @warn "Fixme --> Sink $sink"
+    fs = lookup(sink)
+    if isnothing(fs)
+        throw(ArgumentError("$sink is not valid function call"))
+    end
+    return (list, name) -> (fs(functor(flatten_list(list)), name, ag[2:end]...))
+end
+
+function flatten_list(sl)
+    @debug "Flattening list $sl"
+    ls = []
+    for s in sl
+        for _l in s
+            push!(ls, _l)
+        end
+    end
+    return ls
+end
+
 """
     wrap_transform(x::AbstractString)
 
@@ -666,6 +720,9 @@ function handlefilelists!(val, key, glob_defaults)
             @error "Failed decoding filelists"
             throw(ErrorException("invalid lists"))
         else
+            if haskey(cts, name)
+                throw(ArgumentError("Invalid file list redefinition with $name already defined as $(cts[name])"))
+            end
             name, ctuple = d
             cts[name]=ctuple
         end
@@ -1074,6 +1131,8 @@ function buildcomp(df::DataFrame, col, op::AbstractString, val)
 end
 
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
+    ## TODO
+    ## Rewrite/refactor using Match
     # @info f
     negate = false
     if f[1] == "not"
@@ -1083,6 +1142,14 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     if f[1] == "extract"
         @warn "DataFrame extraction call needed"
         return decode_dataframe_function(f, glob)
+    end
+    if f[1] == "change_path"
+        if length(f) != 2
+            throw(ArgumentError("Expecting `change_path newpath`, got $f"))
+        end
+        old = glob["inputdirectory"]
+        @debug "Change path : $old --> $(f[2])"
+        return x -> new_path(glob["inputdirectory"], x, f[2])
     end
     if typeof(f[1])<:AbstractVector
         @debug "Nested function"
@@ -1380,14 +1447,12 @@ function check_slice(img, d, m, M)
     return false
 end
 
-function shared_list_to_table(list, name::AbstractString)
+function shared_list_to_table(list::AbstractVector, name::AbstractString)
     tables = []
-    for sublist in list
-        for csv_file in sublist
-            @debug "Loading table $csv_file"
-            tb = load_table(csv_file)
-            push!(tables, tb)
-        end
+    for csv_file in list
+        @debug "Loading table $csv_file"
+        tb = load_table(csv_file)
+        push!(tables, tb)
     end
     @info "Saving total of $(length(tables)) to $name csv"
     DF = vcat(tables...)
@@ -1397,6 +1462,10 @@ function shared_list_to_table(list, name::AbstractString)
     end
     @info "Writing to $name"
     CSV.write("$name", DF)
+end
+
+function shared_list_to_table(list::AbstractVector{<:AbstractVector}, name::AbstractString)
+    shared_list_to_table(flatten_list(list), name)
 end
 
 function stack_list_to_image(list, name)
@@ -1958,7 +2027,25 @@ function add_to_file_list(x, list)
 end
 # add_to_file_list= (x, list) -> addentry!(list, x)
 
-add_path_to_file_list = (x, list) -> addentry!(list, splitdir(x)[1])
+function add_path_to_file_list(x::AbstractString, list::AbstractVector)
+    @error "Deprecated"
+    error(-1)
+    @debug "Adding path to file list"
+    @debug "$x"
+    if isfile(x)
+        path, fname = splitdir(x)
+        addentry!(list, path)
+    else
+        if isdir(x)
+            addentry!(list, x)
+        else
+            throw(ArgumentError("Trying to add $x which is neither file not dir"))
+        end
+    end
+    @debug "Added $x to $list"
+end
+
+# add_path_to_file_list = (x, list) -> addentry!(list, splitdir(x)[1])
 
 function ends_with_integer(x)
     ~isnothing(match(r"[0-9]+$", basename(x)))
@@ -2000,18 +2087,21 @@ function delete_folder(x)
     end
 end
 
-function shared_list_to_file(list, fname)
+function shared_list_to_file(list::AbstractVector{<:AbstractVector}, fname)
+    @debug "Nested list to file"
+    shared_list_to_file(flatten_list(list), fname)
+end
+
+function shared_list_to_file(list::AbstractVector, fname)
     @info "Writing $list to $fname"
     if ~endswith(fname, ".txt")
         @debug "Changing extension to .txt"
         fname="$(fname).txt"
     end
     open(fname, "w"; lock=true) do f
-        for sublist in list
-            for entry in sublist
-                @debug "Writing $entry"
-                write(f, pad(entry))
-            end
+        for entry in list
+            @debug "Writing $entry"
+            write(f, pad(entry))
         end
     end
 end
@@ -2070,6 +2160,11 @@ function new_path(root, node, newroot)
     newpath = joinpath(newroot, np[LP+1:end]...)
     mkpath(splitdir(newpath)[1])
     return newpath
+end
+
+function new_path(root, node::AbstractVector, newroot)
+    @debug "Vectorized new path called with $node $newroot"
+    return new_path.(root, node, newroot)
 end
 
 
