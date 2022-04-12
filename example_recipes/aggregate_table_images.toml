@@ -1,0 +1,15 @@
+
+[global]
+act_on_success=true
+file_lists = [{name="objects", aggregator=[["describe_objects",
+                                          "concat_to_table"]]},
+              {name="channels", aggregator=[["describe_image",
+                                          "concat_to_table"]]},
+              ]
+
+## Add d-img
+inputdirectory = "testdir"
+[any]
+all=true
+conditions = ["is_tif_file"]
+actions=[["add_to_file_list", "channels"], ["add_to_file_list", "objects"]]

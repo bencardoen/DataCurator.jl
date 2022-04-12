@@ -1,18 +1,20 @@
-
+## This example is designed to be very complex and use as many code paths as possible, so the Julia JIT compiler can record all those common paths
+## and then precompile effectively. This leads to a x8-x10 speedup.
 [global]
 act_on_success=true
 hierarchical=true
 parallel=true
 regex=true
-file_lists = [{name="table", transformer=["extract_columns", ["x1"]], aggregator="concat_to_table"}]
+file_lists = [{name="table", transformer=["extract_columns", ["x1"]], aggregator="concat_to_table"},{name="objects", aggregator=[["describe_objects","concat_to_table"]]}]
 inputdirectory = "testdir"
 outputdirectory = "outputdir"
 common_actions = {react=[["all", "show_warning", ["log_to_file", "errors.txt"], "remove"]]}
 common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]]}
 [any]
-conditions=["is_csv_file", "is_tif_file"]
+conditions=["is_csv_file", "is_tif_file", "is_tif_file"]
 actions=[
         ["add_to_file_list", "table"],
+         ["aggregate_to", "objects"],
         {name_transform=["tolowercase"], content_transform=[
                         ["slice_image", [1,2],[[20,50],[20,50]]],
                         ["gaussian", 3],
@@ -23,7 +25,6 @@ actions=[
                         "erode_image"
                         ], mode="copy"}
         ]
-#actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]
 [level_1]
 conditions = ["isdir"]
 actions = ["show_warning"]
@@ -34,5 +35,6 @@ actions = ["show_warning"]
 conditions=["is_tif_file"]
 actions=[{name_transform=["tolowercase"], content_transform=[["reduce_image", ["maximum", 2]], "mask"], mode="copy"}]
 [level_4]
+all=true
 conditions=["is_3d_channel"]
 actions=["react"]
