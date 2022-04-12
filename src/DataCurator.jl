@@ -1261,6 +1261,15 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
         @debug "Chained transform detected"
         return handle_chained(f, glob; condition=condition)
     end
+	if fname ∈ ["add_to_file_list", "aggregate", "aggregate_to", "->"]
+		# @warn "Found add to file list for $f"
+        @debug "Resolving file_list with key(s) $f"
+		if length(f) != 2
+			throw(ArgumentError("Expecting [add_to_file_list, name], or [add_to_file_list, [name,name,...]], got $f"))
+		end
+        file_adder = lookup_filelist(f[2], glob)
+        return file_adder
+    end
     fs = lookup(fname)
     if isnothing(fs)
         @error "$fname is not a valid function"
@@ -1276,11 +1285,6 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
         counting_functor = lookup_counter(f, glob)
         return counting_functor
     end
-    if (fname == "add_to_file_list") || (fname =="aggregate_to")
-        @debug "Resolving file_list $f"
-        file_adder = lookup_filelists(f, glob)
-        return file_adder
-    end
     if glob["regex"]
         if fname ∈ ["startswith", "endswith", "contains"]
             @debug "Using Regex conversion"
@@ -1294,25 +1298,33 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     else
         return functor
     end
-    # return negate ? flipfunctor(functor) : functor
 end
 
 function flipfunctor(f)
     return x -> ~f(x)
 end
 
-function lookup_filelist(tpl, glob)
-	ac, fn = tpl
-    @debug "Looking up FL on keyword $ac with name  $fn"
+function lookup_filelist(names::AbstractVector{T}, glob) where {T<:Any}
+	@debug "Syntactic sugar for 1-N file lists $names"
+	fs = [lookup_filelist(name, glob) for name in names]
+	return x->apply_all(fs, x)
+end
+
+function lookup_filelist(name::AbstractString, glob)
+	return _lookup_filelist(name, glob)
+end
+
+function _lookup_filelist(name, glob)
+    @debug "Looking up FL on keyword $name"
     if haskey(glob, "file_lists")
         @debug "Checking file list table"
         fl_table = glob["file_lists"]
         @debug "TABLE == "
         @debug fl_table
-        if haskey(fl_table, fn)
-            fl_object = fl_table[fn]
-            if fl_object.name != fn
-                @error "Table entry corrupt!!  $(fl_object.name) != fn"
+        if haskey(fl_table, name)
+            fl_object = fl_table[name]
+            if fl_object.name != name
+                @error "Table entry corrupt!!  $(fl_object.name) != $name"
             end
             # _, fl_adder = fl_object
             @debug "Success!"
@@ -1323,7 +1335,7 @@ function lookup_filelist(tpl, glob)
     return nothing
 end
 
-function lookup_filelists(tpl, glob)
+function lookup_n_lists(tpl, glob)
     ac, fn = tpl
     @debug "Looking up FL on keyword $ac with name  $fn"
     if haskey(glob, "file_lists")

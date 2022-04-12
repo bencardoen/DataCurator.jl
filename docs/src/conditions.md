@@ -22,7 +22,6 @@ log_to_file
 ignore
 sample
 size_of_file
-add_path_to_file_list
 remove
 delete_file
 delete_folder
@@ -45,8 +44,24 @@ read_prefix_float
 read_float
 ```
 
-## Aggregation
+### Aggregation
 When you use aggregation to combine files into lists, it can be helpful to transform filenames in a group, for example, ensuring only unique files are written to file, or they're sorted, rather than file traversal order.
+
+!!! note "Aggregation 101"
+    You specify in the `[global]` section, in the entry `file_list=...` what the name of a list is, and what, if any, needs to be done with the list of files, be it concatenate csvs to a table, reduce images, describe images, sort, ... . Once defined, you refer to them by name in actions.
+
+You can use the following actions
+```toml
+actions=[["add_to_file_list", "listname"]]
+# or
+actions=[["add_to_file_list", ["listname", "listname2"]]
+```
+The second allows you to add a single file to multiple aggregation lists.
+The following all do the same, but are defined to be used if they're more readable this way.
+```toml
+actions=[["aggregate_to", "listname"]]
+actions=[["->", "listname"]]
+```
 
 Example
 ```toml

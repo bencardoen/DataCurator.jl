@@ -71,6 +71,28 @@ using DataFrames
         delete_folder("outputdir")
     end
 
+
+    @testset "saved_actions" begin
+        IN="testdir"
+        delete_folder(IN)
+        remove("outfiles.txt")
+        remove("infiles.txt")
+        mkdir(IN)
+        A  = zeros(30,30,30)
+        Images.save(joinpath(IN, "ABC_1.tif"), A)
+        Images.save(joinpath(IN, "ABC_2.tif"), A)
+        res = create_template_from_toml(joinpath("..","example_recipes","aggregate_syn_api.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        delete_folder("outputdir")
+        @test isfile("outfiles.txt")
+        @test isfile("infiles.txt")
+        @test length(readlines("outfiles.txt")) ==2
+        @test length(readlines("infiles.txt")) ==2
+        remove("outfiles.txt")
+        remove("infiles.txt")
+    end
+
     @testset "loadsavecontent" begin
         c = global_logger()
         global_logger(NullLogger())
