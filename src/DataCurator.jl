@@ -1301,6 +1301,28 @@ function flipfunctor(f)
     return x -> ~f(x)
 end
 
+function lookup_filelist(tpl, glob)
+	ac, fn = tpl
+    @debug "Looking up FL on keyword $ac with name  $fn"
+    if haskey(glob, "file_lists")
+        @debug "Checking file list table"
+        fl_table = glob["file_lists"]
+        @debug "TABLE == "
+        @debug fl_table
+        if haskey(fl_table, fn)
+            fl_object = fl_table[fn]
+            if fl_object.name != fn
+                @error "Table entry corrupt!!  $(fl_object.name) != fn"
+            end
+            # _, fl_adder = fl_object
+            @debug "Success!"
+            return fl_object.adder
+        end
+    end
+    @error "failed decoding filelists"
+    return nothing
+end
+
 function lookup_filelists(tpl, glob)
     ac, fn = tpl
     @debug "Looking up FL on keyword $ac with name  $fn"
@@ -2092,6 +2114,11 @@ end
 
 ## Fixme to use AG objects
 function add_to_file_list(x, list)
+    @debug "adding $x to $list"
+    addentry!(list, x)
+end
+
+function aggregate_to(x, list)
     @debug "adding $x to $list"
     addentry!(list, x)
 end

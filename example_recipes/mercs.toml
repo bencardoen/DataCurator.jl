@@ -1,28 +1,24 @@
-## A recipe for a dataset of mito/er 3D volumes
-## Root
-### Replicate (number)
-#### Condition/celltype
-##### Series XYZ (cell nr)
-###### ...1.tif (3D)
-###### ...2.tif (3D)
-
-
-## We want to
-## Check the structure is valid
-## Remove anything invalid
-## What is left, compile into input and output lists for batch processing
-
 [global]
-act_on_success=false
+# act_on_success=false
 inputdirectory = "/tmp/testdataset"
 hierarchical=true
-parallel=false
+# parallel=false
+regex=true
 common_actions = {do_on_invalid=[["all", "show_warning", ["log_to_file", "errors.txt"]]]}
 common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]], dir_only=[["all", "isdir", ["not", "is_hidden"]]]}
-file_lists=["inlist", ["outlist", "/tmp/output"]]
-regex=true
+file_lists=[{name="in", aggregator=[["filepath",
+                                          "sort",
+                                          "unique",
+                                          "shared_list_to_file"]]},
+              {name="out", aggregator=[[["change_path", "/tmp/output"],
+                                         "filepath","sort","unique",
+                                         "shared_list_to_file"]]}
+              {name="objects", aggregator=[["describe_objects",
+                                          "concat_to_table"]]},
+              {name="channels", aggregator=[["describe_image",
+                                          "concat_to_table"]]},
+              ]
 [any]
-# Whatever is not defined below, e.g. too deep of a level --> fail and delete
 all=true
 conditions=["never"]
 actions=["do_on_invalid"]
@@ -49,4 +45,4 @@ actions=["do_on_invalid"]
 [level_5]
 conditions=["is_3d_channel"]
 actions=["do_on_invalid"]
-counter_actions=[["add_path_to_file_list", "inlist"], ["add_path_to_file_list", "outlist"]]
+counter_actions=[["add_to_file_list", "inlist"], ["add_to_file_list", "outlist"], ["add_to_file_list", "objects"], ["add_to_file_list", "channels"]]

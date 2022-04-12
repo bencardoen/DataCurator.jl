@@ -14,7 +14,7 @@ common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filenam
 conditions=["is_csv_file", "is_tif_file", "is_tif_file"]
 actions=[
         ["add_to_file_list", "table"],
-         ["aggregate_to", "objects"],
+         ["add_to_file_list", "objects"],
         {name_transform=["tolowercase"], content_transform=[
                         ["slice_image", [1,2],[[20,50],[20,50]]],
                         ["gaussian", 3],
