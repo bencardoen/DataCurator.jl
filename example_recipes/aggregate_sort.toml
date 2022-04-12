@@ -1,0 +1,18 @@
+
+[global]
+act_on_success=true
+file_lists = [{name="table", aggregator=[["filepath",
+                                          "sort",
+                                          "unique",
+                                          "shared_list_to_file"]]},
+              {name="out", aggregator=[[["change_path", "/tmp/output"],
+                                         "filepath",
+                                         "sort",
+                                         "unique",
+                                         "shared_list_to_file"]]}
+              ]
+inputdirectory = "testdir"
+[any]
+all=true
+conditions = ["is_csv_file"]
+actions=[["add_to_file_list", "table"], ["add_to_file_list", "out"]]

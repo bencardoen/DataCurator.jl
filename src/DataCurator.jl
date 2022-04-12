@@ -720,10 +720,10 @@ function handlefilelists!(val, key, glob_defaults)
             @error "Failed decoding filelists"
             throw(ErrorException("invalid lists"))
         else
+            name, ctuple = d
             if haskey(cts, name)
                 throw(ArgumentError("Invalid file list redefinition with $name already defined as $(cts[name])"))
             end
-            name, ctuple = d
             cts[name]=ctuple
         end
     end
@@ -2085,6 +2085,10 @@ function delete_folder(x)
     if isdir(x)
         rm(x; force=true, recursive=true)
     end
+end
+
+function list_to_file(x, f)
+    return shared_list_to_file(x, f)
 end
 
 function shared_list_to_file(list::AbstractVector{<:AbstractVector}, fname)

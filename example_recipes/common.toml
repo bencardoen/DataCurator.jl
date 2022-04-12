@@ -1,0 +1,12 @@
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+outputdirectory = "outputdir"
+# common_actions = {react=[["all", "show_warning", ["log_to_file", "errors.txt"], "remove"]]}
+# common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]]}
+common_actions = {do_on_invalid=[["all", "show_warning", ["log_to_file", "errors.txt"]]]}
+common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]], dir_only=[["all", "isdir", ["not", "is_hidden"]]]}
+[any]
+all=true
+conditions=["is_3d_channel", "dir_only"]
+actions=["do_on_invalid"]

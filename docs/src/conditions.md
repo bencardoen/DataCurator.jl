@@ -27,6 +27,7 @@ remove
 delete_file
 delete_folder
 path_only
+filepath
 show_warning
 log_to_file_with_message
 remove_from_to                    usage: ["remove_from_to", "from_pattern", "to_pattern"], see example_recipes/remove_pattern.toml
@@ -43,6 +44,48 @@ read_postfix_float
 read_prefix_float
 read_float
 ```
+
+## Aggregation
+When you use aggregation to combine files into lists, it can be helpful to transform filenames in a group, for example, ensuring only unique files are written to file, or they're sorted, rather than file traversal order.
+
+Example
+```toml
+[global]
+act_on_success=true
+file_lists = [{name="table", aggregator=[["filepath",
+                                          "sort",
+                                          "unique",
+                                          "shared_list_to_file"]]},
+              {name="out", aggregator=[[["change_path", "/tmp/output"],
+                                         "filepath",
+                                         "sort",
+                                         "unique",
+                                         "shared_list_to_file"]]}
+              ]
+inputdirectory = "testdir"
+[any]
+all=true
+conditions = ["is_csv_file"]
+actions=[["add_to_file_list", "table"], ["add_to_file_list", "out"]]
+```
+This example collects all csv files, records only the path, not the file name, and creates 2 lists, in input/output pairs.
+For example for files:
+```toml
+/a/b/c/1.csv
+/a/b/c/2.csv
+```
+You will get two files:
+```toml
+#table.txt
+/a/b/c  # The sorted unique path to 1, 2.csv
+```
+and
+```toml
+#out.txt
+/tmp/output/a/b/c  # The sorted unique path to 1, 2.csv linked to new output directory
+```
+This can be useful when you're generating input / output lists for batch processing, where you pipeline expects to see a directory with csv files, and wants to write output to an equivalent location starting at a different path. (e.g. SLURM array jobs)
+
 ### Content:
 #### Image operations
 These operations fall into 3 categories:

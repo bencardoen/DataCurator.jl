@@ -32,11 +32,11 @@ function parse_commandline()
             arg_type = String
             required = true
         "--verbose"
-            help = "Set logging level to Debug (default Info)"
+            help = "Set logging level to Debug (default Info). Only useful for debugging purposes, for large datasets this can produce huge output."
             action = :store_true
             default = false
         "--quiet"
-            help = "Set logging level to warn only, e.g. only when things go wrong."
+            help = "Set logging level to warn only, e.g. only when things go wrong. You won't be informed if your template or validation succeeded."
             action = :store_true
             default = false
         "--update"

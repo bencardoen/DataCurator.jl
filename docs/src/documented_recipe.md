@@ -120,7 +120,7 @@ Aggregation is a complex word for use cases like:
 - combining 2D images into 1 3D image
 - combining 2D images, sorted by prefix (e.g. 'abc_1.tif', 'abc_2.tif', 'cde_1.tif', 'cde_2.tif' -> abc.tif, cde.tif)
 - selecting specific columns from each csv you find, and fusing all in 1 table
-- ...
+- finding files that match a pattern, sort them, find only unique ones, and then save them in a file or table
 
 You can do any of these all at the same time with `counters` and `file_lists` in the global section:
 
@@ -132,7 +132,7 @@ Here we created 2 counters, one that is incremented whenever you refer to it, an
 When the program finishes, these counters are printed.
 
 
-##### Files to process
+##### File aggregation
 The simplest kind just adds a file each time you refer to it, and writes them out in traversal order (per thread if parallel) at the end to "infiles.txt"
 ```toml
 file_lists = ["infiles"]
@@ -143,6 +143,28 @@ file_lists = ["infiles", ["outfiles", "outputpath"]]
 ```
 Let's say we add a file "a/b/c.txt" to infiles, when we add it to outfiles it will be recorded as: "/outputpath/a/b/c.txt"
 This is a common use case in preparing large batch scripts on SLURM clusters.
+
+What if we want to collect files or paths, but instead of collecting them in order of traversal (discovery), we want to sort them first, and only keep the path, not the filenames.
+```
+file_lists = [{name="mylist", aggregator=[["filepath",
+                                          "sort",
+                                          "unique",
+                                          "list_to_file"]]},
+```
+So the following
+```toml
+/a/b/1/1.csv
+/a/b/1/2.csv
+/a/b/2/1.csv
+/a/b/2/2.csv
+/a/b/2.csv
+```
+would be written as a `mylist.txt` containing
+```toml
+/a/b/1
+/a/b/2
+/a/b
+```
 
 ##### Image aggregation
 ###### Stacking 2D images
