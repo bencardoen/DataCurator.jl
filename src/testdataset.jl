@@ -2,7 +2,7 @@ using Images
 using Random
 Random.seed!(52)
 root = joinpath(tempdir(), randstring(20))
-root="/tmp/testdataset"
+root="/dev/shm/tmpdata"
 mkpath(root)
 series = 2
 conditions = 2

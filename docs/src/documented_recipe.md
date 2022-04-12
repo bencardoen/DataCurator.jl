@@ -241,6 +241,9 @@ You do not need counter_actions.
     ```
     This is useful if you want to check for multiple things, but each can be quite complex. In other words, you want pairs of condition-action, so all=false, yet each pair is a complex rule.
 
+!!! tip "Aliases"
+    `add_to_file_list` is aliased to `aggregate_to`, use whichever makes more sense in reading the recipe.
+
 #### Hierarchical templates, with `level_X`
 All you now need to add is what to do at level 'X'
 ```toml

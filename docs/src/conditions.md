@@ -166,6 +166,42 @@ img[200:210,:,1:200]
     Julia indices into array, image, tables, start at **1**, not 0. This is similar to Matlab, but unlike C/Python.
     Dimension=1 refers to the X-axis, and so forth.
 
+
+#### Image statistics
+To get a CSV table of statistics of the image intensity distribution you can do
+```toml
+describe_image[, axis]
+```
+Without axis 1 row per image is produced, with axis the distribution is computed along gives axis.
+Example:
+```bash
+   minimum    Q1        mean      median    Q3        maximum  std       kurtosis  axis   source  slice
+   Float64    Float64   Float64   Float64   Float64   Float64  Float64   Float64   Int64  String  Int64
+│  0.0156863  0.258824  0.485621  0.454902  0.730392      1.0  0.283031    6.6581      0  1.tif       1
+```
+To describe objects in an image (assuming it's thresholded or can be binarized) (3D only)
+```
+describe_objects
+```
+Example
+```
+size     weighted  minimum    Q1        mean      median    Q3        maximum  std       kurtosis  xyspan   zrange   zmidpoint  filename
+Float64  Float64   Float64    Float64   Float64   Float64   Float64   Float64  Float64   Float64   Float64  Float64  Float64    String
+216.0   104.894  0.0156863  0.258824  0.485621  0.454902  0.730392      1.0  0.283031    6.6581  8.48528      6.0       23.0    ...
+```
+You can use this in aggregation, for example, to describe all objects in all channel 1 tifs
+```toml
+[global]
+...
+file_lists = [{name="objects", aggregator=[["describe_objects",
+                                          "concat_to_table"]]},]
+...
+[any]
+all=true
+conditions = ["is_tif_file"]
+actions=[[""aggregato_to", "objects"]]
+```
+
 #### Table operations
 ##### Aggregation
 ```toml

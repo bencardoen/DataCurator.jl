@@ -43,7 +43,7 @@ halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
-remove_from_to, stack_list_to_image, concat_to_table, make_aggregator,
+remove_from_to, stack_list_to_image, concat_to_table, make_aggregator, describe_objects,
 gaussian, laplacian, dilate_image, erode_image, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
@@ -92,7 +92,18 @@ function describe_image(x::AbstractString)
     return df
 end
 
-function describe_image(x::AbstractArray)
+function describe_image(x::AbstractVector{<:Any}, axis::Int)
+	@debug "Calling vectorized describe image"
+	return describe_image.(x, axis)
+end
+
+function describe_image(x::AbstractVector{<:Any})
+	@debug "Calling vectorized describe image"
+	return describe_image.(x)
+end
+
+function describe_image(x::AbstractArray{<:Any, 3})
+	@info "Got image of type $(typeof(x))"
     ds = zeros(Float64, 1, 8)
     ds[1,:] .= dimg(x)
     # end
@@ -104,6 +115,65 @@ function describe_image(x::AbstractArray)
     df[!,:axis] .= 0
     return df
 end
+
+"""
+	For a bounding box, get the XY span (diagonal), Z range, and z center
+"""
+function getextent(box)
+    xr, yr, zr = abs.(box[1] .- box[2]) .+ 1
+    xy = sqrt(xr^2 + yr^2)
+    return xy, zr, min(box[1][3], box[2][3]) +zr/2
+end
+
+function describe_objects(img::AbstractArray{T, 3}) where {T<:Any}
+    b = copy(img)
+    b[b .> 0] .= 1
+	## Changed 3-2 connectivity
+	get_components_diag = mask -> Images.label_components(mask, length(size(mask))==2 ? trues(3,3) : trues(3,3,3))
+    coms = get_components_diag(b)
+    lengths = Images.component_lengths(coms)[2:end]
+    indices = Images.component_indices(coms)[2:end]
+    boxes = Images.component_boxes(coms)[2:end]
+    N = maximum(coms)
+    w=zeros(N, 15)
+	@debug "Processing $N components"
+	if N == 0
+		@warn "NO COMPONENTS TO PROCESS"
+		return nothing, nothing
+	end
+    for ic in 1:N
+        vals = img[indices[ic]]
+		n = length(vals)
+         # m, Q1, mx, med, Q3, M, std(ys), kurt = dimg(vals)
+		w[ic, 2] = sum(vals)
+		w[ic, 1] = n
+		w[ic,3:10] .= DataCurator.dimg(vals)
+		w[ic, 11:13] .= getextent(boxes[ic])
+		# w[ic, 11:13] = _xy, _z, _zp
+    end
+	columns = [:size, :weighted, :minimum, :Q1, :mean, :median, :Q3, :maximum, :std, :kurtosis, :xyspan, :zrange, :zmidpoint]
+    df = DataFrame()
+    for (i,c) in enumerate(columns)
+        df[!,c] = w[:,i]
+    end
+    return df
+end
+
+function save_to_table(list::AbstractVector{T}, name) where T<: DataFrame
+
+end
+
+function describe_objects(img::AbstractString)
+	df = describe_objects(load_content(img))
+	df[!,:filename].=img
+	return df
+end
+
+function describe_objects(imgs::AbstractVector)
+	@debug "Vectorized describe_objects called"
+	return describe_objects.(imgs)
+end
+
 
 """
     gaussian(img, sigma)
@@ -300,7 +370,7 @@ end
 function mode_inplace(old::AbstractString, tmp::AbstractString, new::AbstractString)
     @debug "Mode inplace with:$old $tmp $new"
     if old!=new
-        @warn "Chaning in place and changing the name is not meaningful --> mode_move"
+        @warn "Changing in place and changing the name is not meaningful --> mode_move"
         mode_move(old, tmp, new)
     else
         mv(tmp, old, force=true)
@@ -640,8 +710,8 @@ function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractD
     end
     nested = ag[1]
     # aggregators=[shared_list_to_file, shared_list_to_table, concat_to_table]
-    @warn "Fixme --> implement transformers $ag"
-    @warn "Fixme --> nested transformers $nested"
+    # @warn "Fixme --> implement transformers $ag"
+    @debug "$ag --> nested transformers $nested"
     sink = nested[end]
     transformers = nested[1:end-1]
     chain = []
@@ -655,7 +725,7 @@ function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractD
     end
     @debug "Collapsing chain"
     functor = collapse_functions(chain; left_to_right=true)
-    @warn "Fixme --> Sink $sink"
+    @debug "Fixme --> Sink $sink"
     fs = lookup(sink)
     if isnothing(fs)
         throw(ArgumentError("$sink is not valid function call"))
@@ -1206,7 +1276,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
         counting_functor = lookup_counter(f, glob)
         return counting_functor
     end
-    if fname == "add_to_file_list"
+    if (fname == "add_to_file_list") || (fname =="aggregate_to")
         @debug "Resolving file_list $f"
         file_adder = lookup_filelists(f, glob)
         return file_adder
