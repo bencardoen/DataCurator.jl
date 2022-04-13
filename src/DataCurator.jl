@@ -24,6 +24,7 @@ using ImageFiltering
 using ImageMorphology
 using Statistics
 import TOML
+using ProgressMeter
 using HDF5
 using MAT
 
@@ -48,7 +49,12 @@ gaussian, laplacian, dilate_image, erode_image, invert, opening_image, closing_i
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
-column_names = x -> names(CSV.read(x, DataFrame))
+# column_names = x -> names(CSV.read(x, DataFrame))
+
+function column_names(x::T) where{T<:AbstractString}
+	return names(CSV.read(x, DataFrame))
+end
+
 has_n_columns = (x, k) -> length(column_names(x)) == k
 has_less_than_n_columns = (x, k) -> length(column_names(x)) < k
 has_more_than_or_n_columns = (x, k) -> length(column_names(x)) >= k
@@ -76,7 +82,7 @@ is_hidden = x -> is_hidden_file(x) || is_hidden_dir(x)
 not_hidden = x -> ~is_hidden(x)
 
 function describe_image(x::AbstractString, axis::Int)
-    @info "Describe: loading $x with $axis"
+    @debug "Describe: loading $x with $axis"
     img = load_content(x)
     df = describe_image(img, axis)
     df[!,:source].=basename(x)
@@ -84,7 +90,7 @@ function describe_image(x::AbstractString, axis::Int)
 end
 
 function describe_image(x::AbstractString)
-    @info "Describe: loading $x"
+    @debug "Describe: loading $x"
     img = load_content(x)
     df = describe_image(img)
     df[!,:source].=basename(x)
@@ -94,16 +100,32 @@ end
 
 function describe_image(x::AbstractVector{<:Any}, axis::Int)
 	@debug "Calling vectorized describe image"
-	return describe_image.(x, axis)
+	N = length(x)
+	p = ProgressMeter.Progress(N)
+	r=[DataFrame() for _ in 1:N]
+	@threads for i in 1:N
+		r[i] = describe_image(x[i], axis)
+		next!(p)
+	end
+	return r
+	# return describe_image.(x, axis)
 end
 
 function describe_image(x::AbstractVector{<:Any})
 	@debug "Calling vectorized describe image"
-	return describe_image.(x)
+	N = length(x)
+	r=[DataFrame() for _ in 1:N]
+	p = ProgressMeter.Progress(N)
+	@threads for i in 1:N
+		r[i] = describe_image(x[i])
+        next!(p)
+	end
+	return r
+	# return describe_image.(x)
 end
 
 function describe_image(x::AbstractArray{<:Any, 3})
-	@info "Got image of type $(typeof(x))"
+	@debug "Got image of type $(typeof(x))"
     ds = zeros(Float64, 1, 8)
     ds[1,:] .= dimg(x)
     # end
@@ -200,9 +222,6 @@ function describe_objects(img::AbstractArray{T, 3}) where {T<:Any}
     return df
 end
 
-function save_to_table(list::AbstractVector{T}, name) where T<: DataFrame
-
-end
 
 function describe_objects(img::AbstractString)
 	df = describe_objects(load_content(img))
@@ -210,9 +229,18 @@ function describe_objects(img::AbstractString)
 	return df
 end
 
-function describe_objects(imgs::AbstractVector)
-	@debug "Vectorized describe_objects called"
-	return describe_objects.(imgs)
+function describe_objects(x::AbstractVector)
+	@debug "Calling vectorized describe objects"
+	N = length(x)
+	p = ProgressMeter.Progress(N)
+	r=[DataFrame() for _ in 1:N]
+	@threads for i in 1:N
+		r[i] = describe_objects(x[i])
+		next!(p)
+	end
+	return r
+	# @debug "Vectorized describe_objects called"
+	# return describe_objects.(imgs)
 end
 
 
@@ -251,12 +279,6 @@ end
 
 function closing_image(img)
     return erode_image(dilate_image(img))
-end
-
-### TODO
-### Slice/ROI/Range
-function select_from_image(image, selection)
-    error(-1)
 end
 
 
@@ -2248,7 +2270,7 @@ function shared_list_to_file(list::AbstractVector{<:AbstractVector}, fname)
 end
 
 function shared_list_to_file(list::AbstractVector, fname)
-    @info "Writing $list to $fname"
+    @info "Writing $(length(list)) entries to $fname"
     if ~endswith(fname, ".txt")
         @debug "Changing extension to .txt"
         fname="$(fname).txt"
@@ -2705,7 +2727,7 @@ function aggregator_add(nt::NamedTuple{(:name, :list, :adder, :aggregator, :tran
 end
 
 function aggregator_aggregate(nt::NamedTuple{(:name, :list, :adder, :aggregator, :transformer), Tuple{Any, Any, Any, Any, Any}})
-    @info "Executing aggregator for $(nt.name)"
+    @info "Executing aggregator named: $(nt.name)"
     nt.aggregator(nt.list, nt.name)
 end
 
