@@ -6,7 +6,7 @@ root="/tmp/testdataset"
 mkpath(root)
 series = 5
 conditions = 2
-channels = 2
+channels = 3
 replicates = 3
 imsize = (200, 200, 40)
 Random.seed!(42)
