@@ -125,6 +125,47 @@ function getextent(box)
     return xy, zr, min(box[1][3], box[2][3]) +zr/2
 end
 
+function getextent2(box)
+    xr, yr = abs.(box[1] .- box[2]) .+ 1
+    xy = sqrt(xr^2 + yr^2)
+    return xy
+end
+
+
+function describe_objects(img::AbstractArray{T, 2}) where {T<:Any}
+	b = copy(img)
+    b[b .> 0] .= 1
+	## Changed 3-2 connectivity
+	get_components_diag = mask -> Images.label_components(mask, length(size(mask))==2 ? trues(3,3) : trues(3,3,3))
+    coms = get_components_diag(b)
+    lengths = Images.component_lengths(coms)[2:end]
+    indices = Images.component_indices(coms)[2:end]
+    boxes = Images.component_boxes(coms)[2:end]
+    N = maximum(coms)
+    w=zeros(N, 11)
+	@debug "Processing $N components"
+	if N == 0
+		@warn "NO COMPONENTS TO PROCESS"
+		return nothing, nothing
+	end
+    for ic in 1:N
+        vals = img[indices[ic]]
+		n = length(vals)
+         # m, Q1, mx, med, Q3, M, std(ys), kurt = dimg(vals)
+		w[ic, 2] = sum(vals)
+		w[ic, 1] = n
+		w[ic,3:10] .= DataCurator.dimg(vals)
+		w[ic, 11] .= getextent2(boxes[ic])
+		# w[ic, 11:13] = _xy, _z, _zp
+    end
+	columns = [:size, :weighted, :minimum, :Q1, :mean, :median, :Q3, :maximum, :std, :kurtosis, :xyspan]
+    df = DataFrame()
+    for (i,c) in enumerate(columns)
+        df[!,c] = w[:,i]
+    end
+    return df
+end
+
 function describe_objects(img::AbstractArray{T, 3}) where {T<:Any}
     b = copy(img)
     b[b .> 0] .= 1
