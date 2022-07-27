@@ -373,6 +373,11 @@ function describe_image(x::AbstractArray, axis::Int64)
 end
 
 
+"""
+	dimg(x)
+
+	Describes the image argument as a collapsed Float64 array and returns the statistical moments.
+"""
 function dimg(x)
     ys = Float64.(x[:])
     if iszero(ys)
@@ -391,6 +396,12 @@ function dimg(x)
 end
 
 
+
+"""
+	load_content(filename)
+
+	Tries to access common formats of content, currently supports tif/png/csv/txt
+"""
 function load_content(x::AbstractString)
     @debug "Trying to load content for $x"
     ex = splitext(x)[2]
@@ -572,6 +583,11 @@ function mask(q::T) where {T<:AbstractArray}
     return mask(N0f16.(q))
 end
 
+"""
+	reduce_image(image, operator, dimensions)
+
+	Apply a reduction (for example maximum projection) along the specified dimension, e.g. 3 for Z.
+"""
 function reduce_image(img, op::AbstractString, dims::Int64)
     fs = lookup(op)
     if isnothing(fs)
@@ -588,6 +604,13 @@ function reduce_image(img, op::AbstractString, dims::Int64)
     Images.save(fname, X)
 end
 
+"""
+	doset(node, tuple, on_success)
+
+	Visitor function, evaluates if(tuple[1](node) -> tuple[2]
+
+	Dispatched by type for the condition-action or condition-action-counteraction
+"""
 function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}, on_success::Bool)
     @debug "Do-step for 2-tuple c/a for $node on_success=$(on_success)"
     if t.condition(node) == on_success
@@ -604,6 +627,12 @@ function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}
     end
 end
 
+
+"""
+	doset(node, tuple, on_success)
+
+	Visitor function, evaluates if(tuple[1](node) -> tuple[2] else -> tuple[3]
+"""
 function dostep(node::Any, t::NamedTuple{(:condition, :action, :counteraction), Tuple{Any, Any, Any}}, on_success::Bool)
     if t.condition(node) == on_success
         @debug "Condition fired for $node with on_success == $(on_success)"
@@ -645,6 +674,12 @@ function read_counter(ct)
 end
 
 
+"""
+	handlecounters!(entries, key, global_dict)
+
+	Decodes user specified counters (file size, count, etc)
+	Stores the result in global_dict
+"""
 function handlecounters!(val, key, glob_defaults)
     counter_entries = val
     cts = Dict()
