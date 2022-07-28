@@ -1,0 +1,64 @@
+BootStrap: docker
+From: fedora:35
+
+%files
+    Sperwer.jl.zip /opt/Sperwer.jl.zip
+
+%post
+    ## Get the tools we'll need
+    dnf install -y wget unzip python3 g++
+    dnf groupinstall -y 'Development Tools'
+
+    ## Setup Julia
+    export JLMJV=1.7
+    export JLV=$JLMJV.1
+    export JULIA_TGZ=julia-$JLV-linux-x86_64.tar.gz
+    mkdir -p /opt/julia && cd /opt/julia
+    wget https://julialang-s3.julialang.org/bin/linux/x64/$JLMJV/$JULIA_TGZ && tar -xf $JULIA_TGZ && rm $JULIA_TGZ
+    export PATH=/opt/julia/julia-$JLV/bin:$PATH
+    export JULIA_DEPOT_PATH=/opt/juliadepot
+    mkdir -p $JULIA_DEPOT_PATH
+
+    ## Setup local package
+    export PKGNAME="DataCurator"
+    cd /opt && unzip $PKGNAME.jl.zip
+    export LOCALPKG=/opt/$PKGNAME.jl
+    cd $LOCALPKG
+    julia --project=$LOCALPKG -e 'using Pkg; Pkg.update(); ENV["PYTHON"]=""; Pkg.build(); Pkg.instantiate()'
+    julia --project=$LOCALPKG -e 'using DataCurator'
+    echo "Setting up precompile"
+    julia --project=$LOCALPKG --trace-compile=dc_precompile.jl src/precompile.jl
+    julia --project=$LOCALPKG src/setupimage.jl
+    rm -rf /opt/juliadepot/logs
+    ln -s /dev/shm/ /opt/juliadepot/logs
+
+    ## Cleanup
+    dnf remove -y wget unzip
+
+%environment
+    export LC_ALL=C
+    export LOCALPKG=/opt/DataCurator.jl
+    export JLMJV=1.7
+    export JLV=$JLMJV.1
+    export PATH=/opt/julia/julia-$JLV/bin:$PATH
+    export JULIA_DEPOT_PATH=/opt/juliadepot
+
+%runscript
+    echo "Container was created $NOW"
+    echo "Arguments received: $*"
+    echo pwd
+    exec echo "$@"
+
+%labels
+    Author Ben Cardoen, bcardoen@sfu.ca
+    Version v0.0.1
+
+%help
+    This is a container to offer DataCurator without altering the local user environment, for testing purposes.
+    Usage (interactively):
+    singularity shell image.sif
+    Singularity> julia --project=/opt/DataCurator.jl
+    or
+    singularity exec image.sif julia --project=/opt/DataCurator.jl <yourcode>
+    or for fastest execution
+    singularity exec image.sif julia --project=/opt/DataCurator.jl --sysimage=/opt/DataCurator.jl/sys_img.so <yourcode.jl>

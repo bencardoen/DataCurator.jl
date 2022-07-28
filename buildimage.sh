@@ -34,4 +34,4 @@ echo "Done"
 cd $CUR
 
 echo "Building Singularity image"
-sudo singularity build --force image.sif singularity1p6.def
+sudo singularity build --force image.sif singular
