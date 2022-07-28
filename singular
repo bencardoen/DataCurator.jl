@@ -2,7 +2,7 @@ BootStrap: docker
 From: fedora:35
 
 %files
-    Sperwer.jl.zip /opt/Sperwer.jl.zip
+    DataCurator.jl.zip /opt/DataCurator.jl.zip
 
 %post
     ## Get the tools we'll need
