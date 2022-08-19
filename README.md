@@ -14,6 +14,10 @@ DataCurator is a Swiss army knife that ensures:
 
 ![Concept](whatami.png)
 
+## Tests
+
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/bencardoen/DataCurator.jl/tree/main.svg?style=svg&circle-token=fd1f85a0afddb5f49ddc7a7252aad2a1ddaf80f9)](https://dl.circleci.com/status-badge/redirect/gh/bencardoen/DataCurator.jl/tree/main)
+
 
 ## Documentation [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://bencardoen.github.io/DataCurator.jl/stable)
 After cloning / downloading, please open [docs/build/index.html](docs/build/index.html) with a browser.
