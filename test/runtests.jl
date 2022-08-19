@@ -649,6 +649,7 @@ using DataFrames
     end
 
     @testset "example_csv" begin
+        print(pwd())
         c = global_logger()
         global_logger(NullLogger())
         IN = "testdir"
