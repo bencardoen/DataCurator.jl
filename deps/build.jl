@@ -16,12 +16,9 @@ using PyCall
 using Conda
 ## Add the two packages we need
 Conda.add("gcc=12.1.0"; channel="conda-forge")
-# Conda.add("kneed"; channel="conda-forge")
 Conda.add("scikit-image")
 # Pin this version, to avoid clashes with libgcc.34
 Conda.add("scipy=1.8.0")
 
-## Make sure they're available (and at the same time, precompile the calls, this can save ~ 5 sec on first call, we have that time at build)
-PyCall.pyimport("kneed");
 PyCall.pyimport("skimage");
 @info "Success!"
