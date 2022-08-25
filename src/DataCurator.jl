@@ -1302,10 +1302,16 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     ## TODO
     ## Rewrite/refactor using Match
     # @info f
-    negate = false
-    if f[1] == "not"
-        @debug "Negate switched on"
-        negate=true
+	# f1 = f[1]
+	# negate = false
+	# @match f1 begin
+	# 	"not" =>
+	# end
+    negate=false
+	if f[1] == "not"
+		negate = true
+        f = f[2:end]
+        @debug "Negate so function is $f"
     end
     if f[1] == "extract"
         @warn "DataFrame extraction call needed"
@@ -1350,10 +1356,10 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
         @error "$f is not a valid function, too few arguments"
         return nothing
     end
-    if negate
-        f = f[2:end]
-        @debug "Negate so function is $f"
-    end
+    # if negate
+    #     f = f[2:end]
+    #     @debug "Negate so function is $f"
+    # end
     fname = f[1]
     if startswith(fname, "transform_")
         @debug "Chained transform detected"
