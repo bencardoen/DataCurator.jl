@@ -1298,6 +1298,20 @@ function buildcomp(df::DataFrame, col, op::AbstractString, val)
     end
 end
 
+function _handle_cp(glob, f)
+	if length(f) != 2
+            throw(ArgumentError("Expecting `change_path newpath`, got $f"))
+    end
+    old = glob["inputdirectory"]
+    @debug "Change path : $old --> $(f[2])"
+    return x -> new_path(glob["inputdirectory"], x, f[2])
+end
+
+function _handle_extract(glob, f)
+	@warn "DataFrame extraction call needed"
+    return decode_dataframe_function(f, glob)
+end
+
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     ## TODO
     ## Rewrite/refactor using Match
@@ -1308,23 +1322,33 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
 	# 	"not" =>
 	# end
     negate=false
-	if f[1] == "not"
-		negate = true
-        f = f[2:end]
-        @debug "Negate so function is $f"
-    end
-    if f[1] == "extract"
-        @warn "DataFrame extraction call needed"
-        return decode_dataframe_function(f, glob)
-    end
-    if f[1] == "change_path"
-        if length(f) != 2
-            throw(ArgumentError("Expecting `change_path newpath`, got $f"))
-        end
-        old = glob["inputdirectory"]
-        @debug "Change path : $old --> $(f[2])"
-        return x -> new_path(glob["inputdirectory"], x, f[2])
-    end
+
+	f1 = f[1]
+	# # negate = f1=="not"
+	# if f1 == "not"
+	# 	negate = true
+    #     f = f[2:end]
+    #     @debug "Negate so function is $f"
+    # end
+	@match f1 begin
+		"extract" => return _handle_extract(glob, f)
+		"change_path" => return _handle_cp(glob, f)
+		"not" => begin negate=true; f=f[2:end]; @debug "Negate on"; end
+	end
+    # if f[1] == "extract"
+    #     # @warn "DataFrame extraction call needed"
+    #     # return decode_dataframe_function(f, glob)
+	# 	return _handle_extract(glob, f)
+    # end
+    # if f[1] == "change_path"
+	# 	return _handle_cp(glob, f)
+    #     # if length(f) != 2
+    #     #     throw(ArgumentError("Expecting `change_path newpath`, got $f"))
+    #     # end
+    #     # old = glob["inputdirectory"]
+    #     # @debug "Change path : $old --> $(f[2])"
+    #     # return x -> new_path(glob["inputdirectory"], x, f[2])
+    # end
     if typeof(f[1])<:AbstractVector
         @debug "Nested function"
         if f[1][1] == "all"
