@@ -1312,43 +1312,25 @@ function _handle_extract(glob, f)
     return decode_dataframe_function(f, glob)
 end
 
-function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
-    ## TODO
-    ## Rewrite/refactor using Match
-    # @info f
-	# f1 = f[1]
-	# negate = false
-	# @match f1 begin
-	# 	"not" =>
-	# end
-    negate=false
+function _handle_all(glob, f)
+	@debug "Nested actions"
+    rem = f[2:end]
+    _fs = [decode_function(_f, glob; condition=condition) for _f in rem]
+    @debug fs
+    throw(ArgumentError("Work in progress"))
+    # return x->apply_all(decode_symbol(f))
+    return x->apply_all(_fs, x)
+end
 
+function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
+    negate=false
 	f1 = f[1]
-	# # negate = f1=="not"
-	# if f1 == "not"
-	# 	negate = true
-    #     f = f[2:end]
-    #     @debug "Negate so function is $f"
-    # end
 	@match f1 begin
 		"extract" => return _handle_extract(glob, f)
 		"change_path" => return _handle_cp(glob, f)
 		"not" => begin negate=true; f=f[2:end]; @debug "Negate on"; end
+		"all" => return _handle_all(glob, f)
 	end
-    # if f[1] == "extract"
-    #     # @warn "DataFrame extraction call needed"
-    #     # return decode_dataframe_function(f, glob)
-	# 	return _handle_extract(glob, f)
-    # end
-    # if f[1] == "change_path"
-	# 	return _handle_cp(glob, f)
-    #     # if length(f) != 2
-    #     #     throw(ArgumentError("Expecting `change_path newpath`, got $f"))
-    #     # end
-    #     # old = glob["inputdirectory"]
-    #     # @debug "Change path : $old --> $(f[2])"
-    #     # return x -> new_path(glob["inputdirectory"], x, f[2])
-    # end
     if typeof(f[1])<:AbstractVector
         @debug "Nested function"
         if f[1][1] == "all"
@@ -1366,24 +1348,10 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
             throw(ArgumentError("$f"))
         end
     end
-    if f[1] == "all"
-        @debug "Nested actions"
-        rem = f[2:end]
-        _fs = [decode_function(_f, glob; condition=condition) for _f in rem]
-        @debug fs
-        throw(ArgumentError("Work in progress"))
-        # return x->apply_all(decode_symbol(f))
-        return x->apply_all(_fs, x)
-    end
-    # minlength = negate ? 3 : 2
     if length(f) < 2
         @error "$f is not a valid function, too few arguments"
         return nothing
     end
-    # if negate
-    #     f = f[2:end]
-    #     @debug "Negate so function is $f"
-    # end
     fname = f[1]
     if startswith(fname, "transform_")
         @debug "Chained transform detected"
