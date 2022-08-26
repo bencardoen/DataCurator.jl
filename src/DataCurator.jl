@@ -1322,6 +1322,24 @@ function _handle_all(glob, f)
     return x->apply_all(_fs, x)
 end
 
+function _handle_nested(glob, f, condition)
+	@debug "Nested function"
+    if f[1][1] == "all"
+        rem_f = f[1][2:end]
+        subfs = [decode_function(_f, glob; condition=condition) for _f in rem_f]
+        if condition
+            @debug "Nested condition"
+            return x->all_of(subfs, x)
+        else
+            @debug "Nested action"
+            return x->apply_all(subfs, x)
+        end
+    else
+        @error "$f is not valid nested function"
+        throw(ArgumentError("$f"))
+    end
+end
+
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     negate=false
 	f1 = f[1]
@@ -1330,29 +1348,31 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
 		"change_path" => return _handle_cp(glob, f)
 		"not" => begin negate=true; f=f[2:end]; @debug "Negate on"; end
 		"all" => return _handle_all(glob, f)
+		f1::AbstractVector => return _handle_nested(glob, f, condition)#error("Trigger")
 	end
-    if typeof(f[1])<:AbstractVector
-        @debug "Nested function"
-        if f[1][1] == "all"
-            rem_f = f[1][2:end]
-            subfs = [decode_function(_f, glob; condition=condition) for _f in rem_f]
-            if condition
-                @debug "Nested condition"
-                return x->all_of(subfs, x)
-            else
-                @debug "Nested action"
-                return x->apply_all(subfs, x)
-            end
-        else
-            @error "$f is not valid nested function"
-            throw(ArgumentError("$f"))
-        end
-    end
+    # if typeof(f[1])<:AbstractVector
+	# 	return _handle_nested(glob, f, condition)
+    #     # @debug "Nested function"
+    #     # if f[1][1] == "all"
+    #     #     rem_f = f[1][2:end]
+    #     #     subfs = [decode_function(_f, glob; condition=condition) for _f in rem_f]
+    #     #     if condition
+    #     #         @debug "Nested condition"
+    #     #         return x->all_of(subfs, x)
+    #     #     else
+    #     #         @debug "Nested action"
+    #     #         return x->apply_all(subfs, x)
+    #     #     end
+    #     # else
+    #     #     @error "$f is not valid nested function"
+    #     #     throw(ArgumentError("$f"))
+    #     # end
+    # end
     if length(f) < 2
         @error "$f is not a valid function, too few arguments"
         return nothing
     end
-    fname = f[1]
+    fname = f1
     if startswith(fname, "transform_")
         @debug "Chained transform detected"
         return handle_chained(f, glob; condition=condition)
@@ -1366,6 +1386,8 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
         file_adder = lookup_filelist(f[2], glob)
         return file_adder
     end
+	
+	## Now we're sure it's a simple function, so find it
     fs = lookup(fname)
     if isnothing(fs)
         @error "$fname is not a valid function"
