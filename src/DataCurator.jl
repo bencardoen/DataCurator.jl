@@ -1348,35 +1348,15 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
 		"change_path" => return _handle_cp(glob, f)
 		"not" => begin negate=true; f=f[2:end]; @debug "Negate on"; end
 		"all" => return _handle_all(glob, f)
+		"count" => return lookup_counter(f, glob)
 		f1::AbstractVector => return _handle_nested(glob, f, condition)#error("Trigger")
+		f1::AbstractString, if startswith(f1, "transform_") end => return handle_chained(f, glob; condition=condition)
 	end
-    # if typeof(f[1])<:AbstractVector
-	# 	return _handle_nested(glob, f, condition)
-    #     # @debug "Nested function"
-    #     # if f[1][1] == "all"
-    #     #     rem_f = f[1][2:end]
-    #     #     subfs = [decode_function(_f, glob; condition=condition) for _f in rem_f]
-    #     #     if condition
-    #     #         @debug "Nested condition"
-    #     #         return x->all_of(subfs, x)
-    #     #     else
-    #     #         @debug "Nested action"
-    #     #         return x->apply_all(subfs, x)
-    #     #     end
-    #     # else
-    #     #     @error "$f is not valid nested function"
-    #     #     throw(ArgumentError("$f"))
-    #     # end
-    # end
     if length(f) < 2
         @error "$f is not a valid function, too few arguments"
         return nothing
     end
     fname = f1
-    if startswith(fname, "transform_")
-        @debug "Chained transform detected"
-        return handle_chained(f, glob; condition=condition)
-    end
 	if fname ∈ ["add_to_file_list", "aggregate", "aggregate_to", "->", "-->", "=>"]
 		# @warn "Found add to file list for $f"
         @debug "Resolving file_list with key(s) $f"
@@ -1386,7 +1366,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
         file_adder = lookup_filelist(f[2], glob)
         return file_adder
     end
-	
+
 	## Now we're sure it's a simple function, so find it
     fs = lookup(fname)
     if isnothing(fs)
@@ -1397,11 +1377,6 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     if fname ∈ completers
         @debug "Prefixing root directory for $fname"
         return x -> fs(x, glob["inputdirectory"], f[2:end]...)
-    end
-    if fname == "count"
-        @debug "Resolving counter $f"
-        counting_functor = lookup_counter(f, glob)
-        return counting_functor
     end
     if glob["regex"]
         if fname ∈ ["startswith", "endswith", "contains"]
