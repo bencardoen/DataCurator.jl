@@ -634,6 +634,37 @@ using DataFrames
         @test isfile(joinpath(IN, "ab_c.txt"))
     end
 
+    @testset "fileops" begin
+        mkdir(".test")
+        @test is_hidden_dir(".test")
+        rm(".test")
+        touch(".test")
+        @test is_hidden(".test")
+        rm(".test")
+    end
+
+    @testset "defdict" begin
+        key = 5
+        new = Dict()
+        def = Dict()
+        def[key] = 42
+        a = ifnotsetdefault(key, new, def)
+        @test a == 42
+        new[key] = 1
+        a = ifnotsetdefault(key, new, def)
+        @test a == 1
+    end
+
+
+    @testset "filep" begin
+        s = joinpath(pwd(), "x")
+        touch(s)
+        @test isfile(s)
+        fp = filepath(s)
+        @test fp == pwd()
+        rm(s)
+    end
+
     @testset "example_hierarchical" begin
         c = global_logger()
         global_logger(NullLogger())

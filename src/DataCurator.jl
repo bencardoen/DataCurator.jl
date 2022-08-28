@@ -29,7 +29,7 @@ using HDF5
 using MAT
 
 export topdown, bottomup, expand_filesystem, stack_images_by_prefix, visit_filesystem, verifier, transformer, logical_and,
-verify_template, always, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
+verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
 any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_file, stack_images, list_to_image, normalize_linear,
