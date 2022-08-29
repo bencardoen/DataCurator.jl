@@ -58,6 +58,17 @@ correctpath()
         @test has_columns_named("test.csv", ["x1", "x2"])
     end
 
+    @testset "dimg" begin
+        timg = zeros(100, 100, 10)
+        timg[20:25, 20:25, 5:7] .= 1
+        Images.save("t3.tif", timg)
+        Images.save("t4.tif", timg)
+        dfs=describe_image(["t3.tif", "t4.tif"])
+        @test length(dfs) == 2
+        @test dfs[1] == dfs[2]
+        @test size(dfs[1]) == (1,11)
+    end
+
 
     @testset "testslicing" begin
         correctpath()
