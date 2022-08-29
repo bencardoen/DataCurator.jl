@@ -1348,11 +1348,11 @@ end
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     negate=false
 	f1 = f[1]
-	@info "Decode function with $f"
+	@debug "Decode function with $f"
 	@match f1 begin
 		"extract" => return _handle_extract(glob, f)
 		"change_path" => return _handle_cp(glob, f)
-		"not" => begin negate=true; f=f[2:end]; @info "Negate on function list is now $f"; end
+		"not" => begin negate=true; f=f[2:end]; @debug "Negate on function list is now $f"; end
 		"all" => return _handle_all(glob, f, condition)
 		"count" => return lookup_counter(f, glob)
 		f1::AbstractVector => return _handle_nested(glob, f, condition)#error("Trigger")
@@ -1486,7 +1486,7 @@ function delegate(config, template)
         odir = config["outputdirectory"]
         mkpath(odir)
         cd(odir)
-        @info "Changed output directory from $(CWD) to $odir"
+        @debug "Changed output directory from $(CWD) to $odir"
     end
     # end
     rval =  verify_template(config["inputdirectory"], template; traversalpolicy=lookup(String(config["traversal"])), parallel_policy=parallel, act_on_success=config["act_on_success"])
@@ -1494,7 +1494,7 @@ function delegate(config, template)
     counters, lists = [], []
     for c in config["counters"]
         name, (count, counter) = c
-        @info "Counter named $name has value $count"
+        @debug "Counter named $name has value $count"
         push!(counters, read_counter(count))
     end
     for (list_name, ag) in config["file_lists"]

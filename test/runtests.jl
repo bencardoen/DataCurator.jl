@@ -6,9 +6,22 @@ using Images
 using CSV
 using DataFrames
 
+function correctpath()
+    if splitpath(pwd())[end] != "test"
+        @info "Correcting path from $(pwd()) to ..."
+        cd(joinpath(pwd(), "test"))
+        @info "$(pwd())"
+    else
+        "Path is correct"
+    end
+end
+
+correctpath()
+
 @testset "DataCurator.jl" begin
 
     @testset "aggregator_pattern" begin
+        correctpath()
         c = global_logger()
         global_logger(NullLogger())
         l = make_shared_list()
@@ -22,6 +35,7 @@ using DataFrames
     end
 
     @testset "testslicing" begin
+        correctpath()
         IN="testdir"
         delete_folder("outdir")
         delete_folder(IN)
