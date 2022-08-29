@@ -28,16 +28,16 @@ From: fedora:35
     julia --project=$LOCALPKG -e 'using DataCurator'
     echo "Setting up precompile"
     # This one runs the tests, so everything that has test coverage is optimized
-    julia --project=$LOCALPKG --trace-compile=dc_precompile.jl src/precompile.jl
+    julia --project=$LOCALPKG --trace-compile=dc_precompile.jl scripts/precompile.jl
     # Next, generate testdata so the CLI can also be profiled
-    julia --project=$LOCALPKG src/testdataset.jl
-    julia --project=$LOCALPKG --trace-compile=dc_precompile2.jl src/curator.jl -r td.toml
+    julia --project=$LOCALPKG scripts/testdataset.jl
+    julia --project=$LOCALPKG --trace-compile=dc_precompile2.jl scripts/curator.jl -r td.toml
     # Fuse precompile lists
     cat dc_precompile2.jl >> dc_precompile.jl
     # Cleanup
     rm -rf /tmp/testdataset
     # Compute precompile
-    julia --project=$LOCALPKG src/setupimage.jl
+    julia --project=$LOCALPKG scripts/setupimage.jl
     rm -rf /opt/juliadepot/logs
     ln -s /dev/shm/ /opt/juliadepot/logs
 
