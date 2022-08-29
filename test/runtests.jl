@@ -34,6 +34,31 @@ correctpath()
         Q.adder("1")
     end
 
+    @testset "testbits" begin
+        correctpath()
+        Images.save("test8.tif", Images.N08f.(zeros(10,10)))
+        @test is_8bit_img("test8.tif")
+        Images.save("test8.tif", Images.N016f.(zeros(10,10)))
+        @test is_16bit_img("test8.tif")
+    end
+
+    @testset "any" begin
+        fs = [isodd, iseven]
+        @test any_of(1, fs)
+        @test any_of(1, [iseven]) == false
+    end
+
+
+    @testset "testcols" begin
+        d = DataFrame(zeros(3,3), :auto)
+        CSV.write("test.csv", d)
+        @test has_n_columns("test.csv", 3)
+        @test has_less_than_n_columns("test.csv", 5)
+        @test column_names("test.csv") != []
+        @test has_columns_named("test.csv", ["x1", "x2"])
+    end
+
+
     @testset "testslicing" begin
         correctpath()
         IN="testdir"
@@ -676,6 +701,8 @@ correctpath()
         @test isfile(s)
         fp = filepath(s)
         @test fp == pwd()
+        fp = filepath([s])
+        @test fp[1] == pwd()
         rm(s)
     end
 

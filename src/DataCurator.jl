@@ -47,8 +47,8 @@ less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, des
 remove_from_to, stack_list_to_image, concat_to_table, make_aggregator, describe_objects,
 gaussian, laplacian, dilate_image, erode_image, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
 
-is_8bit_img = x -> eltype(Images.load(x)) <: Gray{N0f8}
-is_16bit_img = x -> eltype(Images.load(x)) <: Gray{N0f16}
+is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
+is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
 # column_names = x -> names(CSV.read(x, DataFrame))
 
 function column_names(x::T) where{T<:AbstractString}
@@ -2697,11 +2697,6 @@ function add_img_to_mat_as(imgfile, name, mfile)
 	write(file, name, Float64.(i))
 	close(file)
 end
-
-function toalpha(x)
-
-end
-
 
 function add_to_mat(fname, name, mfile)
 	if is_img(fname)
