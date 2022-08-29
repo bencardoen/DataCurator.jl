@@ -42,7 +42,7 @@ read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatt
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
 halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
-remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, gaussian, laplacian,
+remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
 remove_from_to, stack_list_to_image, concat_to_table, make_aggregator, describe_objects,
 gaussian, laplacian, dilate_image, erode_image, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
@@ -80,6 +80,7 @@ is_hidden_file = x-> isfile(x) && startswith(basename(x), ".")
 is_hidden_dir = x-> isdir(x) && (startswith(basename(x), ".") || contains(basename(x), "__MACOSX"))
 is_hidden = x -> is_hidden_file(x) || is_hidden_dir(x)
 not_hidden = x -> ~is_hidden(x)
+is_dir = x -> isdir(x)
 
 function describe_image(x::AbstractString, axis::Int)
     @debug "Describe: loading $x with $axis"
@@ -1312,18 +1313,22 @@ function _handle_extract(glob, f)
     return decode_dataframe_function(f, glob)
 end
 
-function _handle_all(glob, f)
-	@debug "Nested actions"
+function _handle_all(glob, f, condition)
+	@debug "Nested function with $f $f"
     rem = f[2:end]
     _fs = [decode_function(_f, glob; condition=condition) for _f in rem]
-    @debug fs
-    throw(ArgumentError("Work in progress"))
-    # return x->apply_all(decode_symbol(f))
-    return x->apply_all(_fs, x)
+    @debug _fs
+	if condition
+        @debug "Nested condition"
+        return x->all_of(_fs, x)
+    else
+        @debug "Nested action"
+        return x->apply_all(_fs, x)
+    end
 end
 
 function _handle_nested(glob, f, condition)
-	@debug "Nested function"
+	@debug "Nested function with $f"
     if f[1][1] == "all"
         rem_f = f[1][2:end]
         subfs = [decode_function(_f, glob; condition=condition) for _f in rem_f]
@@ -1343,20 +1348,17 @@ end
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     negate=false
 	f1 = f[1]
+	@info "Decode function with $f"
 	@match f1 begin
 		"extract" => return _handle_extract(glob, f)
 		"change_path" => return _handle_cp(glob, f)
-		"not" => begin negate=true; f=f[2:end]; @debug "Negate on"; end
-		"all" => return _handle_all(glob, f)
+		"not" => begin negate=true; f=f[2:end]; @info "Negate on function list is now $f"; end
+		"all" => return _handle_all(glob, f, condition)
 		"count" => return lookup_counter(f, glob)
 		f1::AbstractVector => return _handle_nested(glob, f, condition)#error("Trigger")
 		f1::AbstractString, if startswith(f1, "transform_") end => return handle_chained(f, glob; condition=condition)
 	end
-    if length(f) < 2
-        @error "$f is not a valid function, too few arguments"
-        return nothing
-    end
-    fname = f1
+    fname = f[1] # When negate = on, we need to reindex, so don't do fn=f1
 	if fname ∈ ["add_to_file_list", "aggregate", "aggregate_to", "->", "-->", "=>"]
 		# @warn "Found add to file list for $f"
         @debug "Resolving file_list with key(s) $f"

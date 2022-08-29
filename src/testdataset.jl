@@ -4,10 +4,10 @@ Random.seed!(52)
 # root = joinpath(tempdir(), randstring(20))
 root="/tmp/testdataset"
 mkpath(root)
-series = 5
+series = 2
 conditions = 2
-channels = 3
-replicates = 3
+channels = 2
+replicates = 2
 imsize = (200, 200, 40)
 Random.seed!(42)
 for r in 1:replicates
