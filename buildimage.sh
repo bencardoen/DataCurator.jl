@@ -34,4 +34,4 @@ echo "Done"
 cd $CUR
 
 echo "Building Singularity image"
-sudo singularity build --force image.sif singuarlity/recipe.def
+sudo singularity build --force datacurator.sif singuarlity/recipe.def
