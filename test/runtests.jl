@@ -67,6 +67,10 @@ correctpath()
         @test length(dfs) == 2
         @test dfs[1] == dfs[2]
         @test size(dfs[1]) == (1,11)
+        dfs=describe_objects(["t3.tif", "t4.tif"])
+        @test length(dfs) == 2
+        @test dfs[1] == dfs[2]
+        @test size(dfs[1]) == (1,14)
     end
 
 
