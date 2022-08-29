@@ -66,10 +66,12 @@ correctpath()
         Images.save("t4.tif", timg)
         dfs=describe_image(["t3.tif", "t4.tif"])
         @test length(dfs) == 2
-        names(dfs[1])
-        names(dfs[2])
+        # names(dfs[1])
+        # names(dfs[2])
         @test dfs[1][:, :mean] == dfs[2][:, :mean]
         @test size(dfs[1]) == (1,11)
+        dfs=describe_image(["t3.tif", "t4.tif"], 3)
+        size(dfs[1]) == (10, 11)
         dfs=describe_objects(["t3.tif", "t4.tif"])
         @test length(dfs) == 2
         # @test dfs[1] == dfs[2]
