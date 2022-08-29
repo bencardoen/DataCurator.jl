@@ -36,9 +36,9 @@ correctpath()
 
     @testset "testbits" begin
         correctpath()
-        Images.save("test8.tif", Images.N08f.(zeros(10,10)))
+        Images.save("test8.tif", Images.N0f8.(zeros(10,10)))
         @test is_8bit_img("test8.tif")
-        Images.save("test8.tif", Images.N016f.(zeros(10,10)))
+        Images.save("test8.tif", Images.N0f16.(zeros(10,10)))
         @test is_16bit_img("test8.tif")
     end
 
