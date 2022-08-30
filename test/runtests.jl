@@ -64,6 +64,10 @@ correctpath()
         timg[20:25, 20:25, 5:7] .= rand(6, 6, 3)
         Images.save("t3.tif", timg)
         Images.save("t4.tif", timg)
+        _timg = zeros(100, 100)
+        _timg[20:25, 20:25] .= 1
+        Images.save("t5.tif", _timg)
+        Images.save("t4.tif", timg)
         dfs=describe_image(["t3.tif", "t4.tif"])
         @test length(dfs) == 2
         # names(dfs[1])
@@ -73,6 +77,7 @@ correctpath()
         dfs=describe_image(["t3.tif", "t4.tif"], 3)
         size(dfs[1]) == (10, 11)
         dfs=describe_objects(["t3.tif", "t4.tif"])
+        _dfs=describe_objects(["t5.tif"])
         @test length(dfs) == 2
         # @test dfs[1] == dfs[2]
         @test size(dfs[1]) == (1,14)

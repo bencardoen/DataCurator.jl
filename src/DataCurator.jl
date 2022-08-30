@@ -178,7 +178,7 @@ function describe_objects(img::AbstractArray{T, 2}) where {T<:Any}
 		w[ic, 2] = sum(vals)
 		w[ic, 1] = n
 		w[ic,3:10] .= DataCurator.dimg(vals)
-		w[ic, 11] .= getextent2(boxes[ic])
+		w[ic, 11] = getextent2(boxes[ic])
 		# w[ic, 11:13] = _xy, _z, _zp
     end
 	columns = [:size, :weighted, :minimum, :Q1, :mean, :median, :Q3, :maximum, :std, :kurtosis, :xyspan]
