@@ -28,6 +28,8 @@ correctpath()
         @test sum(A) >= sum(B)
         B = closing_image(A)
         @test sum(A) >= sum(B)
+        X=reduce_image(A, "sum", 1)
+        @test sum(X) > 0 
     end
 
     @testset "invert" begin
