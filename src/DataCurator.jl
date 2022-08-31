@@ -2242,27 +2242,6 @@ function aggregate_to(x, list)
     @debug "adding $x to $list"
     addentry!(list, x)
 end
-# add_to_file_list= (x, list) -> addentry!(list, x)
-
-function add_path_to_file_list(x::AbstractString, list::AbstractVector)
-    @error "Deprecated"
-    error(-1)
-    @debug "Adding path to file list"
-    @debug "$x"
-    if isfile(x)
-        path, fname = splitdir(x)
-        addentry!(list, path)
-    else
-        if isdir(x)
-            addentry!(list, x)
-        else
-            throw(ArgumentError("Trying to add $x which is neither file not dir"))
-        end
-    end
-    @debug "Added $x to $list"
-end
-
-# add_path_to_file_list = (x, list) -> addentry!(list, splitdir(x)[1])
 
 function ends_with_integer(x)
     ~isnothing(match(r"[0-9]+$", basename(x)))
