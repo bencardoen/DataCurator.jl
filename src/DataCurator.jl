@@ -786,9 +786,9 @@ function decode_aggregator(name::AbstractString, glob::AbstractDict)
     return fs
 end
 
-function decode_aggregator(ag::AbstractVector, glob::AbstractDict)
+function decode_aggregator(ag::AbstractVector{<:AbstractString}, glob::AbstractDict)
     an = ag[1]
-    @debug "Decoding aggregator $(ag)"
+    @info "Decoding aggregator $(ag)"
     if length(ag) < 2
         throw(ArgumentError("Invalid aggregator $ag"))
     end
@@ -803,7 +803,7 @@ end
 function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractDict)
     ## Inner vector is a chain of A -> B -> SINK
     fs = []
-    @debug "Decoding chained aggregator $(ag)"
+    @info "Decoding chained aggregator $(ag)"
     if length(ag) != 1
         throw(ArgumentError("Invalid aggregator $ag, expecting [[A, B, C, D]] s.t. D(C(B(A)))"))
     end
