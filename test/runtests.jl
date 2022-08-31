@@ -30,13 +30,18 @@ correctpath()
         @test sum(A) >= sum(B)
         X=reduce_image(A, "sum", 1)
         @test sum(X) > 0
-        slice_image(A, 10)
         A = zeros(10, 10, 10)
         Images.save("A.tif", A)
         A = Images.load("A.tif")
         slice_image(A, 1, 1)
         slice_image(A, 2, 1)
         slice_image(A, 3, 1)
+        rm("A.tif")
+        A = zeros(10, 10)
+        Images.save("A.tif", A)
+        A = Images.load("A.tif")
+        slice_image(A, 1, 1)
+        slice_image(A, 2, 1)
         rm("A.tif")
     end
 
@@ -52,11 +57,7 @@ correctpath()
         for op in dfops
             @test ! isnothing(buildcomp(df, "x1", op, 0))
         end
-        dfops = [["not", "" ]
         df = DataFrame(zeros(10, 10), :auto)
-        for op in dfops
-            @test ! isnothing(buildcomp(df, "x1", op, 0))
-        end
         buildcomp(df, "x1", ["not", "less"], 1)
         buildcomp(df, "x1", "between", [1, 3])
     end
