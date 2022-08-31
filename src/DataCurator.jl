@@ -421,6 +421,16 @@ function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Color
     Images.save(sink, ct)
 end
 
+function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Gray}
+    @debug "Saving image to $sink"
+    Images.save(sink, ct)
+end
+
+function save_content(ct::Matrix{Images.N0f16}, sink::String)
+    @debug "Saving image to $sink"
+    Images.save(sink, ct)
+end
+
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:AbstractFloat}
     @debug "Saving image to $sink"
     save_content(Images.N0f16.(ct), sink)
@@ -594,15 +604,15 @@ function reduce_image(img, op::AbstractString, dims::Int64)
     if isnothing(fs)
         throw(ArgumentError("Not a valid function $op for reduction"))
     end
-    # res = list_to_image(list)
-    if dims < 1 || dims > length(size(res))
+    if dims < 1 || dims > length(size(img))
         throw(ArgumentError("Invalid dimension with $(size(img)) and dim = $dims"))
     end
     X = fs(img; dims=dims)
-    if ~endswith(fname, ".tif")
-        fname = "$(fname).tif"
-    end
-    Images.save(fname, X)
+	return X
+    # if ~endswith(fname, ".tif")
+    #     fname = "$(fname).tif"
+    # end
+    # Images.save(fname, X)
 end
 
 """

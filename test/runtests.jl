@@ -20,6 +20,29 @@ correctpath()
 
 @testset "DataCurator.jl" begin
 
+    @testset "imgsops" begin
+        A = zeros(100, 100)
+        A[20:50, 20:50] .= 1
+        A[2:3,2:3] .= 1
+        B = opening_image(A)
+        @test sum(A) >= sum(B)
+        B = closing_image(A)
+        @test sum(A) >= sum(B)
+    end
+
+    @testset "invert" begin
+        A = zeros(10, 10)
+        B = invert(A)
+        @test sum(B) == 100
+    end
+
+    @testset "sv" begin
+        A = Images.N0f16.(zeros(10, 10))
+        save_content(Images.N0f16.(A), "test.tif")
+        @test isfile("test.tif")
+        rm("test.tif")
+    end
+
     @testset "aggregator_pattern" begin
         correctpath()
         c = global_logger()
