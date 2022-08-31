@@ -36,6 +36,29 @@ correctpath()
         @test sum(B) == 100
     end
 
+    @testset "dfops" begin
+        dfops = ["less" ,"<" ,"leq" ,"<=" ,"smaller than" ,"more",">","greater than","equals" ,"equal" ,"==" ,"=" ,"is" ,">=" ,"iszero" ,"geq" ,"isnan" ,"isnothing" ,"ismissing" ]
+        df = DataFrame(zeros(10, 10), :auto)
+        for op in dfops
+            @test ! isnothing(buildcomp(df, "x1", op, 0))
+        end
+    end
+    #
+    @testset "normalizlin" begin
+        A=zeros(10, 10)
+        A[1,1] = .1
+        A[2,2] = .9
+        B=normalize_linear(A)
+        @test A != B
+    end
+    #
+    @testset "msk" begin
+        A = zeros(100, 100)
+        A[2,2] = .5
+        B = mask(A)
+        @test sum(B) == 1
+    end
+
     @testset "sv" begin
         A = Images.N0f16.(zeros(10, 10))
         save_content(Images.N0f16.(A), "test.tif")

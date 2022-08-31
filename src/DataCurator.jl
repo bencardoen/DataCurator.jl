@@ -28,12 +28,12 @@ using ProgressMeter
 using HDF5
 using MAT
 
-export topdown, bottomup, expand_filesystem, stack_images_by_prefix, visit_filesystem, verifier, transformer, logical_and,
+export topdown, bottomup, expand_filesystem, mask, stack_images_by_prefix, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
 any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_file, stack_images, list_to_image, normalize_linear,
-is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, has_n_files, has_n_subdirs, decode_filelist,
+is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, buildcomp, has_n_files, has_n_subdirs, decode_filelist,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault,
 shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
 copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
@@ -576,8 +576,9 @@ end
 function mask(x::T) where {T<:AbstractString}
     @debug "File version"
     img = Images.load(x)
-    masked = mask(img)
-    Images.save(x, masked)
+	q = img
+	q[abs.(q).>0] .= 1
+    Images.save(x, q)
 end
 
 function mask(q::Array{T}) where {T<:Images.Colorant}
@@ -591,7 +592,8 @@ function mask(q)
 end
 
 function mask(q::T) where {T<:AbstractArray}
-    return mask(N0f16.(q))
+    q[abs.(q).>0] .= 1
+    return q
 end
 
 """
