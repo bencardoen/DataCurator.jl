@@ -75,6 +75,19 @@ correctpath()
         @test size_image(A, 1, "in", [100])
     end
 
+    @testset "oneliners" begin
+        t = mktempdir()
+        @test has_n_subdirs(t, 0)
+        # has_n_subdirs = (x, k) -> (length(subdirs(x))==k)
+        # less_than_n_subdirs = (x, k) -> (length(subdirs(x))<k)
+        @test less_than_n_subdirs(t, 1)
+        @test ! never(1)
+        sample(0)
+        keep_going(0)
+        @test guess_argument("1") == 1
+        @test guess_argument("1.0") == 1.0
+    end
+
     @testset "invert" begin
         A = zeros(10, 10)
         B = invert(A)
