@@ -45,6 +45,17 @@ correctpath()
         rm("A.tif")
     end
 
+    @testset "fpe" begin
+        t = mktempdir()
+        @test is_dir(t)
+        s = filepath(t)
+        @test s!=t
+        rm(t)
+        touch("nothidden")
+        @test not_hidden("nothidden")
+        rm("nothidden")
+    end
+
     @testset "invert" begin
         A = zeros(10, 10)
         B = invert(A)
