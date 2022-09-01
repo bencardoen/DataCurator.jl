@@ -66,6 +66,15 @@ correctpath()
         @test sum(C) == 0
     end
 
+    @testset "sim" begin
+        A = zeros(100, 100)
+        @test size_image(A, 1, "<", 101)
+        @test size_image(A, 1, ">", 99)
+        @test size_image(A, 1, "<=", 100)
+        @test size_image(A, 1, ">=", 100)
+        @test size_image(A, 1, "in", [100])
+    end
+
     @testset "invert" begin
         A = zeros(10, 10)
         B = invert(A)
