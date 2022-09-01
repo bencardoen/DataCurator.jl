@@ -56,6 +56,16 @@ correctpath()
         rm("nothidden")
     end
 
+
+    @testset "fpe" begin
+        A = zeros(100, 100)
+        A[:,:] .= 1
+        B=threshold_image(A, "abs <", "2")
+        @test sum(B) == 0
+        C=threshold_image(A, "abs =", "1")
+        @test sum(C) == 0
+    end
+
     @testset "invert" begin
         A = zeros(10, 10)
         B = invert(A)
