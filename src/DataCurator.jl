@@ -42,7 +42,7 @@ read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatt
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
 halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
-remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, gaussian, laplacian,
+remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
 remove_from_to, stack_list_to_image, concat_to_table, make_aggregator, describe_objects,
 gaussian, laplacian, dilate_image, erode_image, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
@@ -55,6 +55,7 @@ function column_names(x::T) where{T<:AbstractString}
 	return names(CSV.read(x, DataFrame))
 end
 
+is_file = x -> isfile(x)
 has_n_columns = (x, k) -> length(column_names(x)) == k
 has_less_than_n_columns = (x, k) -> length(column_names(x)) < k
 has_more_than_or_n_columns = (x, k) -> length(column_names(x)) >= k
@@ -1506,7 +1507,7 @@ function delegate(config, template)
     counters, lists = [], []
     for c in config["counters"]
         name, (count, counter) = c
-        @debug "Counter named $name has value $count"
+        @info "Counter named $name has value $count"
         push!(counters, read_counter(count))
     end
     for (list_name, ag) in config["file_lists"]
