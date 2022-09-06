@@ -34,31 +34,37 @@ function parse_commandline()
         "--verbose"
             help = "Set logging level to Debug (default Info). Only useful for debugging purposes, for large datasets this can produce huge output."
             action = :store_true
-            default = false
         "--quiet"
             help = "Set logging level to warn only, e.g. only when things go wrong. You won't be informed if your template or validation succeeded."
-            action = :store_true
-            default = false
-        "--update"
-            help = "If set, needs --inputdirectory and --outputdirectory, will update your template in place"
             action = :store_true
         "--inputdirectory"
             help = "If you want to override the inputdirectory field of the recipe at runtime, use this."
             arg_type = String
-            required = false
-        "--outputdirectory"
-            help = "Override output directory for creation of input/output pairs. Does NOT change the general output directory, that's controlled by the template actions."
-            arg_type = String
-            required = false
     end
 
     return parse_args(s)
 end
 
+function canwrite(fname)
+    try
+        open(fname, "w") do io
+            @info "Can override/write to $fnames"
+        end;
+        return true
+    catch e
+        @error "Reading $fname failed because of $e"
+        return false
+    end
+end
 
 function update_template(template, indir, outdir)
     UDR=indir
-    ODR=outdir
+    # ODR=outdir
+    cw=true
+    if !canwrite(template)
+        @warn "Can't update $template in place, using tmp copy"
+        cw = false
+    end
     x = nothing
     f1, f2 = false, false
     s=readlines(template)
@@ -69,10 +75,12 @@ function update_template(template, indir, outdir)
             s[i]= n
             f1 = true
         end
-        if startswith(_s, "file_lists")
-            s[i]= "file_lists=[\"inlist\", [\"outlist\", \"$ODR\"]]"
-            f2 = true
-        end
+        ## Todo, no longer works with aggregator extensions
+        ## Either move to global outputdirectory, or skip, or find a way to replace smarter
+        # if startswith(_s, "file_lists")
+        #     s[i]= "file_lists=[\"inlist\", [\"outlist\", \"$ODR\"]]"
+        #     f2 = true
+        # end
     end
 
     if ~f1
@@ -80,7 +88,15 @@ function update_template(template, indir, outdir)
         throw(ArgumentError("Failed updating template"))
     end
     @info "Updating $template with $indir"
-    write(template, join(s, "\n")...)
+    if cw
+        write(template, join(s, "\n")...)
+        return template
+    else
+        t="temp.toml"
+        @warn "Temporary template = $t"
+        write(t, join(s, "\n")...)
+        return t
+    end
 end
 
 function runme()
@@ -104,16 +120,9 @@ function runme()
         @error "Failed reading $c, file does not exist"
     end
 
-    if parsed_args["update"]
-        @info "Updating template"
-        ip, op = parsed_args["inputdirectory"], parsed_args["outputdirectory"]
-        if isnothing(ip) || isnothing(op)
-            @error "Input or outputdirectory not set : use --inputdirectory ... --outputdirectory ... when you use --update"
-            throw(ArgumentError("Invalid args"))
-        end
-        @info "Updating recipe ..."
-        update_template(c, ip, op)
-        @info "...done"
+    if "inputdirectory" in keys(parsed_args)
+        @info "Overriding template"
+        c = update_template(c, parsed_args["inputdirectory"], nothing)
     end
     @info "Reading template recipe $c"
     res = create_template_from_toml(c)
