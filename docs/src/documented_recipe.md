@@ -126,10 +126,21 @@ You can do any of these all at the same time with `counters` and `file_lists` in
 
 ##### Counters
 ```toml
-counters = ["C1", ["C2", "size_of_file"]]
+counters = ["filecounter", ["sizecounter", "size_of_file"]]
 ```
-Here we created 2 counters, one that is incremented whenever you refer to it, and one that when you pass it a fily, records it total size in bytes.
-When the program finishes, these counters are printed.
+Here we created 2 simple counters, one that is incremented whenever you refer to it, and one that when you pass it a file, records it total size in bytes.
+When the program finishes, these counters are printed, but also saved as counters.csv.
+
+To refer to these, you can do the following
+```toml
+actions=[["count", "filecounter"], ["count", "sizecounter"]]
+```
+At the end you would have a dataframe/csv such as:
+```toml
+name          | count
+filecounter   | 1024
+sizecounter   | 1230495
+```
 
 
 ##### File aggregation
