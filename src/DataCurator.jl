@@ -1508,7 +1508,7 @@ function delegate(config, template)
     for c in config["counters"]
         name, (count, counter) = c
         @info "Counter named $name has value $count"
-        push!(counters, read_counter(count))
+        push!(counters, (name, read_counter(count)))
     end
     for (list_name, ag) in config["file_lists"]
         @debug "Processing with list $(ag.name)"

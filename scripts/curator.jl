@@ -40,6 +40,7 @@ function parse_commandline()
         "--inputdirectory"
             help = "If you want to override the inputdirectory field of the recipe at runtime, use this."
             arg_type = String
+            default = ""
     end
 
     return parse_args(s)
@@ -119,8 +120,7 @@ function runme()
     if ~ isfile(c)
         @error "Failed reading $c, file does not exist"
     end
-
-    if "inputdirectory" in keys(parsed_args)
+    if parsed_args["inputdirectory"] != ""
         @info "Overriding template"
         c = update_template(c, parsed_args["inputdirectory"], nothing)
     end
@@ -134,6 +134,12 @@ function runme()
     cfg, template = res
     @info "Running recipe on $(cfg["inputdirectory"])"
     c, l, r = delegate(cfg, template)
+    df=DataFrames.DataFrame(name = String[], count=Float64[])
+    for (cn, _c) in enumerate(c)
+        @info "Counter $cn --> $(_c)"
+        push!(df, [cn, _c])
+    end
+    CSV.write("counters.csv", df)
     @info "Complete"
     @info "Exit status $r"
 end
