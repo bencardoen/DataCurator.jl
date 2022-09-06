@@ -28,7 +28,7 @@ using ProgressMeter
 using HDF5
 using MAT
 
-export topdown, bottomup, expand_filesystem, mask, stack_images_by_prefix, visit_filesystem, verifier, transformer, logical_and,
+export topdown, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -188,6 +188,28 @@ function describe_objects(img::AbstractArray{T, 2}) where {T<:Any}
         df[!,c] = w[:,i]
     end
     return df
+end
+
+
+"""
+    canwrite(filename)
+
+    tests if `filename` can be opened for writing
+"""
+function canwrite(fname)
+	if ! isfile(fname)
+		@error "$fname is not a file"
+		return false
+	end
+    try
+        open(fname, "w") do io
+            @info "Can override/write to $fname"
+        end;
+        return true
+    catch e
+        @error "Reading $fname failed because of $e"
+        return false
+    end
 end
 
 function describe_objects(img::AbstractArray{T, 3}) where {T<:Any}

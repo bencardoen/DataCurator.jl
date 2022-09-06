@@ -46,17 +46,6 @@ function parse_commandline()
     return parse_args(s)
 end
 
-function canwrite(fname)
-    try
-        open(fname, "w") do io
-            @info "Can override/write to $fnames"
-        end;
-        return true
-    catch e
-        @error "Reading $fname failed because of $e"
-        return false
-    end
-end
 
 function update_template(template, indir, outdir)
     UDR=indir

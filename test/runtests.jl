@@ -20,6 +20,13 @@ correctpath()
 
 @testset "DataCurator.jl" begin
 
+    @testset "cw" begin
+        @test ! canwrite("/dev/xyzawdn")
+        touch("testfile")
+        @test canwrite("testfile")
+        rm("testfile")
+    end
+
     @testset "imgsops" begin
         A = zeros(100, 100)
         A[20:50, 20:50] .= 1
