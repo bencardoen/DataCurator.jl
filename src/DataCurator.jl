@@ -155,15 +155,27 @@ function getextent2(box)
     return xy
 end
 
-function groupbycolumn(df, columns, targets, functions, names)
+function groupbycolumn(df::DataFrame, columns, targets, functions, names)
+	# @info df
+	# @info typeof(df)
+	# @info "DATAFRAME"
+    gdf = groupby(df, columns)
+    _fs = [lookup(f) for f in functions]
+    y = combine(gdf, [c => f => n for (c,f, n) in zip(targets, _fs, names)])
+	return y
+end
+
+function groupbycolumn(df::AbstractString, columns, targets, functions, names)
+	# @info df
+	# @info typeof(df)
+	# @info "FILE"
 	x=load_content(df)
     gdf = groupby(x, columns)
     _fs = [lookup(f) for f in functions]
     y = combine(gdf, [c => f => n for (c,f, n) in zip(targets, _fs, names)])
 	CSV.write(df, y)
-	return y
+	return df
 end
-
 
 function describe_objects(img::AbstractArray{T, 2}) where {T<:Any}
 	b = copy(img)

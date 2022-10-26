@@ -206,6 +206,31 @@ correctpath()
         @test size(dfs[1]) == (1,14)
     end
 
+    @testset "testcolumnagg" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        df = DataFrame()
+        df[!, :x1] = ['A', 'A']
+        df[!, :x2] = [1,1]
+        df[!, :x3] = [4,4]
+        CSV.write(joinpath(IN, "test.csv"), df)
+
+        res = create_template_from_toml(joinpath("..","example_recipes","aggregate_columns_csv.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+
+        @test isfile("table.csv")
+        a = load_content("table.csv")
+        @test names(a)[end]=="x3_sum"
+        if isfile("table.csv")
+            rm("table.csv")
+        end
+        delete_folder(IN)
+    end
+
 
     @testset "testslicing" begin
         correctpath()
