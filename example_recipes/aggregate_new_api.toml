@@ -1,4 +1,3 @@
-
 [global]
 act_on_success=true
 file_lists = [{name="table", transformer=["extract_columns", ["x1"]], aggregator="concat_to_table"}]

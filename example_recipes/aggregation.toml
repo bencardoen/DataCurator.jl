@@ -1,5 +1,3 @@
-What is left, compile into input and output lists for batch processing
-
 [global]
 act_on_success=false
 inputdirectory = "/tmp/test"

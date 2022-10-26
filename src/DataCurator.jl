@@ -28,7 +28,7 @@ using ProgressMeter
 using HDF5
 using MAT
 
-export topdown, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, groupbycolumn, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -153,6 +153,15 @@ function getextent2(box)
     xr, yr = abs.(box[1] .- box[2]) .+ 1
     xy = sqrt(xr^2 + yr^2)
     return xy
+end
+
+function groupbycolumn(df, columns, targets, functions, names)
+	x=load_content(df)
+    gdf = groupby(x, columns)
+    _fs = [lookup(f) for f in functions]
+    y = combine(gdf, [c => f => n for (c,f, n) in zip(targets, _fs, names)])
+	CSV.write(df, y)
+	return y
 end
 
 
@@ -850,7 +859,7 @@ function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractD
     transformers = nested[1:end-1]
     chain = []
     for candidate in transformers
-        @debug "Decoding $candidate transformer"
+        @info "Decoding $candidate transformer"
         cfs = decode_function(candidate, glob; condition=false)
         if  isnothing(cfs)
             throw(ArgumentError)

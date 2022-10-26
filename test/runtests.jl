@@ -27,6 +27,15 @@ correctpath()
         rm("testfile")
     end
 
+    @testset "csvaggregate" begin
+        df = DataFrame()
+        df[!, :x1] = ['A', 'A']
+        df[!, :x2] = [1,1]
+        df[!, :x3] = [4,4]
+        _df = groupbycolumn(df, ["x1", "x2"], ["x3", "x3"], ["sum", "mean"], ["X3_sum", "X3_mean"])
+        @test names(_df)[end] == "X3_mean"
+    end
+
     @testset "imgsops" begin
         A = zeros(100, 100)
         A[20:50, 20:50] .= 1
