@@ -228,7 +228,10 @@ file_lists = [{name="slices", aggregator="stack_images_by_prefix"}]
 ```toml
 file_lists = [{name="all_ab_columns.csv", transformer=["extract_columns", ["A", "B"]], aggregator="concat_to_table"}]
 ```
-
+or if you want to aggregate columns first
+```toml
+file_lists = [{name="all_ab_columns.csv", transformer=["groupbycolumn", ["x1", "x2"], ["x3"], ["sum"], ["x3_sum"]], aggregator="concat_to_table"}]
+```
 ### Template
 A template has 2 kind of entries `[any]` and `[level_X]`. You will only see the level_X entries in hierarchical templates, then X specifies at which depth you want to check a rule.
 
