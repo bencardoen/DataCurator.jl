@@ -1,11 +1,5 @@
 ## Usage
 
-```@contents
-Pages = ["usage.md"]
-Depth = 8
-```
-
-
 ## Using recipes only
 ```bash
 ./DataCurator.sif -r myrecipe.toml [---verbose]

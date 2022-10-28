@@ -1,11 +1,6 @@
 ## Installation
 Installation depends on what you plan to do, and what is available to you.
 
-```@contents
-Pages = ["installation.md"]
-Depth = 8
-```
-
 
 You can install DataCurator in 4 ways:
 - as a Julia package in your global Julia environment

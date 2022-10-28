@@ -4,11 +4,6 @@ First, a recipe is a plain text file, in TOML format, designed to be as human fr
 
 We'll run through all, or most of the features you can use, with example TOML snippets.
 
-```@contents
-Pages = ["documented_recipe.md"]
-Depth = 8
-```
-
 
 Any `recipe` needs 2 parts, the global configuration, and the actual template.
 
@@ -136,7 +131,7 @@ To refer to these, you can do the following
 actions=[["count", "filecounter"], ["count", "sizecounter"]]
 ```
 At the end you would have a dataframe/csv such as:
-```toml
+```bash
 name          | count
 filecounter   | 1024
 sizecounter   | 1230495
@@ -156,7 +151,7 @@ Let's say we add a file "a/b/c.txt" to infiles, when we add it to outfiles it wi
 This is a common use case in preparing large batch scripts on SLURM clusters.
 
 What if we want to collect files or paths, but instead of collecting them in order of traversal (discovery), we want to sort them first, and only keep the path, not the filenames.
-```
+```toml
 file_lists = [{name="mylist", aggregator=[["filepath",
                                           "sort",
                                           "unique",
@@ -214,28 +209,37 @@ root
 │   └── ...
 ...
 ```
+
 We'd like to combine these into
+
 ```bash
 - patient1.tif (3D)
 - patient2.tif (3D)
 ```
+
 The solution is straightforward, we aggregate but ask to group by prefix
+
 ```toml
 file_lists = [{name="slices", aggregator="stack_images_by_prefix"}]
 ```
 
 ##### Table aggregation
+
 ```toml
 file_lists = [{name="all_ab_columns.csv", transformer=["extract_columns", ["A", "B"]], aggregator="concat_to_table"}]
 ```
+
 or if you want to aggregate columns first
+
 ```toml
 file_lists = [{name="all_ab_columns.csv", transformer=["groupbycolumn", ["x1", "x2"], ["x3"], ["sum"], ["x3_sum"]], aggregator="concat_to_table"}]
 ```
+
 ### Template
 A template has 2 kind of entries `[any]` and `[level_X]`. You will only see the level_X entries in hierarchical templates, then X specifies at which depth you want to check a rule.
 
 #### Flat templates, the Any section
+
 ```toml
 [any]
 all=false #default, if true, fuses all conditions and actions. If false, you list condition-action pairs.
@@ -269,9 +273,11 @@ conditions=...
 actions=...
 ...
 ```
+
 This will only be applied if, and only if, files and directories 3 levels (directories) deep are encountered.
 
 Sometimes you do not know how deep your dataset can be, in that case you'll want a 'catch-all', in hierarchical templates this is now the role of `any`
+
 ```toml
 [global]
 act_on_success=true
@@ -282,6 +288,7 @@ actions=["show_warning"]
 conditions=["is_tif_file", "is_csv_file"]
 actions=[["log_to_file", "tiffiles.txt"], "show_warning"]
 ```
+
 This tiny template will write any tif file to tiffiles.txt.
 If it encounters csv files anywhere else, it will warn you.
 
