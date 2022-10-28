@@ -11,9 +11,9 @@ DataCurator is a Swiss army knife that ensures:
 
 ![Concept](assets/whatami.png)
 
-### Quickstart
+## Quickstart
 We'll show 2 simple examples on how to get started, for a more complete manual please see individual sections in the left pane.
-#### Validate
+### Validate
 Check that a directory only contains CSV files, list them in a file, and list any file that's incorrect.
 ```toml
 [global]
@@ -23,11 +23,13 @@ conditions=["is_csv_file"]
 actions = [["log_to_file", "non_csvs.txt"]]
 counter_actions=[["log_to_file", "csvs.txt"]]
 ```
+
 Execute:
+
 ```bash
 ./DataCurator.sif -r myrecipe.toml
 ```
-#### Curate
+### Curate
 Flatten all **.txt** files, `flatten` refers to extracting all files from a nested hierarchy (a directory with many subdirectories, each with their own subdirectories and so forth) into 1 single set of files in 1 directory, for ease of processing.
 
 Create a `recipe.toml` file with:
@@ -47,7 +49,7 @@ actions = [["flatten_to", "outdir"]]
 ```
 
 
-#### A more complex example
+### A more complex example
 In [full_api.toml](../../example_recipes/full_api.toml) you can see an example of how you can specify an entire image processing pipeline with a simple `recipe`.
 ```toml
 ...

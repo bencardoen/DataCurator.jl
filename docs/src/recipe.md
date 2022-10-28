@@ -1,11 +1,15 @@
-## A recipe using all/most of the possible features
+# A recipe using all/most of the possible features
+
+## Recipes
 
 First, a recipe is a plain text file, in TOML format, designed to be as human friendly as possible.
 
 We'll run through all, or most of the features you can use, with example TOML snippets.
 
 
-Any `recipe` needs 2 parts, the global configuration, and the actual template.
+Any `recipe` needs 2 parts
+- the global configuration
+- the actual template.
 
 The global configuration specifies **how** the template is applied, the template specifies the conditions/rules to apply, i.o.w. the **what** and **when**.
 
@@ -15,18 +19,16 @@ A *section* in a TOML file is simply:
 mycontent="some value"
 ```
 
-### Global section
+## Global section
+The smallest possible global section looks like this:
 ```toml
 [global]
+inputdirectory="where/your/data/is/stored"
 ```
-All a minimum global section needs is where to start:
-```toml
-inputdirectory="your/directory"
-```
+
 Next, we can either act on failure (usually in validation), or on success.
 This simply means that, if set to false, we check for any data that **fails** the rule you specify, then execute your actions.
 In datacuration you'll want the inverse, namely, act on success.
-
 
 !!! tip "You can have your cake and eat it"
     You can specify `actions` AND `counter_actions`, allowing you to specify what to do if a rule applies, and what if it doesn't. In other words, you have maximal freedom of expression.
@@ -40,14 +42,17 @@ If you intend to modify files/directories in place, `bottomup` is the safer opti
 ```toml
 traversal="bottomup" # or topdown
 ```
-We can validate or curate data in parallel, to maximize throughput. Especially on computing clusters this can speed up completion time. If true, will use as many threads as $JULIA_NUM_THREADS (usually nr of HT cores).
-
+We can validate or curate data in parallel, to maximize throughput. Especially on computing clusters this can speed up completion time. If true, will use as many threads as the environment variable **JULIA_NUM_THREADS** (usually nr of HT cores).
+```bash
+export JULIA_NUM_THREADS=2
+```
 !!! note "Thread safety"
     You do not need to worry about `data races`, where you get non-deterministic or corrupt results, if you stick to our conditions and aggregations, there are no conflicts between threads.
 
 ```toml
 parallel=true #default false
 ```
+
 
 By default your rules are applied without knowing how deep your are in your dataset. However, at times you will need to know this, for example, to verify that certain files only appear in certain locations, or check naming patterns of directories.
 For example, a path like `top/celltype/cellnr` will have a rule to check for a cell number (integer) at level 3, not anywhere else.
@@ -58,6 +63,7 @@ To enable this:
 # If false, define your template in [any]
 hierarchical=true
 ```
+
 
 
 For more complex pattern matching you may want to use Regular Expressions (regex), to enable this:
@@ -72,6 +78,7 @@ The inputdirectory should point to your dataset. The outputdirectory is where gl
 inputdirectory=...
 outputdirectory=...
 ```
+
 
 #### Saved actions and conditions
 Quite often you will define actions and conditions several time. Instead of repeating yourself, you can define actions and conditions globally, and then refer from your template to them later.
@@ -172,6 +179,7 @@ would be written as a `mylist.txt` containing
 /a/b
 ```
 
+
 ##### Image aggregation
 ###### Stacking 2D images
 ```toml
@@ -238,6 +246,7 @@ file_lists = [{name="all_ab_columns.csv", transformer=["groupbycolumn", ["x1", "
 ### Template
 A template has 2 kind of entries `[any]` and `[level_X]`. You will only see the level_X entries in hierarchical templates, then X specifies at which depth you want to check a rule.
 
+
 #### Flat templates, the Any section
 
 ```toml
@@ -293,6 +302,7 @@ This tiny template will write any tif file to tiffiles.txt.
 If it encounters csv files anywhere else, it will warn you.
 
 Please see the directory [example_recipes](../../example_recipes) for more complex examples.
+
 
 
 ### Advanced usage
@@ -365,6 +375,7 @@ conditions=["is_tif_file", ["endswith", "[1,2].tif"], ["not", "is_rgb"], "is_3d_
 actions = ["show_warning"]
 ```
 
+
 !!! tip "Short circuit to help to speed up conditions"
     Note that we first check the file extension `is_tif_file`, and only then check the pattern `endswidth ...`, and only then actually look at the image type. Checking if an image is 3D or RGB requires loading it. Loading (potentially huge) files is slow and expensive, so this could mean we'd check 'is_3d_img' for a csv file, which would fail, but in a very expensive way.
     Instead, our conditions `short circuit`. We specified `all=true`, so each of them has to be true, if 1 fails we don't need to check the others. By putting `is_tif_file` first, we avoid having to even load the file to check its contents. This is done **automatically** for you, as long as you keep to the left-right ordering, in general of `cheap`(or least strict) to `expensive` (most strict). In practice for this dataset, this means a runtime gain of 50-90% depending on how much invalid data there is.
@@ -392,6 +403,8 @@ This will now match files with 1 or more integers at the beginning of the file n
 
 !!! note Regex compilation errors on "*patterns"
     If you try to pass a regex such as "*.txt", you'll get an error complaining about PCRE not being able to compile your Regex. The reason for this is the lookahead/lookback functionality in the Regex engine not allowing such wildcards at the beginning of a regex. When you write " *.txt ", what you probably meant was 'anything with extension txt', but not the name ".txt", which " *.txt " will also match. Instead, use "\.\*.txt". When in doubt, don't use a regex if you can avoid it. Similar to Kruger-Dunning, those who believe they can wield a regex with confidence, probably shouldn't.
+
+
 
 ##### Negating conditions:
 By default your conditions are 'OR'ed, and by setting all=yes, you have 'AND'. By flipping action_on_succes you can negate all conditions. So in essence you don't need more than that for all combinations, but if you need to specifically flip 1 condition, this will get messy. Instead, you can negate any condition by giving it a prefix argumet of "not".
@@ -460,6 +473,7 @@ actions=[{name_transform=[entry+], content_transform=[entry+], mode="copy" | "mo
 Where `entry` is any set of functions with arguments. The + sign indicates "one or more".
 The | symbol indicates 'OR', e.g. either copy, move, or inplace.
 
+
 #### Select rows from CSVs and save them
 ```toml
 [global]
@@ -500,6 +514,7 @@ where the last is equivalent, but shorter (and faster) than:
 ```julia
 ('count', '>', 0), ('count', '<', 100)
 ```
+
 ### Aggregation
 When you need group data before processing it, such as collecting files to count their size, write input-output pairs, or stack images, and so forth, you're performing a pattern of the form
 
@@ -565,7 +580,7 @@ You're free to specify as many aggregators as you like.
 
 ## Under the hood
 When you define a template, a 'visitor' will walk over each 'node' in the filesystem graph, testing any conditions when appropriate, and executing actions or counteractions.
-![Concept](concept.png)
+![Concept](assets/concept.png)
 
 In the background there's a lot more going on
 - Managing threadsafe data structures
