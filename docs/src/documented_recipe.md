@@ -478,10 +478,6 @@ or
 ```toml
 ["extract", (col, op)]
 ```
-Wich then turns into:
-```julia
-select rows where op1(col1, vals1) && op2(col2, vals2)
-```
 For example:
 ```toml
 ["extract", ("name","=","Bert"),  ("count", "<", 10)]
