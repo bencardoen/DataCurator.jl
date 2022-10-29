@@ -28,7 +28,11 @@ Or build yourself
 cd docs
 julia --project=.. make.jl
 ```
-Then open docs/build/index.html
+Then open docs/build/index.html with a browser of choice.
+Alternatively, if you have texlive and the [Documenter.jl](https://juliadocs.github.io/Documenter.jl/stable/man/other-formats/) dependencies, you can generate a pdf
+```bash
+cd docs && julia --project=.. makepdf.jl  
+```
 
 ## What to find where
 ```bash
