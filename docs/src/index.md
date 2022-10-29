@@ -15,6 +15,7 @@ DataCurator is a Swiss army knife that ensures:
 We'll show 2 simple examples on how to get started, for a more complete manual please see individual sections in the left pane.
 ### Validate
 Check that a directory only contains CSV files, list them in a file, and list any file that's incorrect.
+
 ```toml
 [global]
 inputdirectory = "testdir"
@@ -29,13 +30,14 @@ Execute:
 ```bash
 ./DataCurator.sif -r myrecipe.toml
 ```
+
 ### Curate
 Flatten all **.txt** files, `flatten` refers to extracting all files from a nested hierarchy (a directory with many subdirectories, each with their own subdirectories and so forth) into 1 single set of files in 1 directory, for ease of processing.
 
 Create a `recipe.toml` file with:
+
 ```toml
 [global]
-act_on_success = true
 inputdirectory = "testdir"
 regex=true
 [any]

@@ -1,5 +1,5 @@
-## Usage
-
+# Usage
+This chapter details how to quickly get started using DataCurator, either in recipe (text only) mode, or using the Julia API.
 ## Using recipes only
 ```bash
 ./DataCurator.sif -r myrecipe.toml [---verbose]
@@ -42,7 +42,7 @@ end
 ```
 See the API reference for full details.
 
-## Using the Julia API <a name="julia"></a>
+## Using the Julia API 
 When you can write Julia you can do anything the template recipes allow and extend it with your own functions, compile more complex functions, and so forth. In this section we'll walk you through how to do this.
 
 ### Typesafe templates
@@ -121,11 +121,13 @@ verify_template("rootdirectory", [mt(is_2d_img, counter2),(is_3d_img, counter3)]
 
 #### Hierarchical recipes
 Suppose your data is supposed to have this layout
+```toml
 - root
   - replicate nr
     - celltype
       - cell nr : of the form "Series XYZ"
         - 2 tif files, 3D, ending with 1,2.tif
+```
 
 
 You can use **hierarchical** templates, that give you very precise control of where a condition fires
