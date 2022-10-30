@@ -1533,6 +1533,16 @@ end
     Returns the counters and file lists, if any are defined.
 """
 function delegate(config, template)
+	use_endpoint=true
+	endpoint=nothing
+	if haskey(config, "endpoint")
+		if config["endpoint"] != "" && !isnothing(config["endpoint"])
+			@info "Found endpoint, activating Slack support"
+			endpoint=config["endpoint"]
+		else
+			use_endpoint=false
+		end
+	end
     parallel = config["parallel"] ? "parallel" : "sequential"
     # if haskey(config, "outputdirectory")
     CWD = pwd()
@@ -1872,6 +1882,16 @@ function validate_top_config(cfg)
 end
 
 
+"""
+	create_template_from_toml(tomlfile)
+
+	Parse a toml encoded recipe, decode all the actions and conditions, and return a configuration (Dict) and executable template.
+
+	```julia
+	c, t = create_template_from_toml(tomlfile)
+	delegate(c, t)
+	```
+"""
 function create_template_from_toml(tomlfile)
     config = TOML.parsefile(tomlfile)
     validate_top_config(config)

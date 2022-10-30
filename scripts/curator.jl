@@ -133,11 +133,12 @@ function runme()
     res = create_template_from_toml(recipe)
     if isnothing(res)
         @error "Failed reading $c"
-        return :proceed
+        return
     end
     @info "Reading complete "
     cfg, template = res
     @info "Running recipe on $(cfg["inputdirectory"])"
+	cfg["endpoint"] = endpoint
 	start=time()
     c, l, r = delegate(cfg, template)
 	stop=time()
