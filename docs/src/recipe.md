@@ -79,6 +79,22 @@ inputdirectory=...
 outputdirectory=...
 ```
 
+#### Slack support
+If you want to configure/use Slack based actions, enable slack support by pointing the global configuration to an endpoint file.
+This should contain 1 line of the form
+
+```bash
+ /services/<code>/<code>/<code>
+```
+See installation for how to set this up.
+
+```toml
+endpoint=endpointfile.txt
+```
+
+At the end of the template, DC will print a summary to the slack channel of your choice with status, time, and counters.
+
+You can also use slack based actions, see example_recipes/slack.toml
 
 #### Saved actions and conditions
 Quite often you will define actions and conditions several time. Instead of repeating yourself, you can define actions and conditions globally, and then refer from your template to them later.
