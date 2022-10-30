@@ -15,6 +15,7 @@ module DataCurator
 using Base.Threads
 import Random
 import Images
+import SlurmMonitor
 import Logging
 using LoggingExtras
 using Match
@@ -1000,6 +1001,11 @@ end
 
 function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
     # Global first
+	# if f == "printtoslack"
+	# 	@info "Found printtoslack"
+	# 	@info "$(glob["endpoint"])"
+	# 	return x -> SlurmMonitor.posttoslack(x, glob["endpoint"])
+	# end
     fs = lookup_common(f, glob, condition)
     if ~isnothing(fs)
         return fs
@@ -1425,6 +1431,16 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
         return file_adder
     end
 
+	if fname == "printtoslack"
+		@info "DEBUG --> Handling print to slack"
+		if isnothing(glob["endpoint"])
+			@warn "Print to slack but endpoint is not set --> Ignoring"
+		else
+			# [printtoslack, message]
+			return x -> _printtoslack(x, f[2:end], glob["endpoint"])
+		end
+	end
+
 	## Now we're sure it's a simple function, so find it
     fs = lookup(fname)
     if isnothing(fs)
@@ -1528,21 +1544,18 @@ function lookup_counter(tpl, glob)
 end
 
 """
+	Print a message to a connected slack
+"""
+function _printtoslack(x, argument, endpoint)
+	return SlurmMonitor.posttoslack("$argument $x", endpoint)
+end
+
+"""
     delegate(config, template)
     Uses the configuration, and template create by `create_template_from_toml', to execute the verifier as specified.
     Returns the counters and file lists, if any are defined.
 """
 function delegate(config, template)
-	use_endpoint=true
-	endpoint=nothing
-	if haskey(config, "endpoint")
-		if config["endpoint"] != "" && !isnothing(config["endpoint"])
-			@info "Found endpoint, activating Slack support"
-			endpoint=config["endpoint"]
-		else
-			use_endpoint=false
-		end
-	end
     parallel = config["parallel"] ? "parallel" : "sequential"
     # if haskey(config, "outputdirectory")
     CWD = pwd()
@@ -2166,9 +2179,9 @@ end
 
 
 function validate_global(config)
-    glob_defaults = Dict([("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    glob_defaults = Dict([("endpoint", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     # glob = config["global"]
-    glob_default_types = Dict([("parallel", Bool), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
+    glob_default_types = Dict([("endpoint", String),("parallel", Bool), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
     glob_config = config["global"]
     @debug glob_config
@@ -2218,6 +2231,18 @@ function validate_global(config)
     if haskey(glob_config, "outputdirectory")
         @info "Setting outputdirectory to $(glob_config["outputdirectory"])"
         glob_defaults["outputdirectory"] = glob_config["outputdirectory"]
+    end
+	if haskey(glob_config, "endpoint")
+		if glob_config["endpoint"] != ""
+			endpoint=SlurmMonitor.readendpoint(glob_config["endpoint"])
+			if isnothing(endpoint)
+				@error "Not a valid Slack Endpoint $(glob_config["endpoint"])"
+			else
+				glob_defaults["endpoint"] = endpoint
+			end
+        else
+			@info "No slack support enabled"
+		end
     end
     return glob_defaults
 end
