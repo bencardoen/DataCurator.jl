@@ -17,6 +17,8 @@ using Match
 using CSV, DataFrames
 using Logging, LoggingExtras, Dates
 using SlurmMonitor
+using Printf
+using Dates
 # date_format = "yyyy-mm-dd HH:MM:SS"
 # timestamp_logger(logger) = TransformerLogger(logger) do log
 #     merge(log, (; message = "$(Dates.format(now(), date_format)) $(basename(log.file)):$(log.line): $(log.message)"))
@@ -118,16 +120,17 @@ function runme()
 		end
     	@info "Using endpoint $endpoint"
 	end
-    c = parsed_args["recipe"]
-    if ~ isfile(c)
-        @error "Failed reading $c, file does not exist"
+    recipe = parsed_args["recipe"]
+    if ~ isfile(recipe)
+        @error "Failed reading $recipe, file does not exist"
+		return
     end
     if parsed_args["inputdirectory"] != ""
         @info "Overriding template"
-        c = update_template(c, parsed_args["inputdirectory"], nothing)
+        recipe = update_template(recipe, parsed_args["inputdirectory"], nothing)
     end
-    @info "Reading template recipe $c"
-    res = create_template_from_toml(c)
+    @info "Reading template recipe $recipe"
+    res = create_template_from_toml(recipe)
     if isnothing(res)
         @error "Failed reading $c"
         return :proceed
@@ -135,18 +138,25 @@ function runme()
     @info "Reading complete "
     cfg, template = res
     @info "Running recipe on $(cfg["inputdirectory"])"
+	start=time()
     c, l, r = delegate(cfg, template)
+	stop=time()
     df=DataFrames.DataFrame(name = String[], count=Float64[])
     for (cn, _c) in enumerate(c)
         @info "Counter $cn --> $(_c)"
-        push!(df, [cn, _c])
+        push!(df, [_c[1], Float64.(_c[2])])
     end
+	neatcode = r == :proceed ? ":white_check_mark: Success" : ":octagonal_sign: Stopped"
     CSV.write("counters.csv", df)
+	date_format = "yyyy-mm-dd HH:MM:SS"
+	msgs = ["DataCurator :construction_worker:", ":clock3: \t $(Dates.format(now(), date_format))", "Recipe \t $recipe", "Result \t $neatcode", ":stopwatch: \t $(@sprintf("%.2e",stop-start)) seconds"]
 	if ! isnothing(endpoint)
-		posttoslack("DataCurator completed recipe with status code $r \n Reciple $c", endpoint)
+		m = ":computer: \t $(readlines(`uname -nir`)[1])"
+		push!(msgs, m)
 		for (cn, _c) in enumerate(c)
-			posttoslack("Counter $cn --> $(_c)", endpoint)
+			push!(msgs, "Counter $(_c[1]) has value \t $(@sprintf("%.2e",_c[2]))")
         end
+		posttoslack(join(msgs, "\n"), endpoint)
     end
 	@info "Complete with exit status $r"
 end

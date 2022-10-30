@@ -127,3 +127,23 @@ Now when you want to run DataCurator, do:
 ```bash
 julia --project=/opt/DataCurator.jl --sysimage /opt/DataCurator.jl/sys_img.so /opt/DataCurator.jl/src/curator.jl --recipe <YOURRECIPE.TOML>
 ```
+
+
+
+### Linking with Slack
+In a Slack workspace, go to Preferences / Manage Apps / Build
+Create a new App, then configure a webhook (and a channel).
+That should give you an URL of the form
+```bash
+/services/<code>/<code>/<code>
+```
+Save this is a file
+```bash
+echo "/services/<code>/<code>/<code>" > endpoint.txt
+```
+Then at execution, pass it to DataCurator
+```bash
+julia --project=. scripts/monitor.jl -r recipe.toml -e endpoint.txt
+```
+That's all.
+On finishing execution, it will print a summarized message to your slack channel of choice.
