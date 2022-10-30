@@ -16,6 +16,7 @@ using DataCurator, Images, TOML
 using Match
 using CSV, DataFrames
 using Logging, LoggingExtras, Dates
+using SlurmMonitor
 # date_format = "yyyy-mm-dd HH:MM:SS"
 # timestamp_logger(logger) = TransformerLogger(logger) do log
 #     merge(log, (; message = "$(Dates.format(now(), date_format)) $(basename(log.file)):$(log.line): $(log.message)"))
@@ -41,6 +42,10 @@ function parse_commandline()
             help = "If you want to override the inputdirectory field of the recipe at runtime, use this."
             arg_type = String
             default = ""
+        "--endpoint", "-e"
+            help = "File containing Slack endpoint of the form /services/<x>/<y>/<id>"
+	    	arg_type = String
+	    	default = ""
     end
 
     return parse_args(s)
@@ -105,6 +110,14 @@ function runme()
         merge(log, (; message = "$(Dates.format(now(), date_format)) $(basename(log.file)):$(log.line): $(log.message)"))
     end
     ConsoleLogger(stdout, defl) |> timestamp_logger |> global_logger
+	endpoint = nothing
+	if parsed_args["endpoint"] != ""
+    	endpoint = readendpoint(parsed_args["endpoint"])
+		if isnothing(endpoint)
+			@error "Failed decoding Slack endpoint!!!"
+		end
+    	@info "Using endpoint $endpoint"
+	end
     c = parsed_args["recipe"]
     if ~ isfile(c)
         @error "Failed reading $c, file does not exist"
@@ -129,8 +142,13 @@ function runme()
         push!(df, [cn, _c])
     end
     CSV.write("counters.csv", df)
-    @info "Complete"
-    @info "Exit status $r"
+	if ! isnothing(endpoint)
+		posttoslack("DataCurator completed recipe with status code $r \n Reciple $c", endpoint)
+		for (cn, _c) in enumerate(c)
+			posttoslack("Counter $cn --> $(_c)", endpoint)
+        end
+    end
+	@info "Complete with exit status $r"
 end
 
 runme()
