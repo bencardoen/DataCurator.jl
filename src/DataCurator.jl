@@ -843,7 +843,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     #Here check for
     # KEys name, transformer, aggregator
     default=Dict([("transformer", identity), ("aggregator", shared_list_to_file)])
-    @debug "Decoding $fe , default = $default"
+    @info "Decoding $fe , default = $default"
     if ~haskey(fe, "name")
         @error "Invalid file list entry $fe"
         throw(ArgumentError("Your list should have at least a name, use file_lists=[{\"name\":\"mylistname\",...}]"))
@@ -862,13 +862,14 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     end
     if haskey(fe, "aggregator")
         AG = fe["aggregator"]
+		@info "Decoding aggregator $AG"
         ag = decode_aggregator(AG, glob)
-        @debug "Found a aggregator entry $AG -> $ag"
+        @info "Found a aggregator entry $AG -> $ag"
     end
     @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
     if tf != identity
-        @debug "Custom transform, wrapping with copy"
+        @info "Custom transform, wrapping with copy"
         adder = x::AbstractString -> add_to_file_list(tf(wrap_transform(x)), l)
     else
         adder = x::AbstractString -> add_to_file_list(x, l)
@@ -877,6 +878,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
 end
 
 function decode_aggregator(name::AbstractString, glob::AbstractDict)
+	@info "Decoding aggregator String $name"
     fs = lookup(name)
     if isnothing(fs)
         throw(ArgumentError("$name is not valid function call"))
@@ -885,8 +887,9 @@ function decode_aggregator(name::AbstractString, glob::AbstractDict)
 end
 
 function decode_aggregator(ag::AbstractVector{<:AbstractString}, glob::AbstractDict)
+	@info "Decoding aggregator Vector $ag"
     an = ag[1]
-    @info "Decoding aggregator $(ag)"
+    @info "Decoding aggregator Vector $(ag)"
     if length(ag) < 2
         throw(ArgumentError("Invalid aggregator $ag"))
     end
@@ -1778,6 +1781,13 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString)
     end
     @info "Writing to $name"
     CSV.write("$name", DF)
+	if !haskey(ENV, "owncloud_configuration")
+		return
+	end
+	config = JSON.parse(ENV["owncloud_configuration"])
+	@info "Executing with $config"
+	@info "Uploading to owncloud $name"
+	_upload_to_owncloud(name, config)
 end
 
 function shared_list_to_table(list::AbstractVector{<:AbstractVector}, name::AbstractString)
@@ -1892,8 +1902,14 @@ end
 
 concat_to_table = shared_list_to_table
 
-function concat_to_owncloud(list, name, config)
+
+function concat_to_owncloud(list::AbstractVector{<:AbstractVector}, name::AbstractString)
+    shared_list_to_table(flatten_list(list), name)
+end
+
+function concat_to_owncloud(list::AbstractVector, name::AbstractString)
 	@info "Concatenate to owncloud"
+	@info list
     tables = []
     for csv_file in list
         @debug "Loading table $csv_file"
@@ -1908,6 +1924,13 @@ function concat_to_owncloud(list, name, config)
     end
     @info "Writing to $name"
     CSV.write("$name", DF)
+	config = JSON.parse(ENV["owncloud_configuration"])
+	@info "Executing with $config"
+	if isnothing(config)
+		@error "Config = nothing"
+		return
+	end
+	@info "Uploading to owncloud $name"
 	_upload_to_owncloud(name, config)
 end
 
@@ -2243,6 +2266,7 @@ function decode_owncloud(config)
         	tb = JSON.parse(String(read(c)))
 			@info "Read $(tb)"
 			_initialize_remote(tb)
+			ENV["owncloud_configuration"]=String(read(c))
         	return tb
     	catch e
         	@error "Reading $c failed because of $e"
@@ -2891,21 +2915,22 @@ function verifier(node, template::Vector, level::Int; on_success=false)
 end
 
 function make_aggregator(name, list, adder, aggregator)
+	@info "MAG $name"
     return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, aggregator, identity))
 end
 
 
 function make_aggregator(name, list, adder)
+	@info "MAG2 $name"
     return @NamedTuple{name::AbstractString, list, adder, aggregator, transformer}((name, list, adder, shared_list_to_file, identity))
 end
 
 
 function make_aggregator(name::AbstractString, list, adder, aggregator, transformer)
+	@info "MAG3 $name"
     return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, aggregator,transformer))
 end
 
-# NamedTuple{(:condition, :action), Tuple{Any, Any}}
-## TODO Add type
 function aggregator_add(nt::NamedTuple{(:name, :list, :adder, :aggregator, :transformer), Tuple{Any, Any, Any, Any, Any}})
     nt.adder(nt.list, nt.transformer(x))
 end

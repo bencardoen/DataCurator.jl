@@ -1,0 +1,13 @@
+# This example collects all csv files, uploads each of them
+# In addition, also concatenates all of them, and uploads the concatenation
+# This is meant to illustrate the owncloud link
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+# If this is present, by default concat operations will also upload to owncloud
+owncloud_configuration = "owncloud.json"
+file_lists = [{name="table", aggregator="concat_to_table"}]
+[any]
+all=true
+conditions = ["is_csv_file"]
+actions=[["add_to_file_list", "table"], "upload_to_owncloud"]
