@@ -15,6 +15,7 @@ module DataCurator
 using Base.Threads
 import Random
 using JSON
+using IOCapture
 import Images
 import SlurmMonitor
 import Logging
@@ -112,7 +113,9 @@ function _upload_to_owncloud(file, config)
         config["initialized"]="true"
     end
     try
-        read(`curl -X PUT -u $(config["user"]):$(config["token"]) "$(config["remote"])$(filename(file))" --data-binary @"$file" --create-dirs`, String)
+		IOCapture.capture() do
+        	read(`curl -X PUT -u $(config["user"]):$(config["token"]) "$(config["remote"])$(filename(file))" --data-binary @"$file" --create-dirs`, String)
+		end
         @info "Success"
     catch e
         @error "Failed posting $file to $config due to $e"
@@ -120,7 +123,9 @@ function _upload_to_owncloud(file, config)
 end
 
 function _make_remote_path(conf)
-    o=read(`curl -X PUT -u $(conf["user"]):$(conf["token"]) "$(conf["remote"])" -X MKCOL`, String)
+	IOCapture.capture() do
+    	o=read(`curl -X PUT -u $(conf["user"]):$(conf["token"]) "$(conf["remote"])" -X MKCOL`, String)
+	end
 end
 
 function _initialize_remote(config)
@@ -1034,16 +1039,11 @@ function decode_counter(c::AbstractVector)
 end
 
 function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
-	# if f == "upload_to_owncloud"
-	# 	@debug "Move to lookup common"
-	# 	@info "DEBUG --> Handling owncloud"
-	# 	if isnothing(glob["owncloud_configuration"])
-	# 		@warn "Print to slack but endpoint is not set --> Ignoring"
-	# 	else
-	# 		@info "Creating owncloud uploader"
-	# 		return x -> _upload_to_owncloud(x, glob)
-	# 	end
-	# end
+	if f == "upload_to_owncloud"
+		@debug "Move to lookup common"
+		@info "DEBUG --> Handling owncloud"
+		return x -> _upload_to_owncloud(x, glob["owncloud_configuration"])
+	end
     fs = lookup_common(f, glob, condition)
     if ~isnothing(fs)
         return fs
