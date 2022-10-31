@@ -106,6 +106,8 @@ Where config.json looks like
 ```
 Check your owncloud provider to generate a token.
 
+You can also use owncloud based actions, see example_recipes/owncloud.toml
+
 #### Saved actions and conditions
 Quite often you will define actions and conditions several time. Instead of repeating yourself, you can define actions and conditions globally, and then refer from your template to them later.
 For example:

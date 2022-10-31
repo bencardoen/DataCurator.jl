@@ -870,12 +870,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     return fn, make_aggregator(fn, l, adder, ag, tf)
 end
 
-
-## TODO split aggregation into
-## Aggregation(list, function) --> map(list, function)
-## And dooutput(map(list, function), out)
 function decode_aggregator(name::AbstractString, glob::AbstractDict)
-    # aggregators=[shared_list_to_file, shared_list_to_table, concat_to_table]
     fs = lookup(name)
     if isnothing(fs)
         throw(ArgumentError("$name is not valid function call"))
@@ -1890,6 +1885,25 @@ function stack_images(l, n)
 end
 
 concat_to_table = shared_list_to_table
+
+function concat_to_owncloud(list, name, config)
+	@info "Concatenate to owncloud"
+    tables = []
+    for csv_file in list
+        @debug "Loading table $csv_file"
+        tb = load_table(csv_file)
+        push!(tables, tb)
+    end
+    @info "Saving total of $(length(tables)) to $name csv"
+    DF = vcat(tables...)
+    if ~endswith(name, ".csv")
+        @debug "Postfixing .csv"
+        name="$(name).csv"
+    end
+    @info "Writing to $name"
+    CSV.write("$name", DF)
+	_upload_to_owncloud(name, config)
+end
 
 function validate_top_config(cfg)
     keys_c = keys(cfg)|>collect
