@@ -824,13 +824,19 @@ function decode_filelist(fe::AbstractVector, glob)
         adder = x::AbstractString -> add_to_file_list(x, l)
         Q = make_aggregator(listname, l, adder, shared_list_to_table, identity)
         return (listname, Q)
-    else
-        @warn "During creation of lists with $(fe), assuming $second is a path and you want to compile in/out filelists"
-        change_path = x->new_path(glob["inputdirectory"], x, second)
-        adder = x::AbstractString -> add_to_file_list(change_path(x), l)
-        Q = make_aggregator(listname, l, adder, shared_list_to_file, change_path)
-        return (listname, Q)
     end
+	if second == "concat_to_owncloud"
+		@info "Shortcode for table concatenation to owncloud"
+        # change_path = x->new_path(glob["inputdirectory"], x, alter_root)
+        adder = x::AbstractString -> add_to_file_list(x, l)
+        Q = make_aggregator(listname, l, adder, (x, y) -> concat_to_owncloud(x, y, glob), identity)
+        return (listname, Q)
+	end
+    @warn "During creation of lists with $(fe), assuming $second is a path and you want to compile in/out filelists"
+    change_path = x->new_path(glob["inputdirectory"], x, second)
+    adder = x::AbstractString -> add_to_file_list(change_path(x), l)
+    Q = make_aggregator(listname, l, adder, shared_list_to_file, change_path)
+    return (listname, Q)
 end
 
 function decode_filelist(fe::AbstractDict, glob::AbstractDict)
