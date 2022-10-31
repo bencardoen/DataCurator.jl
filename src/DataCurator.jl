@@ -103,6 +103,38 @@ function describe_image(x::AbstractString)
     return df
 end
 
+
+function _upload_to_owncloud(file, config)
+    if !haskey(config, "initialized")
+        @info "Creating path if needed"
+        remote=config["remote"]
+        _initialize_remote(config)
+        config["initialized"]="true"
+    end
+    try
+        read(`curl -X PUT -u $(config["user"]):$(config["token"]) "$(config["remote"])$(filename(file))" --data-binary @"$file" --create-dirs`, String)
+        @info "Success"
+    catch e
+        @error "Failed posting $file to $config due to $e"
+    end
+end
+
+function _make_remote_path(conf)
+    o=read(`curl -X PUT -u $(conf["user"]):$(conf["token"]) "$(conf["remote"])" -X MKCOL`, String)
+end
+
+function _initialize_remote(config)
+    remote = config["remote"]
+    conf = copy(config)
+    ps = split(remote, "/")
+    dav = findfirst(x-> x=="webdav", ps)
+    L = length(ps) - dav
+    for i in 1:L
+        conf["remote"] = join(ps[1:dav+i], "/")
+        _make_remote_path(conf)
+    end
+end
+
 function describe_image(x::AbstractVector{<:Any}, axis::Int)
 	@debug "Calling vectorized describe image"
 	N = length(x)
@@ -1603,16 +1635,6 @@ function delegate(config, template)
     return counters, lists, rval
 end
 
-function _upload_to_owncloud(file, config)
-    try
-        user, token, remote = config["user"], config["token"], config["remote"]
-        @info readlines(`curl -X PUT -u $(user):$(token) "$(remote)$(filename(file))" --data-binary @"$file"`)
-        @info "Success"
-    catch e
-        @error "Failed posting $file to $config due to $e"
-    end
-end
-
 function load_table(x::AbstractString)
     try
         tb = CSV.read(x, DataFrame)
@@ -2201,6 +2223,7 @@ function decode_owncloud(config)
 		try
         	tb = JSON.parse(String(read(c)))
 			@info "Read $(tb)"
+			_initialize_remote(tb)
         	return tb
     	catch e
         	@error "Reading $c failed because of $e"
