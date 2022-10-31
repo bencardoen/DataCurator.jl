@@ -14,6 +14,7 @@
 module DataCurator
 using Base.Threads
 import Random
+using JSON
 import Images
 import SlurmMonitor
 import Logging
@@ -64,6 +65,7 @@ function has_columns_named(x::AbstractString, nms::AbstractVector{T}) where T<:A
     cn = column_names(x)
     return all(c ∈ cn for c in nms)
 end
+
 function filepath(x::AbstractString)
     if isdir(x)
         @warn "Calling `filepath` on directory"
@@ -1000,11 +1002,15 @@ function decode_counter(c::AbstractVector)
 end
 
 function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
-    # Global first
-	# if f == "printtoslack"
-	# 	@info "Found printtoslack"
-	# 	@info "$(glob["endpoint"])"
-	# 	return x -> SlurmMonitor.posttoslack(x, glob["endpoint"])
+	# if f == "upload_to_owncloud"
+	# 	@debug "Move to lookup common"
+	# 	@info "DEBUG --> Handling owncloud"
+	# 	if isnothing(glob["owncloud_configuration"])
+	# 		@warn "Print to slack but endpoint is not set --> Ignoring"
+	# 	else
+	# 		@info "Creating owncloud uploader"
+	# 		return x -> _upload_to_owncloud(x, glob)
+	# 	end
 	# end
     fs = lookup_common(f, glob, condition)
     if ~isnothing(fs)
@@ -1597,6 +1603,15 @@ function delegate(config, template)
     return counters, lists, rval
 end
 
+function _upload_to_owncloud(file, config)
+    try
+        user, token, remote = config["user"], config["token"], config["remote"]
+        @info readlines(`curl -X PUT -u $(user):$(token) "$(remote)$(filename(file))" --data-binary @"$file"`)
+        @info "Success"
+    catch e
+        @error "Failed posting $file to $config due to $e"
+    end
+end
 
 function load_table(x::AbstractString)
     try
@@ -2177,11 +2192,26 @@ function apply_to(x, f; base=true)
     end
 end
 
+function decode_owncloud(config)
+	c = config["owncloud_configuration"]
+	if c == ""
+		@debug "No owncloud configuration active"
+		return nothing
+	else
+		try
+        	tb = JSON.parse(String(read(c)))
+			@info "Read $(tb)"
+        	return tb
+    	catch e
+        	@error "Reading $c failed because of $e"
+        end
+    end
+end
 
 function validate_global(config)
-    glob_defaults = Dict([("endpoint", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    glob_defaults = Dict([("endpoint", ""),("owncloud_configuration", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     # glob = config["global"]
-    glob_default_types = Dict([("endpoint", String),("parallel", Bool), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
+    glob_default_types = Dict([("endpoint", String),("parallel", Bool), ("owncloud_configuration", String), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
     glob_config = config["global"]
     @debug glob_config
@@ -2243,6 +2273,11 @@ function validate_global(config)
         else
 			@info "No slack support enabled"
 		end
+    end
+	if haskey(glob_config, "owncloud_configuration")
+		@info "Decoding OwnCloud"
+		oc = decode_owncloud(glob_config)
+		glob_defaults["owncloud_configuration"] = oc
     end
     return glob_defaults
 end
