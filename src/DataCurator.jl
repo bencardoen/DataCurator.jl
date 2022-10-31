@@ -113,10 +113,11 @@ function _upload_to_owncloud(file, config)
         config["initialized"]="true"
     end
     try
+		@debug "Sending $file"
 		IOCapture.capture() do
         	read(`curl -X PUT -u $(config["user"]):$(config["token"]) "$(config["remote"])$(filename(file))" --data-binary @"$file" --create-dirs`, String)
 		end
-        @info "Success"
+        @debug "Success"
     catch e
         @error "Failed posting $file to $config due to $e"
     end
@@ -1040,8 +1041,6 @@ end
 
 function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
 	if f == "upload_to_owncloud"
-		@debug "Move to lookup common"
-		@info "DEBUG --> Handling owncloud"
 		return x -> _upload_to_owncloud(x, glob["owncloud_configuration"])
 	end
     fs = lookup_common(f, glob, condition)
