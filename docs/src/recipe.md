@@ -96,6 +96,16 @@ At the end of the template, DC will print a summary to the slack channel of your
 
 You can also use slack based actions, see example_recipes/slack.toml
 
+##### Owncloud support
+```toml
+owncloud_configuration="config.json"
+```
+Where config.json looks like
+```json
+{"token":"token_from_owncloud","remote":"https://X.com/remote.php/webdav/path/to/save/","user":"USER"}
+```
+Check your owncloud provider to generate a token.
+
 #### Saved actions and conditions
 Quite often you will define actions and conditions several time. Instead of repeating yourself, you can define actions and conditions globally, and then refer from your template to them later.
 For example:
