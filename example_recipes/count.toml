@@ -1,0 +1,8 @@
+[global]
+act_on_success=true
+counters = ["filecount", ["filesize", "size_of_file"]]
+inputdirectory = "testdir"
+[any]
+all=true
+conditions = ["isfile"]
+actions=[["count", "filecount"], ["count", "filesize"]]

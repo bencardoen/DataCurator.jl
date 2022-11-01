@@ -1,0 +1,7 @@
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+scp_configuration = "ssh.json"
+[any]
+conditions = ["is_csv_file"]
+actions=["upload_to_scp"]

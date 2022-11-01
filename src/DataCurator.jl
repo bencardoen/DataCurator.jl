@@ -76,14 +76,17 @@ function filepath(x::AbstractString)
 end
 
 function validate_scp_config(configfile)
+	@info "Validating scp $configfile"
 	try
 		tb = JSON.parse(String(read(configfile)))
+		@info "Parsed to $tb"
 	    user = ENV["USER"]
 	    defaults = Dict([("user",user), ("port", "22"), ("remote", "localhost"), ("path", "/home/$(user)")])
+		@info "Defaults $defaults"
 	    for key in keys(defaults)
-	        if haskey(config, key)
-	            @info "Found key $key -> $(config[key])"
-	            defaults[key] = config[key]
+	        if haskey(tb, key)
+	            @info "Found key $key -> $(tb[key])"
+	            defaults[key] = tb[key]
 	        end
 	    end
 	    @debug "Config $defaults"
@@ -1805,10 +1808,10 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString)
     end
     @info "Writing to $name"
     CSV.write("$name", DF)
-	if !haskey(ENV, "owncloud_configuration")
+	if !haskey(ENV, "DC_owncloud_configuration")
 		return
 	end
-	config = JSON.parse(ENV["owncloud_configuration"])
+	config = JSON.parse(ENV["DC_owncloud_configuration"])
 	@info "Executing with $config"
 	@info "Uploading to owncloud $name"
 	_upload_to_owncloud(name, config)
@@ -1948,7 +1951,7 @@ function concat_to_owncloud(list::AbstractVector, name::AbstractString)
     end
     @info "Writing to $name"
     CSV.write("$name", DF)
-	config = JSON.parse(ENV["owncloud_configuration"])
+	config = JSON.parse(ENV["DC_owncloud_configuration"])
 	@info "Executing with $config"
 	if isnothing(config)
 		@error "Config = nothing"
@@ -2290,7 +2293,7 @@ function decode_owncloud(config)
         	tb = JSON.parse(String(read(c)))
 			@info "Read $(tb)"
 			_initialize_remote(tb)
-			ENV["owncloud_configuration"]=String(read(c))
+			ENV["DC_owncloud_configuration"]=String(read(c))
         	return tb
     	catch e
         	@error "Reading $c failed because of $e"
@@ -2299,9 +2302,9 @@ function decode_owncloud(config)
 end
 
 function validate_global(config)
-    glob_defaults = Dict([("endpoint", ""),("owncloud_configuration", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    glob_defaults = Dict([("endpoint", ""),("owncloud_configuration", ""),("scp_configuration", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     # glob = config["global"]
-    glob_default_types = Dict([("endpoint", String),("parallel", Bool), ("owncloud_configuration", String), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
+    glob_default_types = Dict([("endpoint", String),("parallel", Bool), ("owncloud_configuration", String),("scp_configuration", String), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
     glob_config = config["global"]
     @debug glob_config
@@ -2368,6 +2371,11 @@ function validate_global(config)
 		@info "Decoding OwnCloud"
 		oc = decode_owncloud(glob_config)
 		glob_defaults["owncloud_configuration"] = oc
+    end
+	if haskey(glob_config, "scp_configuration")
+		@info "Decoding scp"
+		validate_scp_config(glob_config["scp_configuration"])
+		@info "Decoding scp success"
     end
     return glob_defaults
 end

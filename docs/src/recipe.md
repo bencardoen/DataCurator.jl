@@ -20,10 +20,29 @@ mycontent="some value"
 ```
 
 ## Global section
+### Minimal configuration
 The smallest possible global section looks like this:
 ```toml
 [global]
 inputdirectory="where/your/data/is/stored"
+```
+### Full example
+The following is a full global section with default values
+```toml
+[global]
+inputdirectory="where/your/data/is/stored"
+endpoint=""                                 # Slack endpoint, provide file with Slack endpoint
+parallel=false                              # Multithreading on/off
+owncloud_configuration=""                   # Enable uploading to owncloud, provide a json file with config
+scp_configuration=""                        # Enable uploading to scp, provide a json file with config
+traversal="bottomup"                        # Direction of data traversal
+act_on_success=false                        # Execute actions if a condition fails (see actions/counteractions)
+hierarchical=true                           # Specify per-level depth specific template
+regex=false                                 # If true, interpret regular expression strings
+common_actions = {}                         # Don't repeat yourself, if you use actions/conditions more than once, define them here
+common_conditions = {}                      #
+file_lists = []                             # When you need to combine multiple files, this is where to specify it
+counters = []                               # If you want to keep track of certain conditions, count files, sizes, ... 
 ```
 
 Next, we can either act on failure (usually in validation), or on success.
