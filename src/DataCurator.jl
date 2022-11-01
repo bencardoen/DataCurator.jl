@@ -660,6 +660,11 @@ function tmpcopy(x; seed=0, length=40)
     return new
 end
 
+function tmpname(length=10)
+	rs = Random.randstring(length)
+	return rs
+end
+
 """
     reduce_images(list, fname::AbstractString, op::AbstractString)
 
@@ -1826,8 +1831,13 @@ end
 
 function shared_list_to_table(list::AbstractVector, name::AbstractString="")
 	if name == ""
-		@debug "Aggregator with name specified"
-		name = "_dc_temp.csv"
+		@debug "Aggregator without name specified"
+		rs = tmpname(10)
+		while isfile("$(rs).csv")
+			@debug "$rs exists, trying again"
+			rs = tmpname(10)
+		end
+		name = "$(rs).csv"
 	end
     tables = []
     for csv_file in list
@@ -1843,14 +1853,6 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
     end
     @info "Writing to $name"
     CSV.write("$name", DF)
-	if !haskey(ENV, "DC_owncloud_configuration")
-		return name
-	end
-	## FIXME
-	config = JSON.parse(ENV["DC_owncloud_configuration"])
-	@info "Executing with $config"
-	@info "Uploading to owncloud $name"
-	_upload_to_owncloud(name, config)
 	return name
 end
 
@@ -1858,14 +1860,25 @@ function shared_list_to_table(list::AbstractVector{<:AbstractVector}, name::Abst
     return shared_list_to_table(flatten_list(list), name)
 end
 
-function stack_list_to_image(list, name)
+function stack_list_to_image(list, name="")
+	if name == ""
+		@debug "Aggregator without name specified"
+		rs = tmpname(10)
+		while isfile("$(rs).tif")
+			@debug "$rs exists, trying again"
+			rs = tmpname(10)
+		end
+		name = "$(rs).tif"
+	end
     res = list_to_image(list)
     @info "Saving aggregated image"
     if ~endswith(name, ".tif")
         @debug "Postfixing tif"
         name = "$(name).tif"
     end
+	@info "Saving to $name"
     Images.save(name, res)
+	return name
 end
 
 
