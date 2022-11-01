@@ -30,8 +30,9 @@ import TOML
 using ProgressMeter
 using HDF5
 using MAT
+using Logging, LoggingExtras, Dates
 
-export topdown, groupbycolumn, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, config_log, groupbycolumn, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -57,6 +58,17 @@ is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
 function column_names(x::T) where{T<:AbstractString}
 	return names(CSV.read(x, DataFrame))
 end
+
+
+function config_log(minlevel=Logging.Debug)
+        date_format = "yyyy-mm-dd HH:MM:SS"
+        timestamp_logger(logger) = TransformerLogger(logger) do log
+                merge(log, (; message = "$(Dates.format(now(), date_format)) $(basename(log.file)):$(log.line): $(log.message)"))
+        end
+        defl = minlevel
+        ConsoleLogger(stdout, defl) |> timestamp_logger |> global_logger
+end
+
 
 is_file = x -> isfile(x)
 has_n_columns = (x, k) -> length(column_names(x)) == k
@@ -150,6 +162,24 @@ function _upload_to_owncloud(file, config)
         @error "Failed posting $file to $config due to $e"
     end
 	return file
+end
+
+function upload_to_owncloud(name)
+	@info "Upload to owncloud"
+	config = JSON.parse(ENV["DC_owncloud_configuration"])
+	@info "Executing with $config"
+	@info "Uploading to owncloud $name"
+	return _upload_to_owncloud(name, config)
+end
+
+function upload_to_owncloud(tmp, name)
+	@debug "upload to owncloud with $tmp and $name"
+	cp(tmp, name, force=true)
+	@info "Uploading $name to owncloud"
+	config = JSON.parse(ENV["DC_owncloud_configuration"])
+	@info "Executing with $config"
+	@info "Uploading to owncloud $name"
+	return _upload_to_owncloud(name, config)
 end
 
 function _make_remote_path(conf)
@@ -932,7 +962,6 @@ end
 
 function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractDict)
     ## Inner vector is a chain of A -> B -> SINK
-    fs = []
     @info "Decoding chained aggregator $(ag)"
     if length(ag) != 1
         throw(ArgumentError("Invalid aggregator $ag, expecting [[A, B, C, D]] s.t. D(C(B(A)))"))
@@ -940,7 +969,7 @@ function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractD
     nested = ag[1]
     # aggregators=[shared_list_to_file, shared_list_to_table, concat_to_table]
     # @warn "Fixme --> implement transformers $ag"
-    @debug "$ag --> nested transformers $nested"
+    @debug "$ag --> nested aggregator $nested"
     sink = nested[end]
     transformers = nested[1:end-1]
     chain = []
@@ -1795,7 +1824,11 @@ function check_slice(img, d, m, M)
     return false
 end
 
-function shared_list_to_table(list::AbstractVector, name::AbstractString)
+function shared_list_to_table(list::AbstractVector, name::AbstractString="")
+	if name == ""
+		@debug "Aggregator with name specified"
+		name = "_dc_temp.csv"
+	end
     tables = []
     for csv_file in list
         @debug "Loading table $csv_file"
@@ -1813,6 +1846,7 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString)
 	if !haskey(ENV, "DC_owncloud_configuration")
 		return name
 	end
+	## FIXME
 	config = JSON.parse(ENV["DC_owncloud_configuration"])
 	@info "Executing with $config"
 	@info "Uploading to owncloud $name"
@@ -1820,7 +1854,7 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString)
 	return name
 end
 
-function shared_list_to_table(list::AbstractVector{<:AbstractVector}, name::AbstractString)
+function shared_list_to_table(list::AbstractVector{<:AbstractVector}, name::AbstractString="")
     return shared_list_to_table(flatten_list(list), name)
 end
 
@@ -2971,7 +3005,7 @@ function aggregator_add(nt::NamedTuple{(:name, :list, :adder, :aggregator, :tran
 end
 
 function aggregator_aggregate(nt::NamedTuple{(:name, :list, :adder, :aggregator, :transformer), Tuple{Any, Any, Any, Any, Any}})
-    @info "Executing aggregator named: $(nt.name)"
+    @info "Executing aggregator named: $(nt.name) with list $(nt.list)"
     nt.aggregator(nt.list, nt.name)
 end
 
