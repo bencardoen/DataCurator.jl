@@ -75,6 +75,30 @@ function filepath(x::AbstractString)
     return splitdir(x)[1]
 end
 
+function validate_scp_config(configfile)
+	try
+		tb = JSON.parse(String(read(configfile)))
+	    user = ENV["USER"]
+	    defaults = Dict([("user",user), ("port", "22"), ("remote", "localhost"), ("path", "/home/$(user)")])
+	    for key in keys(defaults)
+	        if haskey(config, key)
+	            @info "Found key $key -> $(config[key])"
+	            defaults[key] = config[key]
+	        end
+	    end
+	    @debug "Config $defaults"
+		ENV["DC_SSH_CONFIG"] = JSON.json(defaults)
+	catch e
+		@error "Parsing SSH config failed with $e for $configfile"
+	end
+end
+
+function upload_to_scp(file)
+	conf = JSON.parse(ENV["DC_SSH_CONFIG"])
+	@debug "Using SSH config $conf"
+    read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+end
+
 function filepath(x::AbstractVector)
     @debug "Vectorized filepath invoked for $x"
     return filepath.(x)

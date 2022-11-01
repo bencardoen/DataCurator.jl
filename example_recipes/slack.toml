@@ -1,0 +1,8 @@
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+endpoint = "endpoint.txt"
+[any]
+all=false
+conditions = ["is_csv_file"]
+actions=[["printtoslack", "Found missing csv file !!"]]
