@@ -100,6 +100,7 @@ function upload_to_scp(file)
 	conf = JSON.parse(ENV["DC_SSH_CONFIG"])
 	@debug "Using SSH config $conf"
     read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+	return file
 end
 
 function filepath(x::AbstractVector)
@@ -148,6 +149,7 @@ function _upload_to_owncloud(file, config)
     catch e
         @error "Failed posting $file to $config due to $e"
     end
+	return file
 end
 
 function _make_remote_path(conf)
@@ -1500,7 +1502,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     end
 
 	if fname == "printtoslack"
-		@info "DEBUG --> Handling print to slack"
+		@debug "DEBUG --> Handling print to slack"
 		if isnothing(glob["endpoint"])
 			@warn "Print to slack but endpoint is not set --> Ignoring"
 		else
@@ -1809,16 +1811,17 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString)
     @info "Writing to $name"
     CSV.write("$name", DF)
 	if !haskey(ENV, "DC_owncloud_configuration")
-		return
+		return name
 	end
 	config = JSON.parse(ENV["DC_owncloud_configuration"])
 	@info "Executing with $config"
 	@info "Uploading to owncloud $name"
 	_upload_to_owncloud(name, config)
+	return name
 end
 
 function shared_list_to_table(list::AbstractVector{<:AbstractVector}, name::AbstractString)
-    shared_list_to_table(flatten_list(list), name)
+    return shared_list_to_table(flatten_list(list), name)
 end
 
 function stack_list_to_image(list, name)
