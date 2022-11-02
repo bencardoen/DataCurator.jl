@@ -34,7 +34,7 @@ using Logging, LoggingExtras, Dates
 
 export topdown, config_log, groupbycolumn, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
-transform_inplace, ParallelCounter, transform_copy, warn_on_fail, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
+transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
 any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_file, stack_images, list_to_image, normalize_linear,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, buildcomp, has_n_files, has_n_subdirs, decode_filelist,
@@ -103,8 +103,10 @@ function validate_scp_config(configfile)
 	    end
 	    @debug "Config $defaults"
 		ENV["DC_SSH_CONFIG"] = JSON.json(defaults)
+		return true
 	catch e
 		@error "Parsing SSH config failed with $e for $configfile"
+		return false
 	end
 end
 
@@ -1814,8 +1816,6 @@ function size_image(x::Array, triples::AbstractVector{<:AbstractVector})
     return true
 end
 
-
-
 function check_slice(img, d, m, M)
     SZ = size(img)
     if 1 <= d <= length(SZ)
@@ -2561,7 +2561,7 @@ end
 
 function shared_list_to_file(list::AbstractVector{<:AbstractVector}, fname)
     @debug "Nested list to file"
-    shared_list_to_file(flatten_list(list), fname)
+    return shared_list_to_file(flatten_list(list), fname)
 end
 
 function shared_list_to_file(list::AbstractVector, fname)
@@ -2576,6 +2576,7 @@ function shared_list_to_file(list::AbstractVector, fname)
             write(f, pad(entry))
         end
     end
+	return fname
 end
 
 function pad(msg)

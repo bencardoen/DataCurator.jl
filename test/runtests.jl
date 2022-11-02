@@ -5,6 +5,7 @@ using Random
 using Images
 using CSV
 using DataFrames
+using JSON
 
 function correctpath()
     if splitpath(pwd())[end] != "test"
@@ -25,6 +26,49 @@ correctpath()
         touch("testfile")
         @test canwrite("testfile")
         rm("testfile")
+    end
+
+
+    @testset "aggapi" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        df = DataFrame()
+        df[!, :x1] = ['A', 'A']
+        df[!, :x2] = [1,1]
+        df[!, :x3] = [4,4]
+        CSV.write(joinpath(IN, "test.csv"), df)
+        CSV.write(joinpath(IN, "test2.csv"), df)
+
+        res = create_template_from_toml(joinpath("..","example_recipes","aggregate_sort.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+
+        @test isfile("table.txt")
+        remove("table.txt")
+        delete_folder(IN)
+    end
+
+    @testset "scp" begin
+        d=Dict([("user", "me"), ("port", 24)])
+        write_file("_test.json", JSON.json(d))
+        @test validate_scp_config("_test.json")
+        remove("_test.json")
+    end
+
+    @testset "msk" begin
+        im=zeros(128, 128)
+        n = "$(tmpname(20)).tif"
+        Images.save()
+    end
+
+    @testset "tmpf" begin
+        r=tmpname(20)
+        @test length(r) == 20
+        s=tmpname(20)
+        @test r != s
     end
 
     @testset "csvaggregate" begin
