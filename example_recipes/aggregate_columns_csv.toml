@@ -1,6 +1,6 @@
 [global]
 act_on_success=true
-file_lists = [{name="table", transformer=["groupbycolumn", ["x1", "x2"], ["x3"], ["sum"], ["x3_sum"]], aggregator="concat_to_owncloud"}]
+file_lists = [{name="table", transformer=["groupbycolumn", ["x1", "x2"], ["x3"], ["sum"], ["x3_sum"]], aggregator="concat_to_table"}]
 inputdirectory = "testdir"
 owncloud_configuration = "owncloud.json"
 [any]
