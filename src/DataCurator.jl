@@ -924,13 +924,13 @@ function decode_filelist(fe::AbstractVector, glob)
         Q = make_aggregator(listname, l, adder, shared_list_to_table, identity)
         return (listname, Q)
     end
-	if second == "concat_to_owncloud"
-		@info "Shortcode for table concatenation to owncloud"
-        # change_path = x->new_path(glob["inputdirectory"], x, alter_root)
-        adder = x::AbstractString -> add_to_file_list(x, l)
-        Q = make_aggregator(listname, l, adder, (x, y) -> concat_to_owncloud(x, y, glob), identity)
-        return (listname, Q)
-	end
+	# if second == "concat_to_owncloud"
+	# 	@info "Shortcode for table concatenation to owncloud"
+    #     # change_path = x->new_path(glob["inputdirectory"], x, alter_root)
+    #     adder = x::AbstractString -> add_to_file_list(x, l)
+    #     Q = make_aggregator(listname, l, adder, (x, y) -> concat_to_owncloud(x, y, glob), identity)
+    #     return (listname, Q)
+	# end
     @warn "During creation of lists with $(fe), assuming $second is a path and you want to compile in/out filelists"
     change_path = x->new_path(glob["inputdirectory"], x, second)
     adder = x::AbstractString -> add_to_file_list(change_path(x), l)
@@ -2013,37 +2013,37 @@ end
 
 concat_to_table = shared_list_to_table
 
-
-function concat_to_owncloud(list::AbstractVector{<:AbstractVector}, name::AbstractString)
-    shared_list_to_table(flatten_list(list), name)
-end
-
-function concat_to_owncloud(list::AbstractVector, name::AbstractString)
-	@info "Concatenate to owncloud"
-	@info list
-    tables = []
-    for csv_file in list
-        @debug "Loading table $csv_file"
-        tb = load_table(csv_file)
-        push!(tables, tb)
-    end
-    @info "Saving total of $(length(tables)) to $name csv"
-    DF = vcat(tables...)
-    if ~endswith(name, ".csv")
-        @debug "Postfixing .csv"
-        name="$(name).csv"
-    end
-    @info "Writing to $name"
-    CSV.write("$name", DF)
-	config = JSON.parse(ENV["DC_owncloud_configuration"])
-	@info "Executing with $config"
-	if isnothing(config)
-		@error "Config = nothing"
-		return
-	end
-	@info "Uploading to owncloud $name"
-	_upload_to_owncloud(name, config)
-end
+#
+# function concat_to_owncloud(list::AbstractVector{<:AbstractVector}, name::AbstractString)
+#     shared_list_to_table(flatten_list(list), name)
+# end
+#
+# function concat_to_owncloud(list::AbstractVector, name::AbstractString)
+# 	@info "Concatenate to owncloud"
+# 	@info list
+#     tables = []
+#     for csv_file in list
+#         @debug "Loading table $csv_file"
+#         tb = load_table(csv_file)
+#         push!(tables, tb)
+#     end
+#     @info "Saving total of $(length(tables)) to $name csv"
+#     DF = vcat(tables...)
+#     if ~endswith(name, ".csv")
+#         @debug "Postfixing .csv"
+#         name="$(name).csv"
+#     end
+#     @info "Writing to $name"
+#     CSV.write("$name", DF)
+# 	config = JSON.parse(ENV["DC_owncloud_configuration"])
+# 	@info "Executing with $config"
+# 	if isnothing(config)
+# 		@error "Config = nothing"
+# 		return
+# 	end
+# 	@info "Uploading to owncloud $name"
+# 	_upload_to_owncloud(name, config)
+# end
 
 function validate_top_config(cfg)
     keys_c = keys(cfg)|>collect

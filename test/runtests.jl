@@ -275,6 +275,28 @@ correctpath()
         delete_folder(IN)
     end
 
+
+    @testset "testcolumnaggoc" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        @info pwd()
+        @test isdir(IN)
+        df = DataFrame()
+        df[!, :x1] = ['A', 'A']
+        df[!, :x2] = [1,1]
+        df[!, :x3] = [4,4]
+        CSV.write(joinpath(IN, "test.csv"), df)
+        CSV.write(joinpath(IN, "test2.csv"), df)
+
+        res = create_template_from_toml(joinpath("..","example_recipes","aggregate_sort_upload_oc.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        delete_folder(IN)
+    end
+
     @testset "counters" begin
         correctpath()
         IN="testdir"
