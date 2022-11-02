@@ -6,7 +6,7 @@ From: fedora:35
 
 %post
     ## Get the tools we'll need
-    dnf install -y wget unzip python3 g++
+    dnf install -y wget unzip python3 g++ openssh-clients curl
     dnf groupinstall -y 'Development Tools'
 
     ## Setup Julia
