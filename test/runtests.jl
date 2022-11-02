@@ -1452,5 +1452,12 @@ correctpath()
         global_logger(c)
     end
 
+    @testset "log" begin
+        c = global_logger()
+        global_logger(NullLogger())
+        config_log()
+        global_logger(c)
+    end
+
 
 end

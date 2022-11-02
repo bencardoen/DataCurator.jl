@@ -32,7 +32,7 @@ using HDF5
 using MAT
 using Logging, LoggingExtras, Dates
 
-export topdown, config_log, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -171,21 +171,29 @@ function _upload_to_owncloud(file, config)
 end
 
 function upload_to_owncloud(name)
-	@info "Upload to owncloud"
-	config = JSON.parse(ENV["DC_owncloud_configuration"])
-	@info "Executing with $config"
-	@info "Uploading to owncloud $name"
-	return _upload_to_owncloud(name, config)
+	try
+		@info "Upload to owncloud"
+		config = JSON.parse(ENV["DC_owncloud_configuration"])
+		@info "Executing with $config"
+		@info "Uploading to owncloud $name"
+		return _upload_to_owncloud(name, config)
+	catch e
+		@error "Failed upload $name"
+	end
 end
 
 function upload_to_owncloud(tmp, name)
-	@debug "upload to owncloud with $tmp and $name"
-	cp(tmp, name, force=true)
-	@info "Uploading $name to owncloud"
-	config = JSON.parse(ENV["DC_owncloud_configuration"])
-	@info "Executing with $config"
-	@info "Uploading to owncloud $name"
-	return _upload_to_owncloud(name, config)
+	try
+		@debug "upload to owncloud with $tmp and $name"
+		cp(tmp, name, force=true)
+		@info "Uploading $name to owncloud"
+		config = JSON.parse(ENV["DC_owncloud_configuration"])
+		@info "Executing with $config"
+		@info "Uploading to owncloud $name"
+		return _upload_to_owncloud(name, config)
+	catch e
+		@error "Failed upload $tmp $name"
+	end
 end
 
 function _make_remote_path(conf)
