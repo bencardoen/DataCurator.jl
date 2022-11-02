@@ -119,9 +119,13 @@ function validate_scp_config(configfile)
 end
 
 function upload_to_scp(file)
-	conf = JSON.parse(ENV["DC_SSH_CONFIG"])
-	@debug "Using SSH config $conf"
-    read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+	try
+		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
+		@debug "Using SSH config $conf"
+    	read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+	catch e
+		@error "Failed uploading $file due to $e"
+	end
 	return file
 end
 
