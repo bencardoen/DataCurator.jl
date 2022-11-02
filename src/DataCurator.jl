@@ -32,7 +32,7 @@ using HDF5
 using MAT
 using Logging, LoggingExtras, Dates
 
-export topdown, config_log, groupbycolumn, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, config_log, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -59,7 +59,11 @@ function column_names(x::T) where{T<:AbstractString}
 	return names(CSV.read(x, DataFrame))
 end
 
+"""
+	config_log(minlevel=Logging.Debug)
 
+	Configure verbose logging. Changes the global logger.
+"""
 function config_log(minlevel=Logging.Debug)
         date_format = "yyyy-mm-dd HH:MM:SS"
         timestamp_logger(logger) = TransformerLogger(logger) do log

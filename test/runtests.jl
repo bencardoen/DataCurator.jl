@@ -52,7 +52,7 @@ correctpath()
     end
 
     @testset "scp" begin
-        d=Dict([("user", "me"), ("port", 24)])
+        d=Dict([("user", "me"), ("port", "24")])
         write_file("_test.json", JSON.json(d))
         @test validate_scp_config("_test.json")
         remove("_test.json")
@@ -61,7 +61,11 @@ correctpath()
     @testset "msk" begin
         im=zeros(128, 128)
         n = "$(tmpname(20)).tif"
-        Images.save()
+        Images.save(n, im)
+        mask(n)
+        x = Images.load(n)
+        @test sum(x) == 0
+        remove(n)
     end
 
     @testset "tmpf" begin
