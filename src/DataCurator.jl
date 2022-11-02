@@ -93,6 +93,10 @@ end
 
 function validate_scp_config(configfile)
 	@info "Validating scp $configfile"
+	if !haskey(ENV, "USER")
+		@debug "Override for CI/CD"
+		ENV["USER"] = ""
+	end
 	try
 		tb = JSON.parse(String(read(configfile)))
 		@info "Parsed to $tb"

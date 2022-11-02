@@ -1452,6 +1452,13 @@ correctpath()
         global_logger(c)
     end
 
+    @testset "oc" begin
+        c = global_logger()
+        global_logger(NullLogger())
+        upload_to_owncloud("test.csv")
+        global_logger(c)
+    end
+
     @testset "log" begin
         c = global_logger()
         global_logger(NullLogger())
