@@ -270,13 +270,6 @@ correctpath()
         res = create_template_from_toml(joinpath("..","example_recipes","aggregate_sort_uload.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
-
-        @test isfile("table.csv")
-        a = load_content("table.csv")
-        @test names(a)[end]=="x3_sum"
-        if isfile("table.csv")
-            rm("table.csv")
-        end
         delete_folder(IN)
     end
 
