@@ -129,6 +129,19 @@ function upload_to_scp(file)
 	return file
 end
 
+function upload_to_scp(tmp, file)
+	try
+		@debug "Copying $tmp -> $file"
+		cp(tmp, file, force=true)
+		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
+		@debug "Using SSH config $conf"
+    	read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+	catch e
+		@error "Failed uploading $file due to $e"
+	end
+	return file
+end
+
 function filepath(x::AbstractVector)
     @debug "Vectorized filepath invoked for $x"
     return filepath.(x)

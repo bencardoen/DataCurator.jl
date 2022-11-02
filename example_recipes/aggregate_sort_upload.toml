@@ -7,7 +7,7 @@ owncloud_configuration="owncloud.json"
                                           # "unique",
                                           # "shared_list_to_file",
                                           # "upload_to_owncloud"]]}]
-file_lists = [{name="table", aggregator=[["filepath", "sort", "shared_list_to_table","upload_to_owncloud"]]}]                                    
+file_lists = [{name="table", aggregator=[["shared_list_to_table","upload_to_scp"]]}]                                    
 inputdirectory = "testdir"
 [any]
 all=true

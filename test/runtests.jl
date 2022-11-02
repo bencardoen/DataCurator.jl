@@ -260,6 +260,8 @@ correctpath()
         delete_folder("outdir")
         delete_folder(IN)
         mkdir(IN)
+        @info pwd()
+        @test isdir(IN)
         df = DataFrame()
         df[!, :x1] = ['A', 'A']
         df[!, :x2] = [1,1]
