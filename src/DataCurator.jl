@@ -1642,27 +1642,28 @@ function _lookup_filelist(name, glob)
     return nothing
 end
 
-function lookup_n_lists(tpl, glob)
-    ac, fn = tpl
-    @debug "Looking up FL on keyword $ac with name  $fn"
-    if haskey(glob, "file_lists")
-        @debug "Checking file list table"
-        fl_table = glob["file_lists"]
-        @debug "TABLE == "
-        @debug fl_table
-        if haskey(fl_table, fn)
-            fl_object = fl_table[fn]
-            if fl_object.name != fn
-                @error "Table entry corrupt!!  $(fl_object.name) != fn"
-            end
-            # _, fl_adder = fl_object
-            @debug "Success!"
-            return fl_object.adder
-        end
-    end
-    @error "failed decoding filelists"
-    return nothing
-end
+# Deprecated
+# function lookup_n_lists(tpl, glob)
+#     ac, fn = tpl
+#     @debug "Looking up FL on keyword $ac with name  $fn"
+#     if haskey(glob, "file_lists")
+#         @debug "Checking file list table"
+#         fl_table = glob["file_lists"]
+#         @debug "TABLE == "
+#         @debug fl_table
+#         if haskey(fl_table, fn)
+#             fl_object = fl_table[fn]
+#             if fl_object.name != fn
+#                 @error "Table entry corrupt!!  $(fl_object.name) != fn"
+#             end
+#             # _, fl_adder = fl_object
+#             @debug "Success!"
+#             return fl_object.adder
+#         end
+#     end
+#     @error "failed decoding filelists"
+#     return nothing
+# end
 
 function lookup_counter(tpl, glob)
     ac, fn = tpl

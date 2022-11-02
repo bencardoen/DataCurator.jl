@@ -1,0 +1,15 @@
+
+[global]
+act_on_success=true
+owncloud_configuration="owncloud.json"
+# file_lists = [{name="table", aggregator=[["filepath",
+                                          # "sort",
+                                          # "unique",
+                                          # "shared_list_to_file",
+                                          # "upload_to_owncloud"]]}]
+file_lists = [{name="table", aggregator=[["shared_list_to_table","upload_to_owncloud"]]}]                                    
+inputdirectory = "testdir"
+[any]
+all=true
+conditions = ["is_csv_file"]
+actions=[["add_to_file_list", "table"]]

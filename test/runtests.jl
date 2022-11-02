@@ -295,6 +295,26 @@ correctpath()
         delete_folder(IN)
     end
 
+    @testset "counters" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        df = DataFrame()
+        df[!, :x1] = ['A', 'A']
+        df[!, :x2] = [1,1]
+        df[!, :x3] = [4,4]
+        CSV.write(joinpath(IN, "test.csv"), df)
+        CSV.write(joinpath(IN, "test2.csv"), df)
+
+        d=Dict([("user", "me"), ("port", "24")])
+        write_file("ssh.json", JSON.json(d))
+        res = create_template_from_toml(joinpath("..","example_recipes","scp.toml"))
+        c, t = res
+        delete_folder(IN)
+    end
+
     @testset "testcolumnagg2" begin
         correctpath()
         IN="testdir"
