@@ -1740,6 +1740,7 @@ end
 function load_table(x::AbstractString)
     try
         tb = CSV.read(x, DataFrame)
+		tb[!, :dc_filename] .= x
         return tb
     catch e
         @error "Reading $x failed because of $e"
@@ -1877,6 +1878,7 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
     for csv_file in list
         @debug "Loading table $csv_file"
         tb = load_table(csv_file)
+		@debug "Loaded table with dim $(size(tb)) and columns $(nanes(tb))"
         push!(tables, tb)
     end
     @info "Saving total of $(length(tables)) to $name csv"

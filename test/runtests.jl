@@ -317,7 +317,7 @@ correctpath()
         delete_folder(IN)
     end
 
-    @testset "counters" begin
+    @testset "scp" begin
         correctpath()
         IN="testdir"
         delete_folder("outdir")
@@ -355,7 +355,7 @@ correctpath()
 
         @test isfile("table.csv")
         a = load_content("table.csv")
-        @test names(a)[end]=="x3_sum"
+        @test "x3_sum" ∈ names(a)
         if isfile("table.csv")
             rm("table.csv")
         end
@@ -734,7 +734,7 @@ correctpath()
         # t[1].action(csv1)
         cts, cls, rv = delegate(c, t)
         df = CSV.read("table.csv", DataFrame)
-        @test size(df) == (6,3)
+        @test size(df) == (6,4)
     end
 
     @testset "list_stack_images" begin
@@ -793,7 +793,7 @@ correctpath()
         c, t = res
         cts, cls, rv = delegate(c, t)
         df = CSV.read("table.csv", DataFrame)
-        @test size(df) == (6,1)
+        @test size(df) == (6,2)
     end
 
     @testset "lists_outpath" begin
@@ -1042,7 +1042,7 @@ correctpath()
         t[1][2]
         cts, cls, rv = delegate(c, t)
         df = CSV.read("table.csv", DataFrame)
-        @test size(df) == (6, 3)
+        @test size(df) == (6, 4)
     end
 
     @testset "collapse" begin
