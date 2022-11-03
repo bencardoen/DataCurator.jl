@@ -3,5 +3,6 @@ act_on_success=true
 inputdirectory = "testdir"
 scp_configuration = "ssh.json"
 [any]
+all=true
 conditions = ["is_csv_file"]
-actions=["upload_to_scp"]
+actions=[["change_path", "/home/bcardoen/scratch"], "upload_to_scp"]

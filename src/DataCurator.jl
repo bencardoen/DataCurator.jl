@@ -32,7 +32,7 @@ using HDF5
 using MAT
 using Logging, LoggingExtras, Dates
 
-export topdown, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -122,7 +122,8 @@ function upload_to_scp(file)
 	try
 		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
 		@debug "Using SSH config $conf"
-    	read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+    	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+		@debug "Sent"
 	catch e
 		@error "Failed uploading $file due to $e"
 	end
@@ -135,7 +136,7 @@ function upload_to_scp(tmp, file)
 		cp(tmp, file, force=true)
 		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
 		@debug "Using SSH config $conf"
-    	read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+    	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
 	catch e
 		@error "Failed uploading $file due to $e"
 	end
@@ -182,7 +183,7 @@ function _upload_to_owncloud(file, config)
     try
 		@debug "Sending $file"
 		IOCapture.capture() do
-        	read(`curl -X PUT -u $(config["user"]):$(config["token"]) "$(config["remote"])$(filename(file))" --data-binary @"$file" --create-dirs`, String)
+        	@async read(`curl -X PUT -u $(config["user"]):$(config["token"]) "$(config["remote"])$(filename(file))" --data-binary @"$file" --create-dirs`, String)
 		end
         @debug "Success"
     catch e
@@ -219,7 +220,7 @@ end
 
 function _make_remote_path(conf)
 	IOCapture.capture() do
-    	o=read(`curl -X PUT -u $(conf["user"]):$(conf["token"]) "$(conf["remote"])" -X MKCOL`, String)
+    	@async o=read(`curl -X PUT -u $(conf["user"]):$(conf["token"]) "$(conf["remote"])" -X MKCOL`, String)
 	end
 end
 
@@ -597,17 +598,17 @@ end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Colorant}
     @debug "Saving image to $sink"
-    Images.save(sink, ct)
+    @async Images.save(sink, ct)
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Gray}
     @debug "Saving image to $sink"
-    Images.save(sink, ct)
+    @async Images.save(sink, ct)
 end
 
 function save_content(ct::Matrix{Images.N0f16}, sink::String)
     @debug "Saving image to $sink"
-    Images.save(sink, ct)
+    @async Images.save(sink, ct)
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:AbstractFloat}
@@ -617,7 +618,7 @@ end
 
 function save_content(ct::DataFrame, sink::AbstractString)
     @debug "Saving dataframe content to $sink"
-    CSV.write(sink, ct)
+    @async CSV.write(sink, ct)
 end
 
 function mode_copy(old::AbstractString, tmp::AbstractString, new::AbstractString)
