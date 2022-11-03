@@ -1,5 +1,6 @@
 using Images
 using Random
+using DataFrames
 using CSV
 Random.seed!(52)
 # root = joinpath(tempdir(), randstring(20))

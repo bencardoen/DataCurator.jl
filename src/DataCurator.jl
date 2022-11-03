@@ -1740,7 +1740,11 @@ end
 function load_table(x::AbstractString)
     try
         tb = CSV.read(x, DataFrame)
-		tb[!, :dc_filename] .= x
+		if "dc_filename" ∈ names(tb)
+			@warn "Filename already in table $x"
+		else
+			tb[!, :dc_filename] .= x
+		end
         return tb
     catch e
         @error "Reading $x failed because of $e"
