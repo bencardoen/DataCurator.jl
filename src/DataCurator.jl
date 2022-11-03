@@ -99,13 +99,13 @@ function validate_scp_config(configfile)
 	end
 	try
 		tb = JSON.parse(String(read(configfile)))
-		@info "Parsed to $tb"
+		@debug "Parsed to $tb"
 	    user = ENV["USER"]
 	    defaults = Dict([("user",user), ("port", "22"), ("remote", "localhost"), ("path", "/home/$(user)")])
-		@info "Defaults $defaults"
+		@debug "Defaults $defaults"
 	    for key in keys(defaults)
 	        if haskey(tb, key)
-	            @info "Found key $key -> $(tb[key])"
+	            @debug "Found key $key -> $(tb[key])"
 	            defaults[key] = tb[key]
 	        end
 	    end
@@ -175,7 +175,7 @@ end
 
 function _upload_to_owncloud(file, config)
     if !haskey(config, "initialized")
-        @info "Creating path if needed"
+        @debug "Creating path if needed"
         remote=config["remote"]
         _initialize_remote(config)
         config["initialized"]="true"
@@ -194,10 +194,8 @@ end
 
 function upload_to_owncloud(name)
 	try
-		@info "Upload to owncloud"
 		config = JSON.parse(ENV["DC_owncloud_configuration"])
-		@info "Executing with $config"
-		@info "Uploading to owncloud $name"
+		@debug "Uploading to owncloud $name with $config"
 		return _upload_to_owncloud(name, config)
 	catch e
 		@error "Failed upload $name"
@@ -206,12 +204,9 @@ end
 
 function upload_to_owncloud(tmp, name)
 	try
-		@debug "upload to owncloud with $tmp and $name"
 		cp(tmp, name, force=true)
-		@info "Uploading $name to owncloud"
 		config = JSON.parse(ENV["DC_owncloud_configuration"])
-		@info "Executing with $config"
-		@info "Uploading to owncloud $name"
+		@debug "Uploading to owncloud $name from $tmp with $config"
 		return _upload_to_owncloud(name, config)
 	catch e
 		@error "Failed upload $tmp $name"
@@ -292,9 +287,7 @@ function getextent2(box)
 end
 
 function groupbycolumn(df::DataFrame, columns, targets, functions, names)
-	# @info df
-	# @info typeof(df)
-	# @info "DATAFRAME"
+	@debug "Group by with $columns $targets $functions $names"
     gdf = groupby(df, columns)
     _fs = [lookup(f) for f in functions]
     y = combine(gdf, [c => f => n for (c,f, n) in zip(targets, _fs, names)])
@@ -302,9 +295,7 @@ function groupbycolumn(df::DataFrame, columns, targets, functions, names)
 end
 
 function groupbycolumn(df::AbstractString, columns, targets, functions, names)
-	# @info df
-	# @info typeof(df)
-	# @info "FILE"
+	@debug "Group by column $columns $targets $functions $names"
 	x=load_content(df)
     gdf = groupby(x, columns)
     _fs = [lookup(f) for f in functions]
@@ -540,7 +531,6 @@ function describe_image(x::AbstractArray, axis::Int64)
     N = SZ[axis]
     ds = zeros(Float64, N, 8)
     for (i,s) in enumerate(eachslice(x; dims=axis))
-        # @info s
         ds[i,:] .= dimg(s)
     end
     columns = [:minimum, :Q1, :mean, :median, :Q3, :maximum, :std, :kurtosis]
@@ -598,17 +588,17 @@ end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Colorant}
     @debug "Saving image to $sink"
-    @async Images.save(sink, ct)
+    Images.save(sink, ct)
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Gray}
     @debug "Saving image to $sink"
-    @async Images.save(sink, ct)
+    Images.save(sink, ct)
 end
 
 function save_content(ct::Matrix{Images.N0f16}, sink::String)
     @debug "Saving image to $sink"
-    @async Images.save(sink, ct)
+    Images.save(sink, ct)
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:AbstractFloat}
@@ -618,7 +608,7 @@ end
 
 function save_content(ct::DataFrame, sink::AbstractString)
     @debug "Saving dataframe content to $sink"
-    @async CSV.write(sink, ct)
+    CSV.write(sink, ct)
 end
 
 function mode_copy(old::AbstractString, tmp::AbstractString, new::AbstractString)
@@ -903,12 +893,12 @@ function decode_filelist(fe::AbstractString, glob)
     transformer = identity
     aggregator = shared_list_to_file
     Q = make_aggregator(fe, l, adder, aggregator, transformer)
-    @info "Creating aggregator --> $fe save file list to txt file."
+    @debug "Creating aggregator --> $fe save file list to txt file."
     return (fe, Q)
 end
 
 function decode_filelist(fe::AbstractVector, glob)
-    @info "DF with $fe and $glob"
+    @debug "DF with $fe and $glob"
     ### Can only be 2 special cases
     ### name, outpath
     ### name, concat_to_table
@@ -925,13 +915,6 @@ function decode_filelist(fe::AbstractVector, glob)
         Q = make_aggregator(listname, l, adder, shared_list_to_table, identity)
         return (listname, Q)
     end
-	# if second == "concat_to_owncloud"
-	# 	@info "Shortcode for table concatenation to owncloud"
-    #     # change_path = x->new_path(glob["inputdirectory"], x, alter_root)
-    #     adder = x::AbstractString -> add_to_file_list(x, l)
-    #     Q = make_aggregator(listname, l, adder, (x, y) -> concat_to_owncloud(x, y, glob), identity)
-    #     return (listname, Q)
-	# end
     @warn "During creation of lists with $(fe), assuming $second is a path and you want to compile in/out filelists"
     change_path = x->new_path(glob["inputdirectory"], x, second)
     adder = x::AbstractString -> add_to_file_list(change_path(x), l)
@@ -943,7 +926,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     #Here check for
     # KEys name, transformer, aggregator
     default=Dict([("transformer", identity), ("aggregator", shared_list_to_file)])
-    @info "Decoding $fe , default = $default"
+    @debug "Decoding $fe , default = $default"
     if ~haskey(fe, "name")
         @error "Invalid file list entry $fe"
         throw(ArgumentError("Your list should have at least a name, use file_lists=[{\"name\":\"mylistname\",...}]"))
@@ -1003,7 +986,7 @@ end
 
 function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractDict)
     ## Inner vector is a chain of A -> B -> SINK
-    @info "Decoding chained aggregator $(ag)"
+    @debug "Decoding chained aggregator $(ag)"
     if length(ag) != 1
         throw(ArgumentError("Invalid aggregator $ag, expecting [[A, B, C, D]] s.t. D(C(B(A)))"))
     end
@@ -1015,7 +998,7 @@ function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractD
     transformers = nested[1:end-1]
     chain = []
     for candidate in transformers
-        @info "Decoding $candidate transformer"
+        @debug "Decoding $candidate transformer"
         cfs = decode_function(candidate, glob; condition=false)
         if  isnothing(cfs)
             throw(ArgumentError)
@@ -1688,7 +1671,7 @@ end
 	Print a message to a connected slack
 """
 function _printtoslack(x, argument, endpoint)
-	return SlurmMonitor.posttoslack("$argument $x", endpoint)
+	return @async SlurmMonitor.posttoslack("$argument $x", endpoint)
 end
 
 """
@@ -1714,7 +1697,7 @@ function delegate(config, template)
     counters, lists = [], []
     for c in config["counters"]
         name, (count, counter) = c
-        @info "Counter named $name has value $count"
+        @debug "Counter named $name has value $count"
         push!(counters, (name, read_counter(count)))
     end
     for (list_name, ag) in config["file_lists"]
@@ -1733,7 +1716,7 @@ function delegate(config, template)
     else
         @info "Dataset processing completed without early exit"
     end
-    @info "Changing back to current directory $CWD"
+    @debug "Changing back to current directory $CWD"
     cd(CWD)
     return counters, lists, rval
 end
@@ -3039,19 +3022,19 @@ function verifier(node, template::Vector, level::Int; on_success=false)
 end
 
 function make_aggregator(name, list, adder, aggregator)
-	@info "MAG $name"
+	@debug "MAG $name"
     return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, aggregator, identity))
 end
 
 
 function make_aggregator(name, list, adder)
-	@info "MAG2 $name"
+	@debug "MAG2 $name"
     return @NamedTuple{name::AbstractString, list, adder, aggregator, transformer}((name, list, adder, shared_list_to_file, identity))
 end
 
 
 function make_aggregator(name::AbstractString, list, adder, aggregator, transformer)
-	@info "MAG3 $name"
+	@debug"MAG3 $name"
     return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, aggregator,transformer))
 end
 
@@ -3060,7 +3043,7 @@ function aggregator_add(nt::NamedTuple{(:name, :list, :adder, :aggregator, :tran
 end
 
 function aggregator_aggregate(nt::NamedTuple{(:name, :list, :adder, :aggregator, :transformer), Tuple{Any, Any, Any, Any, Any}})
-    @info "Executing aggregator named: $(nt.name) with list $(nt.list)"
+    @debug "Executing aggregator named: $(nt.name) with list $(nt.list)"
     nt.aggregator(nt.list, nt.name)
 end
 
@@ -3111,16 +3094,6 @@ function verifier(node, templater::Dict, level::Int; on_success=false)
             return :quit
         end
     end
-    # for (condition, action) in template
-    #     if condition(node) == on_success
-    #         @debug "Condition fired for $node --> action"
-    #         rv = action(node)
-    #         @debug "Return value $rv"
-    #         if rv == :quit
-    #             return :quit
-    #         end
-    #     end
-    # end
     return :proceed
 end
 
@@ -3140,26 +3113,15 @@ function all_of(fs, x)
 end
 
 function any_of(x, fs)
+	@debug "Anu of $x $fs"
     for f in fs
         if f(x) == true
+			@debug "Trigger $f for $x = true"
             return true
         end
     end
     return false
 end
-#
-# function transformer(node, template)
-#     # @warn "X"
-#     for (condition, action) in template
-#         if condition(node)
-#             rv = action(node)
-#             if rv == :quit
-#                 return :quit
-#             end
-#             node = isnothing(rv) ? node : rv
-#         end
-#     end
-# end
 
 logical_and = (x, conditions) -> all(c(x) for c in conditions)
 
