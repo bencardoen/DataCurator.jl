@@ -1,5 +1,6 @@
 using Images
 using Random
+using CSV
 Random.seed!(52)
 # root = joinpath(tempdir(), randstring(20))
 root="/tmp/testdataset"
@@ -21,6 +22,7 @@ for r in 1:replicates
                 A[A.<0].=0
                 Images.save(joinpath(p, "$c.tif"), A)
             end
+            CSV.write(joinpath(p, "$(r)_$(co)_$(s).csv"), DataFrame(zeros(20,20),:auto))
         end
     end
 end
