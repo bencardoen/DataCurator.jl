@@ -1878,7 +1878,7 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
     for csv_file in list
         @debug "Loading table $csv_file"
         tb = load_table(csv_file)
-		@debug "Loaded table with dim $(size(tb)) and columns $(nanes(tb))"
+		@debug "Loaded table with dim $(size(tb)) and columns $(names(tb))"
         push!(tables, tb)
     end
     @info "Saving total of $(length(tables)) to $name csv"
