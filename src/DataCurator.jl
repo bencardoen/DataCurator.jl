@@ -92,7 +92,7 @@ function filepath(x::AbstractString)
 end
 
 function validate_scp_config(configfile)
-	@info "Validating scp $configfile"
+	@debug "Validating scp $configfile"
 	if !haskey(ENV, "USER")
 		@debug "Override for CI/CD"
 		ENV["USER"] = ""
@@ -351,7 +351,7 @@ function canwrite(fname)
 	end
     try
         open(fname, "w") do io
-            @info "Can override/write to $fname"
+            @debug "Can override/write to $fname"
         end;
         return true
     catch e
@@ -945,14 +945,14 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     end
     if haskey(fe, "aggregator")
         AG = fe["aggregator"]
-		@info "Decoding aggregator $AG"
+		@debug "Decoding aggregator $AG"
         ag = decode_aggregator(AG, glob)
-        @info "Found a aggregator entry $AG -> $ag"
+        @debug "Found a aggregator entry $AG -> $ag"
     end
-    @info "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
+    @debug "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
     if tf != identity
-        @info "Custom transform, wrapping with copy"
+        @debug "Custom transform, wrapping with copy"
         adder = x::AbstractString -> add_to_file_list(tf(wrap_transform(x)), l)
     else
         adder = x::AbstractString -> add_to_file_list(x, l)
@@ -961,7 +961,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
 end
 
 function decode_aggregator(name::AbstractString, glob::AbstractDict)
-	@info "Decoding aggregator String $name"
+	@debug "Decoding aggregator String $name"
     fs = lookup(name)
     if isnothing(fs)
         throw(ArgumentError("$name is not valid function call"))
@@ -970,9 +970,9 @@ function decode_aggregator(name::AbstractString, glob::AbstractDict)
 end
 
 function decode_aggregator(ag::AbstractVector{<:AbstractString}, glob::AbstractDict)
-	@info "Decoding aggregator Vector $ag"
+	@debug "Decoding aggregator Vector $ag"
     an = ag[1]
-    @info "Decoding aggregator Vector $(ag)"
+    @debug "Decoding aggregator Vector $(ag)"
     if length(ag) < 2
         throw(ArgumentError("Invalid aggregator $ag"))
     end
@@ -1369,14 +1369,10 @@ function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
     end
     command::AbstractString = x[1]
     cols, ops, vals = decode_df_entries(x[2])
-    @debug "Decoded $x into "
-    @debug cols
-    @debug ops
-    @debug vals
     if length(cols) != length(ops) != length(vals)
         throw(ArgumentError("Ops. cols, and values do not match in length"))
     end
-    @info "Dataframe modifier with $command $cols $ops $vals"
+    @debug "Dataframe modifier with $command $cols $ops $vals"
     return x -> execute_dataframe_function(x, command, cols, ops, vals)
 end
 
@@ -1869,7 +1865,7 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
 		@debug "Loaded table with dim $(size(tb)) and columns $(names(tb))"
         push!(tables, tb)
     end
-    @info "Saving total of $(length(tables)) to $name csv"
+    @debug "Saving total of $(length(tables)) to $name csv"
     DF = vcat(tables...)
     if ~endswith(name, ".csv")
         @debug "Postfixing .csv"
@@ -1895,7 +1891,7 @@ function stack_list_to_image(list, name="")
 		name = "$(rs).tif"
 	end
     res = list_to_image(list)
-    @info "Saving aggregated image"
+    @debug "Saving aggregated image"
     if ~endswith(name, ".tif")
         @debug "Postfixing tif"
         name = "$(name).tif"
@@ -2089,22 +2085,22 @@ function create_template_from_toml(tomlfile)
     config = TOML.parsefile(tomlfile)
     validate_top_config(config)
     glob = validate_global(config)
-    @info "Global configuration is:"
+    @debug "Global configuration is:"
     for key in keys(glob)
         if key == "file_lists"
-            @info "Aggregation file lists:"
+            @debug "Aggregation file lists:"
             FL = glob["file_lists"]
             for k in keys(FL)
-                @info "$k with aggregator $(FL[k].aggregator) and transformer $(FL[k].transformer)"
+                @debug "$k with aggregator $(FL[k].aggregator) and transformer $(FL[k].transformer)"
             end
-        else
-            if (key == "common_actions") || (key=="common_conditions")
-                @info key
-                @debug "$key --> $(glob[key])"
-            else
-                @info "$key --> $(glob[key])"
-            end
-        end
+		end
+        # else
+        #     if (key == "common_actions") || (key=="common_conditions")
+        #         @debug "$key --> $(glob[key])"
+        #     else
+        #         @info "$key --> $(glob[key])"
+        #     end
+        # end
     end
     if isnothing(glob)
         @error "Invalid configuration"
@@ -2365,7 +2361,7 @@ function decode_owncloud(config)
 	else
 		try
         	tb = JSON.parse(String(read(c)))
-			@info "Read $(tb)"
+			@debug "Read $(tb)"
 			_initialize_remote(tb)
 			ENV["DC_owncloud_configuration"]=String(read(c))
         	return tb
@@ -2416,17 +2412,17 @@ function validate_global(config)
         end
     end
     if haskey(glob_config, "common_actions")
-        @info "Handling common actions"
+        @debug "Handling common actions"
         @debug glob_config
         handle_common_actions(glob_config, glob_defaults)
     end
     if haskey(glob_config, "common_conditions")
-        @info "Handling common conditions"
+        @debug "Handling common conditions"
         @debug glob_config
         handle_common_conditions(glob_config, glob_defaults)
     end
     if haskey(glob_config, "outputdirectory")
-        @info "Setting outputdirectory to $(glob_config["outputdirectory"])"
+        @debug "Setting outputdirectory to $(glob_config["outputdirectory"])"
         glob_defaults["outputdirectory"] = glob_config["outputdirectory"]
     end
 	if haskey(glob_config, "endpoint")
@@ -2438,18 +2434,18 @@ function validate_global(config)
 				glob_defaults["endpoint"] = endpoint
 			end
         else
-			@info "No slack support enabled"
+			@debug "No slack support enabled"
 		end
     end
 	if haskey(glob_config, "owncloud_configuration")
-		@info "Decoding OwnCloud"
+		@debug "Decoding OwnCloud"
 		oc = decode_owncloud(glob_config)
 		glob_defaults["owncloud_configuration"] = oc
     end
 	if haskey(glob_config, "scp_configuration")
-		@info "Decoding scp"
+		@debug "Decoding scp"
 		validate_scp_config(glob_config["scp_configuration"])
-		@info "Decoding scp success"
+		@debug "Decoding scp success"
     end
     return glob_defaults
 end
@@ -2464,7 +2460,7 @@ function handle_common_actions(config, default)
         if isnothing(fs)
             @warn "Invalid common action $fun_desc for $name"
         else
-            @info "Created common action for $name"
+            @debug "Created common action for $name"
             default["common_actions"][name]=fs
         end
     end
@@ -2480,7 +2476,7 @@ function handle_common_conditions(config, default)
         if isnothing(fs)
             @warn "Invalid common condition $fun_desc for $name"
         else
-            @info "Created common condition for $name"
+            @debug "Created common condition for $name"
             default["common_conditions"][name]=fs
         end
     end
@@ -2589,7 +2585,7 @@ function shared_list_to_file(list::AbstractVector{<:AbstractVector}, fname)
 end
 
 function shared_list_to_file(list::AbstractVector, fname)
-    @info "Writing $(length(list)) entries to $fname"
+    @debug "Writing $(length(list)) entries to $fname"
     if ~endswith(fname, ".txt")
         @debug "Changing extension to .txt"
         fname="$(fname).txt"
@@ -3034,7 +3030,7 @@ end
 
 
 function make_aggregator(name::AbstractString, list, adder, aggregator, transformer)
-	@debug"MAG3 $name"
+	@debug "MAG3 $name"
     return @NamedTuple{name, list, adder, aggregator, transformer}((name, list, adder, aggregator,transformer))
 end
 
