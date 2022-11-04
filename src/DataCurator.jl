@@ -32,7 +32,7 @@ using HDF5
 using MAT
 using Logging, LoggingExtras, Dates
 
-export topdown, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, mk_remote_path, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -115,6 +115,25 @@ function validate_scp_config(configfile)
 	catch e
 		@error "Parsing SSH config failed with $e for $configfile"
 		return false
+	end
+end
+
+"""
+	mk_remote_path(path)
+
+	Use SSH to interactively create `path`.
+	Assumes you have a valid SSH configuration, see `validate_scp_config`
+	If path == "", tries to create the path you set in ssh config (ssh.json)
+"""
+function mk_remote_path(path="")
+	try
+	    conf = JSON.parse(ENV["DC_SSH_CONFIG"])
+		@debug "Using SSH config $conf"
+		IOCapture.capture() do
+			read(`ssh -p $(conf["port"]) $(conf["user"])@$(conf["remote"]) mkdir -p $(joinpath(conf["path"], path))`, String)
+	    end
+	catch e
+		@error "Failed creating remote path $path due to $e"
 	end
 end
 
@@ -2446,6 +2465,7 @@ function validate_global(config)
 		@debug "Decoding scp"
 		validate_scp_config(glob_config["scp_configuration"])
 		@debug "Decoding scp success"
+		@async mk_remote_path("")
     end
     return glob_defaults
 end
