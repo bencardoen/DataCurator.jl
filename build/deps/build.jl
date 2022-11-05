@@ -16,7 +16,9 @@ using PyCall
 using Conda
 ## Add the two packages we need
 Conda.add("gcc=12.1.0"; channel="conda-forge")
+Conda.add("smlmvis"; channel="bcardoen")
 Conda.add("scikit-image")
+Conda.add("")
 # Pin this version, to avoid clashes with libgcc.34
 Conda.add("scipy=1.8.0")
 
