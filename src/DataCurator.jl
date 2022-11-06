@@ -207,10 +207,14 @@ function mk_remote_path(path="")
 end
 
 function upload_to_scp(file)
+	idir=ENV["DC_inputdirectory"]
+	@debug "Upload to SCP with $file and root $idr"
 	try
 		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
 		@debug "Using SSH config $conf"
-    	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+		path=new_rpath(idir, file, conf["path"])
+		mk_remote_path(dirname(path))
+    	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(path)`, String)
 		@debug "Sent $file"
 	catch e
 		@error "Failed uploading $file due to $e"
@@ -218,7 +222,22 @@ function upload_to_scp(file)
 	return file
 end
 
+
+function new_rpath(root, node, newroot)
+	@debug "Relative path switch"
+	@debug root, node, newroot
+    rp, np, nwp = splitpath(root), splitpath(node), splitpath(newroot)
+    if node == root
+        @warn "No-op for $root $node $newroot"
+        return node
+    end
+    newpath = joinpath(joinpath(nwp), joinpath(np[length(rp)+1:end]))
+	@debug newpath
+    return newpath
+end
+
 function upload_to_scp(tmp, file)
+	#TODO reuse new function
 	try
 		@debug "Copying $tmp -> $file"
 		cp(tmp, file, force=true)
@@ -2489,6 +2508,7 @@ function validate_global(config)
             indir = ab
         end
         glob_defaults["inputdirectory"] = indir
+		ENV["DC_inputdirectory"] = indir
     end
     for key in keys(glob_config)
         @debug "Checking $key"
