@@ -1,5 +1,7 @@
 # DataCurator
 
+![Concept](datacurator-logos.png)
+
 A multithreaded package to validate, curate, and transform large heterogeneous datasets using reproducible recipes, which can be created both in TOML human readable format, or in Julia.
 
 A key aim of this package is that recipes can read/written by any STEM researcher without the need for being able to write code, making data sharing/validation faster, more accurate, and reproducible.
@@ -31,7 +33,7 @@ julia --project=.. make.jl
 Then open docs/build/index.html with a browser of choice.
 Alternatively, if you have texlive and the [Documenter.jl](https://juliadocs.github.io/Documenter.jl/stable/man/other-formats/) dependencies, you can generate a pdf
 ```bash
-cd docs && julia --project=.. makepdf.jl  
+cd docs && julia --project=.. makepdf.jl
 ```
 
 ## What to find where
