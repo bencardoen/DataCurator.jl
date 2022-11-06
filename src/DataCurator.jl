@@ -44,9 +44,9 @@ verify_template, always, filepath, never, increment_counter, make_counter, read_
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
 any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_file, stack_images, list_to_image, normalize_linear,
-is_img, is_kd_img, is_2d_img, is_3d_img, is_rgb, read_dir, files, subdirs, buildcomp, has_n_files, has_n_subdirs, decode_filelist,
+is_img, is_kd_img, is_2d_img, is_3d_img, is_dlp, load_dlp, is_rgb, read_dir, files, subdirs, buildcomp, has_n_files, has_n_subdirs, decode_filelist,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault,
-shared_list_to_file, addentry!, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
+shared_list_to_file, addentry!, load_gsd, is_gsd, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
 copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
@@ -63,10 +63,42 @@ is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
 # column_names = x -> names(CSV.read(x, DataFrame))
 
 
+
+function load_gsd(file)
+	try
+		p=pyimport("smlmvis.gsdreader")
+		return p.GSDReader(file).values
+	catch e
+		@error "Failed to load due to $e"
+		return nothing
+	end
+end
+
+function is_gsd(file)
+	return ! isnothing(load_gsd(file))
+end
+
+
+
 function load_rainstorm(file)
 	try
 		p=pyimport("smlmvis.rainstormreader")
-		return p.RainStormReader("rain.csv").values
+		return p.RainStormReader(file).values
+	catch e
+		@error "Failed to load due to $e"
+		return nothing
+	end
+end
+
+function is_dlp(file)
+	return ! isnothing(load_dlp(file))
+end
+
+
+function load_dlp(file)
+	try
+		p=pyimport("smlmvis.dlpreader")
+		return p.DLPReader(file).values
 	catch e
 		@error "Failed to load due to $e"
 		return nothing
