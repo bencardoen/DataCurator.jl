@@ -211,7 +211,7 @@ function upload_to_scp(file)
 		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
 		@debug "Using SSH config $conf"
     	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
-		@debug "Sent"
+		@debug "Sent $file"
 	catch e
 		@error "Failed uploading $file due to $e"
 	end
@@ -225,6 +225,7 @@ function upload_to_scp(tmp, file)
 		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
 		@debug "Using SSH config $conf"
     	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+		@debug "Sent $file from $tmp"
 	catch e
 		@error "Failed uploading $file due to $e"
 	end
