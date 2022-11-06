@@ -15,32 +15,12 @@ Pkg.build("Conda")
 using PyCall
 using Conda
 ## Add the two packages we need
+Conda.pip_interop(true)
 Conda.add("gcc=12.1.0"; channel="conda-forge")
-Conda.add("smlmvis"; channel="bcardoen")
 Conda.add("scikit-image")
 # Pin this version, to avoid clashes with libgcc.34
 Conda.add("scipy=1.8.0")
-
+Conda.pip("install", "smlmvis")
 PyCall.pyimport("skimage");
 
-function isavailable(cm)
-    try
-        IOCapture.capture() do
-            readlines(`$(cm)`)
-        end
-        return true
-    catch e
-        @error "$cm is not installed, please install it"
-        return false
-    end
-end
-@info "TEST"
-if !isavailable("scp")
-    error(-1)
-end
-@info "TEST"
-if !isavailable("curl")
-    error(-1)
-end
-@info "TEST"
 @info "Success!"
