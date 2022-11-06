@@ -31,6 +31,13 @@ using ProgressMeter
 using HDF5
 using MAT
 using Logging, LoggingExtras, Dates
+using PyCall
+pyimport("smlmvis")
+# # @pyimport smlmvis.gsdreader as _gsd
+# # @pyimport smlmvis.epflreader as _epfl
+# # @pyimport smlmvis.abbelightreader as _abbe
+# # @pyimport smlmvis.dlpreader as _dlp
+# @pyimport smlmvis.rainstormreader as ran
 
 export topdown, mk_remote_path, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
@@ -48,12 +55,27 @@ halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
-remove_from_to, stack_list_to_image, concat_to_table, make_aggregator, describe_objects,
+remove_from_to, stack_list_to_image, concat_to_table, make_aggregator, describe_objects, load_rainstorm, is_rainstorm,
 gaussian, laplacian, dilate_image, erode_image, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
 # column_names = x -> names(CSV.read(x, DataFrame))
+
+
+function load_rainstorm(file)
+	try
+		p=pyimport("smlmvis.rainstormreader")
+		return p.RainStormReader("rain.csv").values
+	catch e
+		@error "Failed to load due to $e"
+		return nothing
+	end
+end
+
+function is_rainstorm(file)
+	return ! isnothing(load_rainstorm(file))
+end
 
 function column_names(x::T) where{T<:AbstractString}
 	return names(CSV.read(x, DataFrame))

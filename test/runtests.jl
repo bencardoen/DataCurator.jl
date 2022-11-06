@@ -21,6 +21,17 @@ correctpath()
 
 @testset "DataCurator.jl" begin
 
+    @testset "rainstorm" begin
+        cs = ["x_nm", "y_nm", "z_coord", "idx", "frame_idx", "x_coord", "y_coord", "I", "sig_x",
+           "sig_y", "avg_brightness", "res", "res_Row", "res_Col", "roi_min",
+           "Sum_signal", "Sum_signal_ph", "x_std", "y_std",
+           "ellip_xy"]
+        df = DataFrame(Dict(c => [100.0] for c in cs))
+        CSV.write("rain.csv", df)
+        @test is_rainstorm("rain.csv")
+        rm("rain.csv")
+    end
+
     @testset "cw" begin
         @test ! canwrite("/dev/xyzawdn")
         touch("testfile")
