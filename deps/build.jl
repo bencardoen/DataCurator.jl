@@ -18,7 +18,6 @@ using Conda
 Conda.add("gcc=12.1.0"; channel="conda-forge")
 Conda.add("smlmvis"; channel="bcardoen")
 Conda.add("scikit-image")
-Conda.add("")
 # Pin this version, to avoid clashes with libgcc.34
 Conda.add("scipy=1.8.0")
 
@@ -35,11 +34,13 @@ function isavailable(cm)
         return false
     end
 end
-
+@info "TEST"
 if !isavailable("scp")
     error(-1)
 end
+@info "TEST"
 if !isavailable("curl")
     error(-1)
 end
+@info "TEST"
 @info "Success!"
