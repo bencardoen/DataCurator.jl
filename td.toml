@@ -23,7 +23,7 @@ actions=["do_on_invalid"]
 
 [level_2]
 all=true
-conditions=["dir_only", "ends_with_integer"]
+conditions=["dir_only", "ends_with_integer", ["startswith", "Replicate"]]
 actions=["do_on_invalid"]
 
 [level_3]

@@ -1964,6 +1964,10 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
     end
     @info "Writing to $name"
     CSV.write("$name", DF)
+	if haskey(ENV, "DC_owncloud_configuration")
+		@debug "Owncloud config active .. uploading"
+		upload_to_owncloud(name)
+	end
 	return name
 end
 
@@ -2389,6 +2393,7 @@ warn_on_fail = x -> show_warning(x)
 halt = x -> begin @info "Triggered early exit for $x"; return :quit; end
 quit = x -> return :quit
 keep_going = x-> :proceed
+✓ = keep_going
 filename = x->basename(x)
 integer_name = x->~isnothing(tryparse(Int, basename(x)))
 has_integer_in_name = x->read_int(basename(x))
