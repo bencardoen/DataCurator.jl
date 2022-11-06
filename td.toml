@@ -32,7 +32,7 @@ actions=["do_on_invalid"]
 
 [level_4]
 all=true
-conditions=["dir_only", ["startswith", "Serie"], "ends_with_integer", ["has_n_files", 2]]
+conditions=["dir_only", ["startswith", "Serie"], "ends_with_integer"]
 actions=["do_on_invalid"]
 
 [level_5]

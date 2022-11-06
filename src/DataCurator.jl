@@ -1600,7 +1600,7 @@ end
 
 function _handle_nested(glob, f, condition)
 	@debug "Nested function with $f"
-    if f[1][1] == "all"
+    if f[1][1] ∈ ["all", "∀"]
         rem_f = f[1][2:end]
         subfs = [decode_function(_f, glob; condition=condition) for _f in rem_f]
         if condition
@@ -1625,6 +1625,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
 		"change_path" => return _handle_cp(glob, f)
 		"not" => begin negate=true; f=f[2:end]; @debug "Negate on function list is now $f"; end
 		"all" => return _handle_all(glob, f, condition)
+		"∀" => return _handle_all(glob, f, condition)
 		"count" => return lookup_counter(f, glob)
 		f1::AbstractVector => return _handle_nested(glob, f, condition)#error("Trigger")
 		f1::AbstractString, if startswith(f1, "transform_") end => return handle_chained(f, glob; condition=condition)
@@ -1663,7 +1664,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     end
     if glob["regex"]
         if fname ∈ ["startswith", "endswith", "contains"]
-            @debug "Using Regex conversion"
+            @debug "Using Regex conversion $fname $f[2]"
             functor = x-> fs(basename(x), Regex(f[2]))
             return negate ? flipfunctor(functor) : functor
         end
