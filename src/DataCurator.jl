@@ -356,6 +356,8 @@ function describe_image(x::AbstractArray{<:Any, 3})
         df[!,c] = ds[:,i]
     end
     df[!,:axis] .= 0
+	df[!,:type] .= "$(eltype(x))"
+	df[!,:dimension] .= "$(size(x))"
     return df
 end
 
