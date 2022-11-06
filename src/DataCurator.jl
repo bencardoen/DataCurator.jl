@@ -198,6 +198,9 @@ function mk_remote_path(path="")
 	try
 	    conf = JSON.parse(ENV["DC_SSH_CONFIG"])
 		@debug "Using SSH config $conf"
+		@debug "Creating remote $(path)"
+		path=whitespace_to(path, '_')
+		@debug "Modified path"
 		IOCapture.capture() do
 			read(`ssh -p $(conf["port"]) $(conf["user"])@$(conf["remote"]) mkdir -p $(joinpath(conf["path"], path))`, String)
 	    end
@@ -208,14 +211,15 @@ end
 
 function upload_to_scp(file)
 	idir=ENV["DC_inputdirectory"]
-	@debug "Upload to SCP with $file and root $idr"
+	@debug "Upload to SCP with $file and root $idir"
 	try
 		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
 		@debug "Using SSH config $conf"
 		path=new_rpath(idir, file, conf["path"])
+		@debug "Upload to SCP with $file and root $idir and remote path $path"
 		mk_remote_path(dirname(path))
     	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(path)`, String)
-		@debug "Sent $file"
+		@debug "Sent $file to $path"
 	catch e
 		@error "Failed uploading $file due to $e"
 	end
@@ -233,6 +237,8 @@ function new_rpath(root, node, newroot)
     end
     newpath = joinpath(joinpath(nwp), joinpath(np[length(rp)+1:end]))
 	@debug newpath
+	newpath=whitespace_to(newpath, '_')
+	@error "Modified path $newpath"
     return newpath
 end
 
@@ -2567,7 +2573,7 @@ function validate_global(config)
 		@debug "Decoding scp"
 		validate_scp_config(glob_config["scp_configuration"])
 		@debug "Decoding scp success"
-		@async mk_remote_path("")
+		mk_remote_path("")
     end
     return glob_defaults
 end
