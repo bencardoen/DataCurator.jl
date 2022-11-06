@@ -2,5 +2,6 @@
 act_on_success=true
 inputdirectory = "testdir"
 [any]
+all=false
 conditions = ["is_tif_file", "is_csv_file"]
 actions=[["add_to_hdf5", "img.hdf5"], ["add_to_mat", "csv.mat"]]

@@ -865,8 +865,9 @@ correctpath()
     end
 
     @testset "testhdf5mat" begin
-        c = global_logger()
-        global_logger(NullLogger())
+        # c = global_logger()
+        # global_logger(NullLogger())
+        config_log()
         IN = "testdir"
         if isdir(IN)
             rm(IN, recursive=true)

@@ -2394,7 +2394,8 @@ integer_name = x->~isnothing(tryparse(Int, basename(x)))
 has_integer_in_name = x->read_int(basename(x))
 has_float_in_name = x->read_float(basename(x))
 quit_on_fail = x -> begin @warn "$x"; return :quit; end
-is_img = x -> isfile(x) && ~isnothing(try Images.load(x) catch e end;)
+# is_img = x -> isfile(x) && ~isnothing(try Images.load(x) catch e end;)
+is_img = x -> has_image_extension(x)
 is_kd_img = (x, k) -> is_img(x) && (length(size(Images.load(x)))==k)
 is_2d_img = x -> is_kd_img(x, 2)
 is_3d_img = x -> is_kd_img(x, 3)
@@ -3065,6 +3066,7 @@ function add_csv_to_mat_as(csvfile, name, mfile)
 end
 
 function add_img_to_mat_as(imgfile, name, mfile)
+	@debug "Adding $imgfile to $name -> $mfile"
 	if ~isfile(mfile)
 		touch(mfile)
 	end
@@ -3076,9 +3078,11 @@ end
 
 function add_to_mat(fname, name, mfile)
 	if is_img(fname)
+		@debug "$fname is img"
 		return add_img_to_mat_as(fname, name, mfile)
 	end
 	if is_csv_file(fname)
+		@debug "$fname is csv"
 		return add_csv_to_mat_as(fname, name, mfile)
 	end
 	throw(ArgumentError("Unsupported file $fname"))
