@@ -1,0 +1,41 @@
+[global]
+inputdirectory = "/home/bcardoen/storage/tmp/testdataset"
+hierarchical=true
+#parallel=true
+act_on_success=true
+regex=true
+counters = ["filecount", ["filesize", "size_of_file"]]
+endpoint="endpoint.txt"
+scp_configuration = "ssh.json"
+owncloud_configuration = "owncloud.json"
+common_actions = {"❗"=[["∀", "show_warning", ["log_to_file", "errors.txt"]]]}
+common_conditions = {er_mito_channel=[["∀", "is_3d_img", ["endswith", "[1,3].tif"]]], dir_only=[["∀", "isdir", ["not", "is_hidden"]]]}
+file_lists=[{name="objects", aggregator=[["describe_objects","concat_to_table"]]},
+              {name="channels", aggregator=[["describe_image","concat_to_table"]]},]
+[any]
+conditions=["never"]
+actions=["❗"]
+
+[level_2]
+all=true
+conditions=["dir_only", "ends_with_integer", ["startswith", "Replicate"]]
+actions=["✓"]
+counter_actions=["❗"]
+
+[level_3]
+all=true
+conditions=["dir_only", "ends_with_integer", ["startswith", "Condition"]]
+actions=["✓"]
+counter_actions=["❗"]
+
+[level_4]
+all=true
+conditions=["dir_only", "ends_with_integer", ["startswith", "Serie"]]
+actions=["✓"]
+counter_actions=["❗"]
+
+[level_5]
+all=true
+conditions=["er_mito_channel"]
+actions=[["->", ["objects","channels"]], ["count", "filecount"], ["count", "filesize"], "upload_to_scp"]
+counter_actions=["❗"]
