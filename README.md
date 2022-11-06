@@ -20,7 +20,7 @@ DataCurator is a Swiss army knife that ensures:
 
 [![codecov](https://codecov.io/gh/bencardoen/DataCurator.jl/branch/main/graph/badge.svg?token=GI7MQH1VNA)](https://codecov.io/gh/bencardoen/DataCurator.jl)
 
-## Documentation [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/docs/src/index.md)
+## Documentation [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md)
 After cloning / downloading, please open [docs/build/index.html](docs/build/index.html) with a browser.
 This will be replaced by github pages + actions.
 Or build yourself
