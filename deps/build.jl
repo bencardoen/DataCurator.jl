@@ -22,5 +22,5 @@ Conda.add("scikit-image")
 Conda.add("scipy=1.8.0")
 Conda.pip("install", "smlmvis")
 PyCall.pyimport("skimage");
-
+PyCall.pyimport("smlmvis");
 @info "Success!"
