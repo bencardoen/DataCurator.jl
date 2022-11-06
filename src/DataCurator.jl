@@ -1708,7 +1708,7 @@ function _lookup_filelist(name, glob)
             return fl_object.adder
         end
     end
-    @error "failed decoding filelists"
+    @error "failed decoding filelists with key $name"
 	throw(ArgumentError("Failed decoding filelist with key $name"))
     return nothing
 end
