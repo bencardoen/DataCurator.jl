@@ -238,17 +238,20 @@ end
 
 function upload_to_scp(tmp, file)
 	#TODO reuse new function
-	try
-		@debug "Copying $tmp -> $file"
-		cp(tmp, file, force=true)
-		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
-		@debug "Using SSH config $conf"
-    	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
-		@debug "Sent $file from $tmp"
-	catch e
-		@error "Failed uploading $file due to $e"
-	end
-	return file
+	@debug "Copying $tmp -> $file"
+	cp(tmp, file, force=true)
+	return upload_to_scp(file)
+	# try
+	# 	@debug "Copying $tmp -> $file"
+	# 	cp(tmp, file, force=true)
+	# 	conf = JSON.parse(ENV["DC_SSH_CONFIG"])
+	# 	@debug "Using SSH config $conf"
+    # 	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+	# 	@debug "Sent $file from $tmp"
+	# catch e
+	# 	@error "Failed uploading $file due to $e"
+	# end
+	# return file
 end
 
 function filepath(x::AbstractVector)
