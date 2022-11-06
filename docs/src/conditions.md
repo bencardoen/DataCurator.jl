@@ -302,6 +302,9 @@ These check by file extension, they do NOT open files. Opening a file, or trying
 is_csv_file
 is_tif_file
 is_png_file
+is_gsd
+is_dlp
+is_rainstorm
 has_image_extension
 is_type_file # usage : ["is_type_file", ".csv"]
 file_extension_one_of # usage : ["file_extension_one_of", [".csv", ".txt", ".xyz"]]

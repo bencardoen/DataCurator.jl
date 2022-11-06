@@ -63,7 +63,11 @@ is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
 # column_names = x -> names(CSV.read(x, DataFrame))
 
 
+"""
+	load_gsd(file)
 
+	Load GSD superresolution data
+"""
 function load_gsd(file)
 	try
 		p=pyimport("smlmvis.gsdreader")
@@ -80,6 +84,11 @@ end
 
 
 
+"""
+	load_rainstorm(file)
+
+	Load Rainstorm data
+"""
 function load_rainstorm(file)
 	try
 		p=pyimport("smlmvis.rainstormreader")
@@ -95,6 +104,12 @@ function is_dlp(file)
 end
 
 
+
+"""
+	load_dlp(file)
+
+	Load DLP superresolution data
+"""
 function load_dlp(file)
 	try
 		p=pyimport("smlmvis.dlpreader")
