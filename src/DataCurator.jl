@@ -258,7 +258,7 @@ function new_rpath(root, node, newroot)
     newpath = joinpath(joinpath(nwp), joinpath(np[length(rp)+1:end]))
 	# @debug newpath
 	newpath=whitespace_to(newpath, '_')
-	@error "Modified path $newpath"
+	# @error "Modified path $newpath"
     return newpath
 end
 

@@ -5,8 +5,6 @@ hierarchical=true
 traversal="topdown"
 parallel=true
 regex=true
-scp_configuration = "ssh.json"
-owncloud_configuration = "owncloud.json"
 common_actions = {do_on_invalid=[["all", "show_warning", ["log_to_file", "errors.txt"]]]}
 common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]], dir_only=[["all", "isdir", ["not", "is_hidden"]]]}
 file_lists=[{name="in", aggregator=[["filepath","sort","unique","shared_list_to_file"]]},
