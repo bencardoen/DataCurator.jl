@@ -65,7 +65,7 @@ git clone git@github.com:bencardoen/DataCurator.jl.git ## Assumes ssh
 # git clone https://github.com/bencardoen/DataCurator.jl.git ## For non SSH
 cd DataCurator.jl
 julia
-julia>using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.test();
+julia>using Pkg; Pkg.activate("."); Pkg.build(); Pkg.instantiate(); Pkg.test();
 ```
 !!! note "Github's switch to tokens"
     Recently Github has been noted to favor token based logins, that won't matter if this repository is public, but while it's not, and you do not use SSH keys, ensure you switch from password to token.

@@ -138,7 +138,15 @@ function runme()
     @info "Reading complete "
     cfg, template = res
     @info "Running recipe on $(cfg["inputdirectory"])"
-	cfg["endpoint"] = endpoint
+	if cfg["endpoint"] == "" && !isnothing(endpoint)
+		@info "Overriding endpoint with slack $endpoint"
+		cfg["endpoint"] = endpoint
+	end
+	if isnothing(endpoint)
+		cfg["endpoint"] != ""
+		@info "using template endpoint"
+		endpoint = cfg["endpoint"]
+	end
 	start=time()
     c, l, r = delegate(cfg, template)
 	stop=time()
