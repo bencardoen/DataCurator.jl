@@ -208,22 +208,59 @@ function mk_remote_path(path="")
 		@error "Failed creating remote path $path due to $e"
 	end
 end
+#
+# function upload_to_scp(file)
+# 	idir=ENV["DC_inputdirectory"]
+# 	@debug "Upload to SCP with $file and root $idir"
+# 	try
+# 		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
+# 		@debug "Using SSH config $conf"
+# 		path=new_rpath(idir, file, conf["path"])
+# 		@debug "Upload to SCP with $file and root $idir and remote path $path"
+# 		mk_remote_path(dirname(path))
+#     	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(path)`, String)
+# 		@debug "Sent $file to $path"
+# 	catch e
+# 		@error "Failed uploading $file due to $e"
+# 	end
+# 	return file
+# end
 
 function upload_to_scp(file)
 	idir=ENV["DC_inputdirectory"]
 	@debug "Upload to SCP with $file and root $idir"
+	whitespace=false
+	t=nothing
+	if has_whitespace(file)
+		@debug "Whitespace detected in $file"
+		whitespace=true
+		d = mktempdir()
+		f = basename(file)
+		t = joinpath(d, whitespace_to(f, "_"))
+		cp(file, t)
+	end
 	try
 		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
 		@debug "Using SSH config $conf"
 		path=new_rpath(idir, file, conf["path"])
 		@debug "Upload to SCP with $file and root $idir and remote path $path"
 		mk_remote_path(dirname(path))
-    	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(path)`, String)
+		if whitespace
+			# @async read(`scp -P $(conf["port"]) $(t) $(conf["user"])@$(conf["remote"]):$(path)`, String)
+			@async scptmp(t, conf, path)
+		else
+    		@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(path)`, String)
+		end
 		@debug "Sent $file to $path"
 	catch e
 		@error "Failed uploading $file due to $e"
 	end
 	return file
+end
+
+function scptmp(t, conf, path)
+	read(`scp -P $(conf["port"]) $(t) $(conf["user"])@$(conf["remote"]):$(path)`, String)
+	rm(t)
 end
 
 
@@ -243,21 +280,9 @@ function new_rpath(root, node, newroot)
 end
 
 function upload_to_scp(tmp, file)
-	#TODO reuse new function
 	@debug "Copying $tmp -> $file"
 	cp(tmp, file, force=true)
 	return upload_to_scp(file)
-	# try
-	# 	@debug "Copying $tmp -> $file"
-	# 	cp(tmp, file, force=true)
-	# 	conf = JSON.parse(ENV["DC_SSH_CONFIG"])
-	# 	@debug "Using SSH config $conf"
-    # 	@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
-	# 	@debug "Sent $file from $tmp"
-	# catch e
-	# 	@error "Failed uploading $file due to $e"
-	# end
-	# return file
 end
 
 function filepath(x::AbstractVector)
