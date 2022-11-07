@@ -215,7 +215,7 @@ function upload_to_scp(file)
 	whitespace=false
 	t=nothing
 	if has_whitespace(file)
-		@debug "Whitespace detected in $file"
+		#@debug "Whitespace detected in $file"
 		whitespace=true
 		d = mktempdir()
 		f = basename(file)
@@ -224,9 +224,9 @@ function upload_to_scp(file)
 	end
 	try
 		conf = JSON.parse(ENV["DC_SSH_CONFIG"])
-		@debug "Using SSH config $conf"
+		#@debug "Using SSH config $conf"
 		path=new_rpath(idir, file, conf["path"])
-		@debug "Upload to SCP with $file and root $idir and remote path $path"
+		#@debug "Upload to SCP with $file and root $idir and remote path $path"
 		mk_remote_path(dirname(path))
 		if whitespace
 			# @async read(`scp -P $(conf["port"]) $(t) $(conf["user"])@$(conf["remote"]):$(path)`, String)
@@ -234,7 +234,7 @@ function upload_to_scp(file)
 		else
     		@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(path)`, String)
 		end
-		@debug "Sent $file to $path"
+		#@debug "Sent $file to $path"
 	catch e
 		@error "Failed uploading $file due to $e"
 	end
