@@ -1,7 +1,7 @@
 [global]
 inputdirectory = "/home/bcardoen/storage/tmp/testdataset"
 hierarchical=true
-#parallel=true
+parallel=true
 act_on_success=true
 regex=true
 counters = ["filecount", ["filesize", "size_of_file"]]

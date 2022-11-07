@@ -153,10 +153,10 @@ function has_columns_named(x::AbstractString, nms::AbstractVector{T}) where T<:A
 end
 
 function filepath(x::AbstractString)
-    if isdir(x)
-        @warn "Calling `filepath` on directory"
-        @warn "For directory /a/b/c this becomes /a/b"
-    end
+    # if isdir(x)
+    #     @warn "Calling `filepath` on directory"
+    #     @warn "For directory /a/b/c this becomes /a/b"
+    # end
     return splitdir(x)[1]
 end
 

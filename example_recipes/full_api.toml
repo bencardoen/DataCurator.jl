@@ -20,13 +20,13 @@ conditions=["is_csv_file", "is_tif_file", "is_tif_file"]
 actions=[["->", "table"],
          ["->", ["channel", "object"]],
          {name_transform=["tolowercase"], content_transform=[
-                        # ["slice_image", [1,3],[[10,25],[10,25]]],
-                        # ["gaussian", 1],
-                         # "laplacian",
+                        ["slice_image", [1,3],[[10,25],[10,25]]],
+                        ["gaussian", 1],
+                         "laplacian",
                         ["threshold_image", "abs >", 0.001],
                         ["apply_to_image", ["abs"]],
-                         # "otsu_threshold_image",
-                         # "erode_image"
+                         "otsu_threshold_image",
+                         "erode_image"
                         ], mode="copy"}
        ]
 [level_1]
