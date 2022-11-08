@@ -45,7 +45,7 @@ transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_c
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
 any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_file, schedule_script, stack_images, list_to_image, normalize_linear,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_dlp, load_dlp, is_rgb, read_dir, files, subdirs, buildcomp, has_n_files, has_n_subdirs, decode_filelist,
-apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault,
+apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault, is_grayscale, is_rgb
 shared_list_to_file, addentry!, load_gsd, is_gsd, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
 copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
@@ -2359,6 +2359,8 @@ FR = r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?"
 
 is_type_file = (x, t) -> isfile(x) && endswith(x, t)
 is_csv_file = x -> is_type_file(x, ".csv")
+is_grayscale = is_img(x) && x -> eltype(Images.load(x)) <: Gray
+is_rgb = is_img(x) && x -> eltype(Images.load(x)) <: RGB
 has_image_extension = x -> splitext(x)[2] ∈ [".tif", ".png", ".jpg", ".jpeg"]
 file_extension_one_of = (x, _set) -> splitext(x)[2] ∈ _set
 is_tif_file = x -> is_type_file(x, ".tif")
@@ -2453,7 +2455,6 @@ end
 
 function validate_global(config)
     glob_defaults = Dict([("endpoint", ""),("at_exit", ""),("owncloud_configuration", ""),("scp_configuration", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
-    # glob = config["global"]
     glob_default_types = Dict([("endpoint", String),("at_exit", String),("parallel", Bool), ("owncloud_configuration", String),("scp_configuration", String), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
     glob_config = config["global"]
@@ -2485,6 +2486,7 @@ function validate_global(config)
                 "common_actions" => nothing
                 "common_conditions" => nothing
                 "outputdirectory" => nothing
+				"at_exit" => nothing
                 _ => handle_default!(val, key, glob_defaults)
             end
         else
