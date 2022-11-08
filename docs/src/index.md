@@ -1,6 +1,10 @@
 # DataCurator.jl Documentation
 A multithreaded package to validate, curate, and transform large heterogeneous datasets using reproducible recipes, which can be created both in TOML human readable format, or in Julia.
 
+```@contents
+Depth = 5
+```
+
 ![Concept](assets/venn.png)
 
 DataCurator is a Swiss army knife that ensures:

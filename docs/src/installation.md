@@ -68,7 +68,7 @@ julia
 julia>using Pkg; Pkg.activate("."); Pkg.build(); Pkg.instantiate(); Pkg.test();
 ```
 !!! note "Github's switch to tokens"
-    Recently Github has been noted to favor token based logins, that won't matter if this repository is public, but while it's not, and you do not use SSH keys, ensure you switch from password to token.
+    Recently [Github](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) has been noted to favor token based logins, that won't matter if this repository is public, but while it's not, and you do not use SSH keys, ensure you switch from password to token.
 
 #### As an executable image
 You need:
@@ -107,7 +107,7 @@ Pkg.test('.')
 #### Advanced users
 
 ##### Changing the image
-See [buildimage.sh](buildimage.sh) and [singularity1p6.def](singularity1p6.def) on how the images are built if you want to modify them.
+See [buildimage.sh](https://github.com/bencardoen/DataCurator.jl/tree/main/buildimage.sh) and [recipe.def](https://github.com/bencardoen/DataCurator.jl/tree/main/singularity/recipe.def) on how the images are built if you want to modify them.
 
 ##### Speeding up start-up time
 On first run Julia needs to compile functions and load packages. If you process large datasets, this cost (up to 20s) is meaningless. However, for smaller use case its starts to get annoying.
@@ -147,3 +147,8 @@ julia --project=. scripts/monitor.jl -r recipe.toml -e endpoint.txt
 ```
 That's all.
 On finishing execution, it will print a summarized message to your slack channel of choice.
+
+In the template, you then define
+```toml
+endpoint="endpoint.txt"
+```

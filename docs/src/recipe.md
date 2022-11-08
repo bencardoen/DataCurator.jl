@@ -42,7 +42,7 @@ regex=false                                 # If true, interpret regular express
 common_actions = {}                         # Don't repeat yourself, if you use actions/conditions more than once, define them here
 common_conditions = {}                      #
 file_lists = []                             # When you need to combine multiple files, this is where to specify it
-counters = []                               # If you want to keep track of certain conditions, count files, sizes, ... 
+counters = []                               # If you want to keep track of certain conditions, count files, sizes, ...
 ```
 
 Next, we can either act on failure (usually in validation), or on success.
@@ -127,6 +127,27 @@ Check your owncloud provider to generate a token.
 
 You can also use owncloud based actions, see example_recipes/owncloud.toml
 
+###### SCP support
+```toml
+scp_configuration="ssh.json"
+```
+Where the json file has a structure like:
+```json
+{
+    "port":"22",
+    "remote":"some.computer.country",
+    "path":"/home/you/data",
+    "user":"bcardoen"
+}
+```
+This assumes you have SSH keys configured in `~/.ssh` for the target machine.
+See [SSH Docs](https://docs.digitalocean.com/glossary/ssh/) for examples.
+
+You can then use actions like
+```toml
+upload_to_scp
+```
+Note that copying to SCP can be slow, depending on your network.
 #### Saved actions and conditions
 Quite often you will define actions and conditions several time. Instead of repeating yourself, you can define actions and conditions globally, and then refer from your template to them later.
 For example:
