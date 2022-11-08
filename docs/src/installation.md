@@ -13,6 +13,7 @@ You can install DataCurator in 4 ways:
   - assumes you have Singularity installed
   - assumes you have a command line interface (WSL on Windows, any Linux or Mac)
 
+!!! note "If you wish to use the remote capabilities (Owncloud, Slack, SCP), you need [curl](https://curl.se/download.html), [scp, and ssh](https://www.openssh.com/) installed and configured"
 
 !!! note "If you do not intend to write code, pick the container/image option"
     The container comes with Julia, so you don't need to install anything, and it has an optimized precompiled image of DataCurator inside so the startup time reduces to < 1s.
