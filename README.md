@@ -45,11 +45,12 @@ repository
 │   │   ├── index.html           ## Documentation
 │   ├── src                      ## Markdown sources for docs
 │   │   ├── make.jl              ## `cd docs && julia --project=.. make.jl` to rebuild docs
+├── singularity                  ## Singularity image instructions
 ├── src                          ## source code of the package itself
-├── test                         ## test suit and related files
+├── scripts                      ## Utility scripts to run DC, generate test data, ...
+├── test                         ## test suite and related files
 └── runjulia.sh                  ## Required for Singularity image
 └── buildimage.sh                ## Rebuilds singularity image for you (Needs root !!)
-└── singularity1p6.def           ## Singularity definition file, also useful if you need to reproduce this work somewhere else without a container or Julia as system installation
 ```
 
 **Anything below this line is no longer updated and will be removed**
