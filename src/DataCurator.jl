@@ -45,7 +45,7 @@ transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_c
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
 any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_file, schedule_script, stack_images, list_to_image, normalize_linear,
 is_img, is_kd_img, is_2d_img, is_3d_img, is_dlp, load_dlp, is_rgb, read_dir, files, subdirs, buildcomp, has_n_files, has_n_subdirs, decode_filelist,
-apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault, is_grayscale, is_rgb
+apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault, is_grayscale,
 shared_list_to_file, addentry!, load_gsd, is_gsd, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
 copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
@@ -2357,15 +2357,24 @@ end
 
 FR = r"[-+]?([0-9]*[.])?[0-9]+([eE][-+]?\d+)?"
 
-is_type_file = (x, t) -> isfile(x) && endswith(x, t)
+# is_type_file = (x, t) -> isfile(x) && endswith(x, t)
+function is_type_file(x, t)
+	isfile(x) && endswith(x, t)
+end
 is_csv_file = x -> is_type_file(x, ".csv")
-is_grayscale = is_img(x) && x -> eltype(Images.load(x)) <: Gray
-is_rgb = is_img(x) && x -> eltype(Images.load(x)) <: RGB
-has_image_extension = x -> splitext(x)[2] ∈ [".tif", ".png", ".jpg", ".jpeg"]
-file_extension_one_of = (x, _set) -> splitext(x)[2] ∈ _set
+function has_image_extension(x)
+	splitext(x)[2] ∈ [".tif", ".png", ".jpg", ".jpeg"]
+end
+# file_extension_one_of = (x, _set) -> splitext(x)[2] ∈ _set
+function file_extension_one_of(x, st)
+	splitext(x)[2] ∈ st
+end
 is_tif_file = x -> is_type_file(x, ".tif")
 is_png_file = x -> is_type_file(x, ".png")
-whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
+function whitespace_to(x, y)
+	replace(x, r"[\s,\t]" => y)
+end
+# whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
 tolowercase = x -> lowercase(x)
 has_lower = x -> any(islowercase(_x) for _x in x)
 has_upper = x -> any(isuppercase(_x) for _x in x)
@@ -2385,17 +2394,39 @@ has_integer_in_name = x->read_int(basename(x))
 has_float_in_name = x->read_float(basename(x))
 quit_on_fail = x -> begin @warn "$x"; return :quit; end
 # is_img = x -> isfile(x) && ~isnothing(try Images.load(x) catch e end;)
-is_img = x -> has_image_extension(x)
-is_kd_img = (x, k) -> is_img(x) && (length(size(Images.load(x)))==k)
+is_img = has_image_extension
+# is_kd_img = (x, k) -> is_img(x) && (length(size(Images.load(x)))==k)
+function is_kd_img(x, k)
+	is_img(x) && (length(size(Images.load(x)))==k)
+end
 is_2d_img = x -> is_kd_img(x, 2)
 is_3d_img = x -> is_kd_img(x, 3)
-is_rgb = x -> is_img(x) && (eltype(Images.load(x)) <: RGB)
-read_dir = x -> isdir(x) ? (readdir(x, join=true) |>collect) : []
-files = x -> [_x for _x in read_dir(x) if isfile(_x)]
-has_n_files = (x, k) -> isdir(x) && (length(files(x))==k)
-n_files_or_more = (x, k) -> isdir(x) && (length(files(x))>=k)
-less_than_n_files = (x, k) -> isdir(x) && (length(files(x))<k)
-subdirs = x -> [_x for _x in read_dir(x) if isdir(x)]
+function is_rgb(x)
+	is_img(x) && (eltype(Images.load(x)) <: RGB)
+end
+function is_grayscale(x)
+	is_img(x) && (x -> eltype(Images.load(x)) <: Gray)
+end
+# read_dir = x -> isdir(x) ? (readdir(x, join=true) |>collect) : []
+function read_dir(x)
+	isdir(x) ? (readdir(x, join=true) |>collect) : []
+end
+function files(x)
+	[_x for _x in read_dir(x) if isfile(_x)]
+end
+# files = x -> [_x for _x in read_dir(x) if isfile(_x)]
+function has_n_files(x, k)
+	length(files(x)) == k
+end
+function n_files_or_more(x, k)
+	length(files(x)) >= k
+end
+function less_than_n_files(x, k)
+	length(files(x)) < k
+end
+function subdirs(x)
+	[_x for _x in read_dir(x) if isdir(x)]
+end
 has_n_subdirs = (x, k) -> (length(subdirs(x))==k)
 less_than_n_subdirs = (x, k) -> (length(subdirs(x))<k)
 log_to_file = (x, fname) -> write_file(fname, x)
@@ -2406,11 +2437,20 @@ always_triggers = always
 never = x->false
 fail = never
 always_fails = never
-sample = x->Random.rand()>0.5
+function sample(_)
+	Random.rand()>0.5
+end
+# sample = x->Random.rand()>0.5
 size_of_file = x -> isfile(x) ? filesize(x) : 0
 filename_ends_with_integer = x -> isfile(x) && endswith(splitext(basename(x))[1], r"[0-9]+$")
-safe_match = (x, regex) -> isnothing(match(regex, x)) ? nothing : match(regex, x).match
-read_type = (x, regex, type) -> isnothing(safe_match(x, regex)) ? nothing : tryparse(type, safe_match(x, regex))
+# safe_match = (x, regex) -> isnothing(match(regex, x)) ? nothing : match(regex, x).match
+function safe_math(x, regex)
+	isnothing(match(regex, x)) ? nothing : match(regex, x).match
+end
+function read_type(x, regex, tp)
+	isnothing(safe_match(x, regex)) ? nothing : tryparse(tp, safe_match(x, regex))
+end
+# read_type = (x, regex, type) -> isnothing(safe_match(x, regex)) ? nothing : tryparse(type, safe_match(x, regex))
 read_postfix_int = x -> read_type(x, r"[0-9]+$", Int) #tryparse(Int, safe_match(x, r"[0-9]+$"))
 read_prefix_int = x -> read_type(x, r"^[0-9]+", Int)
 read_int = x -> read_type(x, r"[0-9]+", Int)
