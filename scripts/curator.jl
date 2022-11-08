@@ -155,6 +155,16 @@ function runme()
         @info "Counter $cn --> $(_c)"
         push!(df, [_c[1], Float64.(_c[2])])
     end
+	if r == :proceed && cfg["at_exit"] != ""
+		@info "Calling exit script"
+		if cfg["at_exit"][1] == "schedule_script"
+			finisher =  x -> lookup("schedule_script")(x)
+			finisher(cfg["at_exit"][2])
+		else
+			@warn "Unsupported at exit action $(cfg["at_exit"])"
+		end
+	end
+
 	neatcode = r == :proceed ? ":white_check_mark: Success" : ":octagonal_sign: Stopped"
     CSV.write("counters.csv", df)
 	date_format = "yyyy-mm-dd HH:MM:SS"
