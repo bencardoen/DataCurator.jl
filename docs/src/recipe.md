@@ -131,7 +131,11 @@ You can also use owncloud based actions, see example_recipes/owncloud.toml
 ```toml
 scp_configuration="ssh.json"
 ```
-Where the json file has a structure like:
+Optional, you can ask DataCurator to trigger remote cluster computing jobs
+```toml
+at_exit=["schedule_script", "scripts/example_slurm.sh"]
+```
+The json file has a structure like:
 ```json
 {
     "port":"22",
@@ -148,6 +152,34 @@ You can then use actions like
 upload_to_scp
 ```
 Note that copying to SCP can be slow, depending on your network.
+
+The cluster script could look something like [this](https://github.com/bencardoen/DataCurator.jl/tree/main/scripts/example_slurm.sh):
+```bash
+#"scripts/example_slurm.sh"
+#!/bin/bash
+#SBATCH --account=[CHANGEME]
+#SBATCH --mem=2G
+#SBATCH --cpus-per-task=1
+#SBATCH --time=0:30:00
+#SBATCH --mail-user=[changeme@country.domain]
+#SBATCH --mail-type=BEGIN
+#SBATCH --mail-type=END
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=REQUEUE
+#SBATCH --mail-type=ALL
+
+set -euo pipefail
+
+export JULIA_NUM_THREADS=$SLURM_CPUS_PER_TASK
+
+NOW=$(date +"%m_%d_%Y_HH%I_%M")
+echo "Starting setup at $NOW"
+
+
+NOW=$(date +"%m_%d_%Y_HH%I_%M")
+
+echo "DONE at ${NOW}"
+```
 #### Saved actions and conditions
 Quite often you will define actions and conditions several time. Instead of repeating yourself, you can define actions and conditions globally, and then refer from your template to them later.
 For example:
