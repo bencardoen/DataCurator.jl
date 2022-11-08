@@ -232,7 +232,7 @@ function upload_to_scp(file)
 			# @async read(`scp -P $(conf["port"]) $(t) $(conf["user"])@$(conf["remote"]):$(path)`, String)
 			@async scptmp(t, conf, path)
 		else
-    		@async read(`scp -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(path)`, String)
+    		@async read(`scp -C -P $(conf["port"]) $(file) $(conf["user"])@$(conf["remote"]):$(path)`, String)
 		end
 		#@debug "Sent $file to $path"
 	catch e
@@ -242,7 +242,7 @@ function upload_to_scp(file)
 end
 
 function scptmp(t, conf, path)
-	read(`scp -P $(conf["port"]) $(t) $(conf["user"])@$(conf["remote"]):$(path)`, String)
+	read(`scp -C -P $(conf["port"]) $(t) $(conf["user"])@$(conf["remote"]):$(path)`, String)
 	rm(t)
 end
 
@@ -2538,7 +2538,7 @@ function schedule_script(script)
     @debug "Schedule $script to run remotely"
     conf = JSON.parse(ENV["DC_SSH_CONFIG"])
     @debug conf
-    read(`scp -P $(conf["port"]) $(script) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
+    read(`scp -C -P $(conf["port"]) $(script) $(conf["user"])@$(conf["remote"]):$(conf["path"])`, String)
     read(`ssh cedar.computecanada.ca "cd $(conf["path"]) && sbatch $(conf["path"])/$(basename(script))"`, String)
 end
 
