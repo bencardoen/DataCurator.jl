@@ -2405,7 +2405,7 @@ function is_rgb(x)
 	is_img(x) && (eltype(Images.load(x)) <: RGB)
 end
 function is_grayscale(x)
-	is_img(x) && (x -> eltype(Images.load(x)) <: Gray)
+	is_img(x) && (eltype(Images.load(x)) <: Gray)
 end
 # read_dir = x -> isdir(x) ? (readdir(x, join=true) |>collect) : []
 function read_dir(x)
@@ -2444,7 +2444,7 @@ end
 size_of_file = x -> isfile(x) ? filesize(x) : 0
 filename_ends_with_integer = x -> isfile(x) && endswith(splitext(basename(x))[1], r"[0-9]+$")
 # safe_match = (x, regex) -> isnothing(match(regex, x)) ? nothing : match(regex, x).match
-function safe_math(x, regex)
+function safe_match(x, regex)
 	isnothing(match(regex, x)) ? nothing : match(regex, x).match
 end
 function read_type(x, regex, tp)

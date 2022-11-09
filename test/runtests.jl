@@ -466,6 +466,8 @@ correctpath()
         e = load_content("1.csv")
         @test d == e
         @test d == load_content("2.csv")
+        remove("1.csv")
+        remove("2.csv")
     end
 
     @testset "reductions" begin
@@ -478,6 +480,7 @@ correctpath()
         @test size(Y) == (1,3,3)
         Y = reduce_image(X, ["maximum", 3])
         @test size(Y) == (3,3,1)
+        remove("test.tif")
     end
 
     @testset "transform_api" begin
@@ -1037,7 +1040,7 @@ correctpath()
     end
 
     @testset "example_csv" begin
-        print(pwd())
+        # print(pwd())
         c = global_logger()
         global_logger(NullLogger())
         IN = "testdir"
