@@ -53,7 +53,6 @@ repository
 └── buildimage.sh                ## Rebuilds singularity image for you (Needs root !!)
 ```
 
-**Anything below this line is no longer updated and will be removed**
 
 ## Table of Contents
 1. Quickstart
@@ -61,7 +60,7 @@ repository
    1. [Installing]
       1. Julia package
       2. Cloned repository
-      3. Singularity image
+      3. [Singularity image] (#singularity)
       4. Executable image
    2. [Updating](#updating)
    3. [Tests](#tests)
@@ -75,6 +74,17 @@ repository
 7. [Troubleshooting](#troubleshooting)
 
 ## Quickstart
+Assuming you have the Singularity image:
+```bash
+cp example_recipes/count.toml .
+mkdir testdir
+touch testdir/text.txt
+./image.sif -r count.toml
+```
+That should show
+![Results](outcome.png)
+
+<a name="installation"></a>
 ### Installation
 You can install DataCurator in 1 of 3 ways, as a Julia package in your global Julia environment, as a local package (no change to global), or completely isolated as a container or executable image.
 
@@ -117,6 +127,7 @@ You need:
 
 See [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator_f35_j1.6) for up to date images.
 
+<a name="singularity"></a>
 #### As a Singularity container
 You need:
 - A command line environment (WSL on windows, any shell on Linux or MAC)
@@ -127,24 +138,33 @@ singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator_f35_j1.
 
 The container provides:
 - Fedora 35 base environment
-- Julia 1.6.2 base installation
+- Julia 1.7.2 base installation
 - DataCurator installed in its own environment at /opt/DataCurator.jl
 
+
+##### Execute recipes with the container
+```bash
+./image.sif -r myrecipe.toml
+```
+See [curator.jl](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/curator.jl) for the arguments and usage. See [example_recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes) for example recipes to test.
+
+Note that this is equivalent to
+```bash
+singularity run image.sif /opt/DataCurator.jl/runjulia.sh -r myrecipe.toml
+```
 
 ##### Get an interactive julia shell inside the container
 ```bash
 singularity shell image.sif
 Singularity>julia --project=/opt/DataCurator.jl
 julia>
-#OR to access the base Julia installation
-Singularity>julia
-julia>
 ```
 
-##### Execute command line scripts with the container
+##### Execute Julia commands with the container
 ```bash
-singularity exec image.sif julia --project=/opt/DataCurator.jl -e 'using Logging; @info "Are you looking for 42?";'
+singularity exec image.sif julia --project=/opt/DataCurator.jl -e 'using DataCurator";'
 ```
+
 
 ###### Notes
 - You get read/write errors, but the files exist:
@@ -182,7 +202,7 @@ Repository
 cd DataCurator.jl
 git pull origin main
 julia
-julia>using Pkg; Pkg.activate(".");
+julia>using Pkg; Pkg.activate(".") Pkg.build();
 ```
 
 Singularity image
