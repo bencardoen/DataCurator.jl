@@ -142,8 +142,7 @@ function runme()
 		@info "Overriding endpoint with slack $endpoint"
 		cfg["endpoint"] = endpoint
 	end
-	if isnothing(endpoint)
-		cfg["endpoint"] != ""
+	if isnothing(endpoint) && cfg["endpoint"] != ""
 		@info "using template endpoint"
 		endpoint = cfg["endpoint"]
 	end
@@ -166,6 +165,7 @@ function runme()
 	end
 
 	neatcode = r == :proceed ? ":white_check_mark: Success" : ":octagonal_sign: Stopped"
+	@info "Writing counters to counters.csv"
     CSV.write("counters.csv", df)
 	date_format = "yyyy-mm-dd HH:MM:SS"
 	msgs = ["DataCurator :construction_worker:", ":clock3: \t $(Dates.format(now(), date_format))", "Recipe \t $recipe", "Result \t $neatcode", ":stopwatch: \t $(@sprintf("%.2e",stop-start)) seconds"]

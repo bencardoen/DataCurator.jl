@@ -16,11 +16,9 @@ using PyCall
 using Conda
 ## Add the two packages we need
 Conda.pip_interop(true)
-Conda.add("gcc=12.1.0"; channel="conda-forge")
-Conda.add("scikit-image")
+# Conda.add("gcc=12.1.0"; channel="conda-forge")
 # Pin this version, to avoid clashes with libgcc.34
-Conda.add("scipy=1.8.0")
+# Conda.add("scipy=1.8.0")
 Conda.pip("install", "smlmvis")
-PyCall.pyimport("skimage");
 PyCall.pyimport("smlmvis");
 @info "Success!"
