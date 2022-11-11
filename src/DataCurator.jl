@@ -56,12 +56,48 @@ dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remo
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
 remove_from_to, stack_list_to_image, concat_to_table, make_aggregator, describe_objects, load_rainstorm, is_rainstorm,
-gaussian, laplacian, dilate_image, erode_image, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
+gaussian, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
 # column_names = x -> names(CSV.read(x, DataFrame))
 
+
+
+"""
+	load_mesh(x)
+
+	Load the contents of a mesh file
+"""
+function load_mesh(x)
+	p = pyimport("meshio")
+	return p.read(x)
+end
+
+
+"""
+	try_mesh(x)
+
+	Try to load the contents of a mesh file, return nothing if it fails
+"""
+function try_mesh(x)
+	try
+		load_mesh(x)
+	catch e
+		@error "Failed loading mesh $x"
+		return nothing
+	end
+end
+
+
+"""
+	is_mesh(x)
+
+	Tries to load file `x` as a mesh, false if not possible
+"""
+function is_mesh(x)
+	return !isnothing(try_mesh(x))
+end
 
 """
 	load_gsd(file)
@@ -709,8 +745,14 @@ function load_content(x::AbstractString)
     if ex ∈ [".csv", ".txt"]
         return CSV.read(x, DataFrames.DataFrame)
     end
-    @error "No matching file type (img, csv), assuming your functions know how to handle this"
-    throw(ArgumentError("Invalid file content or not yet supported $x"))
+	q = try_mesh(x)
+	if isnothing(q)
+	    @error "No matching file type (img, csv), assuming your functions know how to handle this"
+	    throw(ArgumentError("Invalid file content or not yet supported $x"))
+	else
+		@info "Loaded mesh for $x"
+		return q
+	end
 end
 
 function save_content(ct::Array{T}, sink::AbstractString) where {T<:Images.Colorant}

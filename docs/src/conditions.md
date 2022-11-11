@@ -38,6 +38,7 @@ read_int
 read_postfix_float
 read_prefix_float
 read_float
+is_type_file   # Usage ["is_type_file", "csv"] to check if a file extension is csv
 ```
 
 ### Aggregation
@@ -308,6 +309,12 @@ is_rainstorm
 has_image_extension
 is_type_file # usage : ["is_type_file", ".csv"]
 file_extension_one_of # usage : ["file_extension_one_of", [".csv", ".txt", ".xyz"]]
+```
+
+#### Mesh support
+```toml
+is_mesh
+load_mesh
 ```
 
 #### Image specific

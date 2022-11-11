@@ -32,6 +32,10 @@ correctpath()
         rm("rain.csv")
     end
 
+    @testset "mesh" begin
+        @test is_mesh("test.msh")
+    end
+
     @testset "cw" begin
         @test ! canwrite("/dev/xyzawdn")
         touch("testfile")
