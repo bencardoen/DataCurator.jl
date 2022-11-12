@@ -734,7 +734,8 @@ end
 """
 	load_content(filename)
 
-	Tries to access common formats of content, currently supports tif/png/csv/txt
+	Tries to access common formats of content, currently supports:
+		tif/png/csv/txt/json/dlp/gsd/mesh formats/mat/hdf5
 """
 function load_content(x::AbstractString)
     #@debug "Trying to load content for $x"
@@ -745,6 +746,9 @@ function load_content(x::AbstractString)
     if ex ∈ [".csv", ".txt"]
         return CSV.read(x, DataFrames.DataFrame)
     end
+    if ex ∈ [".json", ".jsn", ".JSON"]
+		return JSON.parse(String(read(x)))
+	end
 	q = try_mesh(x)
 	if isnothing(q)
 	    @error "No matching file type (img, csv), assuming your functions know how to handle this"
@@ -2656,6 +2660,19 @@ function handle_common_conditions(config, default)
     end
 end
 
+
+function decode_python(str)
+    try
+        st = split(str, ".")
+        mod=join(st[1:end-1], ".")
+        p=pyimport(mod)
+        return p[st[end]]
+    catch e
+        @error "Failed loading $str with e"
+        return nothing
+    end
+end
+
 function lookup(sym)
     try
         return getfield(DataCurator, Symbol(sym))
@@ -2665,9 +2682,15 @@ function lookup(sym)
         try
             return getfield(Main, Symbol(sym))
         catch
-            @error "No such symbol $sym"
-            throw(ArgumentError("Invalid symbol $sym"))
-            return nothing
+			@warn "$sym not found in main, trying Python ..."
+			p = decode_python(sym)
+			if isnothing(p)
+	            @error "No such symbol $sym"
+	            throw(ArgumentError("Invalid symbol $sym"))
+	            return nothing
+			else
+				return p
+			end
         end
     end
 end

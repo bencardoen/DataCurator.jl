@@ -83,3 +83,23 @@ julia --project=. scripts/testdataset.jl
 julia --project=. scripts/curator.jl -r td.toml
 ```
 Change the test directory if needed.
+
+
+### Using Python packages
+Let's say you have an existing python module which you want to use in the template.
+In this example, we'll use `meshio`.
+We want to use the function `meshio.read(filename)`
+```julia
+using DataCurator
+## Install the package
+using PyCall
+using Conda
+Conda.add("meshio", channel="conda-forge")
+## Test if DataCurator see it
+p=decode_python("meshio.read")
+isnothing(p) # Should be false
+```
+Now you can do in a template
+```toml
+actions=["meshio.read"]
+```
