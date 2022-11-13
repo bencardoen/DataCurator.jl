@@ -34,27 +34,11 @@ You need:
 
 ```julia
 using Pkg;
+Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git")
 Pkg.add(url="https://github.com/bencardoen/DataCurator.jl")
-Pkg.test("DataCurator")
+Pkg.build("DataCurator")
 using DataCurator
 ```
-or interactively
-```julia
-julia> ] # typing right bracket opens package manager
-pkg 1.x> add https://github.com/bencardoen/DataCurator.jl
-pkg 1.x> test DataCurator
-```
-!!! tip "Julia's package manager"
-    Julia's package manager can be invoked with Julia commands, but also responds to interactive use in the REPL (Julia command line).
-    ```julia
-    ]
-    <cmd> <argument>
-    # is the same as
-    using Pkg; Pkg.cmd(argument)
-    ```
-    Where cmd is usually one of `test`, `add`, `activate`, ...
-
-Note: when this repo is private this will prompt for username and github token (not psswd)
 
 #### As a local repository
 You need:
