@@ -1,6 +1,8 @@
 # DataCurator.jl Documentation
 A multithreaded package to validate, curate, and transform large heterogeneous datasets using reproducible recipes, which can be created both in TOML human readable format, or in Julia.
 
+![Concept](assets/datacurator-logos.png)
+
 ```@contents
 Depth = 5
 ```
@@ -111,15 +113,22 @@ using PyCall
 using Conda
 Conda.add("meshio", channel="conda-forge")
 ```
+This works thanks to [PyCall.jl and Conda.jl](https://github.com/JuliaPy/PyCall.jl)
 
 ### Using R in templates
-Similar to Python code, you can use R functions
+You can use R functions
 ```julia
 using DataCurator
-p=lookup("r.dim")
+p=lookup("R.base.sum")
 isnothing(p) == false #
 ```
 Now you can do in a template
 ```toml
-actions=["python.meshio.read"]
+actions=["R.base.sum"]
 ```
+This assumes R is installed, if not DC will try to install it.
+Installing your own R packages is beyond scope of this documentation, if it is available in your R install, the above will work.
+See [RCall.jl](https://github.com/JuliaInterop/RCall.jl).
+
+### Troubleshooting
+If you experience any problems, please create an issue with the DC version, template, and sample data to reproduce it, including the Julia version and OS.
