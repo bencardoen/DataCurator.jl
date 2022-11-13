@@ -85,7 +85,7 @@ julia --project=. scripts/curator.jl -r td.toml
 Change the test directory if needed.
 
 
-### Using Python packages
+### Using Python packages/code
 Let's say you have an existing python module which you want to use in the template.
 In this example, we'll use `meshio`.
 We want to use the function `meshio.read(filename)`
@@ -96,10 +96,30 @@ using PyCall
 using Conda
 Conda.add("meshio", channel="conda-forge")
 ## Test if DataCurator see it
-p=decode_python("meshio.read")
-isnothing(p) # Should be false
+p=lookup("python.meshio.read")
+isnothing(p) == false #
 ```
 Now you can do in a template
 ```toml
-actions=["meshio.read"]
+actions=["python.meshio.read"]
+```
+If the package is not installed, do so first
+```julia
+using Pkg
+Pkg.activate(".")
+using PyCall
+using Conda
+Conda.add("meshio", channel="conda-forge")
+```
+
+### Using R in templates
+Similar to Python code, you can use R functions
+```julia
+using DataCurator
+p=lookup("r.dim")
+isnothing(p) == false #
+```
+Now you can do in a template
+```toml
+actions=["python.meshio.read"]
 ```

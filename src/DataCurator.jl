@@ -2521,6 +2521,21 @@ function apply_to(x, f; base=true)
     end
 end
 
+function decode_r(str)
+    st = split(str, ".")
+    if length(st) != 3
+        @error "Invalid syntax for R $str use R.library.function, e.g. R.base.sum"
+    end
+    if st[1] != "R"
+        @error "Invalid syntax for R $str use R.library.function, e.g. R.base.sum"
+        return nothing
+    end
+    @info st
+    r=rimport(String(st[2]))
+    g=getfield(r, Symbol(st[3]))
+    return x -> rcopy(g(x))
+end
+
 function decode_owncloud(config)
 	c = config["owncloud_configuration"]
 	if c == ""
@@ -2664,9 +2679,14 @@ end
 function decode_python(str)
     try
         st = split(str, ".")
-        mod=join(st[1:end-1], ".")
-        p=pyimport(mod)
-        return p[st[end]]
+		if st[1] == "python"
+	        mod=join(st[2:end-1], ".")
+	        p=pyimport(mod)
+	        return p[st[end]]
+		else
+			@warn "$str is not a valid python statement, use python.module.function syntax"
+			return nothing
+		end
     catch e
         @error "Failed loading $str with e"
         return nothing
@@ -2682,17 +2702,22 @@ function lookup(sym)
         try
             return getfield(Main, Symbol(sym))
         catch
-			@warn "$sym not found in main, trying Python ..."
-			p = decode_python(sym)
-			if isnothing(p)
-	            @error "No such symbol $sym"
-	            throw(ArgumentError("Invalid symbol $sym"))
-	            return nothing
-			else
-				return p
+			if occursin(".", sym)
+				@info "$sym not found in main, trying Python ..."
+				st=split(sym, ".")
+				selector = lowercase(st[1])
+				@match selector begin
+					"python" => return decode_python(sym)
+					"r" 	=> return decode_r(sym)
+			        	   _ => throw(ArgumentError("Invalid symbol $sym"))
+				end
 			end
         end
+		throw(ArgumentError("Invalid symbol $sym"))
+		return nothing
     end
+	throw(ArgumentError("Invalid symbol $sym"))
+	return nothing
 end
 
 function guess_argument(str)
