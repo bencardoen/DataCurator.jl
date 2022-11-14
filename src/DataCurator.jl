@@ -34,11 +34,6 @@ using Logging, LoggingExtras, Dates
 using PyCall
 using RCall
 pyimport("smlmvis")
-# # @pyimport smlmvis.gsdreader as _gsd
-# # @pyimport smlmvis.epflreader as _epfl
-# # @pyimport smlmvis.abbelightreader as _abbe
-# # @pyimport smlmvis.dlpreader as _dlp
-# @pyimport smlmvis.rainstormreader as ran
 
 export topdown, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
@@ -61,7 +56,6 @@ gaussian, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, open
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
-# column_names = x -> names(CSV.read(x, DataFrame))
 
 
 

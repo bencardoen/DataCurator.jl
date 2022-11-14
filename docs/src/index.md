@@ -86,20 +86,18 @@ julia --project=. scripts/curator.jl -r td.toml
 ```
 Change the test directory if needed.
 
-
+## Reusing existing code
+Arguably could not be simpler:
+```toml
+actions=["python.meshio.read", "R.base.sum"]
+```
 ### Using Python packages/code
 Let's say you have an existing python module which you want to use in the template.
 In this example, we'll use `meshio`.
 We want to use the function `meshio.read(filename)`
 ```julia
-using DataCurator
-## Install the package
-using PyCall
-using Conda
+using DataCurator, PyCall, Conda
 Conda.add("meshio", channel="conda-forge")
-## Test if DataCurator see it
-p=lookup("python.meshio.read")
-isnothing(p) == false #
 ```
 Now you can do in a template
 ```toml
@@ -112,6 +110,9 @@ Pkg.activate(".")
 using PyCall
 using Conda
 Conda.add("meshio", channel="conda-forge")
+# Check it can be found
+p=lookup("python.meshio.read")
+isnothing(p) == false #
 ```
 This works thanks to [PyCall.jl and Conda.jl](https://github.com/JuliaPy/PyCall.jl)
 
@@ -132,16 +133,36 @@ See [RCall.jl](https://github.com/JuliaInterop/RCall.jl).
 
 
 ### Extending DataCurator
-If you want to add support for your own datatypes or functions
+If you want to add support for your own datatypes or functions, the only thing you need is to make them available to DataCurator. More formally, they need to be in scope.
 ```julia
 using DataCurator
 function load_newtype(filename)
         ## Your code here
 end
+# or
+using MyPackage
+
+load_newtype = MyPackage.load_mydata
 ```
 Then
 ```toml
 actions=["load_newtype"]
+```
+Parameter passing will work, but if you need to change the signature or predefine parameters, you can do so to:
+```julia
+using DataCurator
+function sum_threshold(xs, threshold)
+        sum(xs[xs .>= threshold])
+end
+sum_short = x -> sum_threshold(x, 1)
+```
+then this is equivalent
+```toml
+actions=[["sum_threshold", 1]]
+```
+to
+```toml
+actions=["sum_short"]
 ```
 
 ### Troubleshooting
