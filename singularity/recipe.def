@@ -24,7 +24,7 @@ From: fedora:35
     cd /opt && unzip $PKGNAME.jl.zip
     export LOCALPKG=/opt/$PKGNAME.jl
     cd $LOCALPKG
-    julia --project=$LOCALPKG -e 'using Pkg; Pkg.update(); ENV["PYTHON"]=""; Pkg.build(); Pkg.instantiate()'
+    julia --project=$LOCALPKG -e 'using Pkg; Pkg.update(); ENV["PYTHON"]=""; ENV["R_HOME"]="*"; Pkg.build(); Pkg.instantiate()'
     julia --project=$LOCALPKG -e 'using DataCurator'
     echo "Setting up precompile"
     # This one runs the tests, so everything that has test coverage is optimized
