@@ -3,6 +3,18 @@ A multithreaded package to validate, curate, and transform large heterogeneous d
 
 ![Concept](assets/datacurator-logos.png)
 
+# Table of contents
+- [Installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md)
+- [Usage](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/usage.md)
+- [Conditions](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/conditions.md)
+- [Example Recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md)
+
+For full documentation:
+```bash
+cd docs && julia --project=.. make.jl
+```
+Documentation in HTML will be generated in build
+
 ```@contents
 Depth = 5
 ```
