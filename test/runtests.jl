@@ -37,6 +37,8 @@ correctpath()
     end
 
     @testset "cw" begin
+        c = global_logger()
+        global_logger(NullLogger())
         @test ! canwrite("/dev/xyzawdn")
         touch("testfile")
         @test canwrite("testfile")
