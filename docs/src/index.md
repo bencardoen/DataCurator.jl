@@ -130,5 +130,19 @@ This assumes R is installed, if not DC will try to install it.
 Installing your own R packages is beyond scope of this documentation, if it is available in your R install, the above will work.
 See [RCall.jl](https://github.com/JuliaInterop/RCall.jl).
 
+
+### Extending DataCurator
+If you want to add support for your own datatypes or functions
+```julia
+using DataCurator
+function load_newtype(filename)
+        ## Your code here
+end
+```
+Then
+```toml
+actions=["load_newtype"]
+```
+
 ### Troubleshooting
 If you experience any problems, please create an issue with the DC version, template, and sample data to reproduce it, including the Julia version and OS.

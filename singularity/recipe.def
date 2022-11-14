@@ -12,6 +12,7 @@ From: fedora:35
     ## Setup Julia
     export JLMJV=1.7
     export JLV=$JLMJV.1
+    export R_HOME="*"
     export JULIA_TGZ=julia-$JLV-linux-x86_64.tar.gz
     mkdir -p /opt/julia && cd /opt/julia
     wget https://julialang-s3.julialang.org/bin/linux/x64/$JLMJV/$JULIA_TGZ && tar -xf $JULIA_TGZ && rm $JULIA_TGZ
@@ -48,6 +49,7 @@ From: fedora:35
     export LC_ALL=C
     export LOCALPKG=/opt/DataCurator.jl
     export JLMJV=1.7
+    export R_HOME="*"
     export JLV=$JLMJV.1
     export PATH=/opt/julia/julia-$JLV/bin:$PATH
     export JULIA_DEPOT_PATH=/opt/juliadepot
