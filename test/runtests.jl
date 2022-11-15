@@ -21,6 +21,14 @@ correctpath()
 
 @testset "DataCurator.jl" begin
 
+
+    @testset "loadct" begin
+        f=load_content(joinpath("test", "test.json")
+        @test !isnothing(f)
+        f=load_content(joinpath("test", "test.msh")
+        @test !isnothing(f)
+    end
+
     @testset "rainstorm" begin
         cs = ["x_nm", "y_nm", "z_coord", "idx", "frame_idx", "x_coord", "y_coord", "I", "sig_x",
            "sig_y", "avg_brightness", "res", "res_Row", "res_Col", "roi_min",

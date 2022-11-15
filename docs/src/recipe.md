@@ -401,7 +401,7 @@ actions=[["log_to_file", "tiffiles.txt"], "show_warning"]
 This tiny template will write any tif file to tiffiles.txt.
 If it encounters csv files anywhere else, it will warn you.
 
-Please see the directory [example_recipes](../../example_recipes) for more complex examples.
+Please see the directory [example_recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes) for more complex examples.
 
 
 
