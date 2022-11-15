@@ -348,6 +348,9 @@ function _upload_to_owncloud(file, config)
 	return file
 end
 
+"""
+	upload_to_owncloud(name)
+"""
 function upload_to_owncloud(name)
 	try
 		config = JSON.parse(ENV["DC_owncloud_configuration"])
