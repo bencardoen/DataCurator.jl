@@ -119,7 +119,35 @@ This assumes that:
 - You have a SLURM account
 
 
+## Remote execution of DataCurator
+One way to remotely execute is to
+- Transfer the Singularity image (or install remotely)
+- Execute
+For example:
+```bash
+scp datacurator.sif you@remote.com:/target/dir/datacurator.sif
+ssh you@remote.com cd /target/dir && ./datacurator.sif -r recipe.toml -e endpoint.txt &
+```
+A more interactive way would be
+```bash
+scp datacurator.sif you@remote.com:/target/dir/datacurator.sif
+ssh you@remote.com
+you@remote.com>cd /target/dir
+you@remote.com>tmux
+you@remote.com>./datacurator.sif -r recipe.toml -e endpoint.txt &
+you@remote.com>CTRL-B-D # logout but leave running
+```
 
+On SLURM based schedulers it would be recommended to do
+```bash
+scp datacurator.sif you@remote.com:/target/dir/datacurator.sif
+ssh you@remote.com
+you@remote.com>cd /target/dir
+you@remote.com>tmux
+you@remote.com>salloc --mem=64G .... ## Request resources from the cluster and execute in compute node
+you@remote.com>./datacurator.sif -r recipe.toml -e endpoint.txt &
+you@remote.com>CTRL-B-D # logout but leave running
+```
 
 ## Notes
 Please make sure the configurations of either service is ok before testing it in a recipe. Network based actions are brittle, and can hang. We try to use non-blocking actions where possible.

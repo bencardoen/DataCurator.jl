@@ -8,6 +8,7 @@ A multithreaded package to validate, curate, and transform large heterogeneous d
 - [Usage](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/usage.md)
 - [Conditions](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/conditions.md)
 - [Example Recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md)
+- [Remote usage](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/remote.md)
 
 For full documentation:
 ```bash
