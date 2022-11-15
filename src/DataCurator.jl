@@ -183,6 +183,11 @@ function has_columns_named(x::AbstractString, nms::AbstractVector{T}) where T<:A
     return all(c ∈ cn for c in nms)
 end
 
+"""
+	filepath(x::AbstractString)
+
+	Given a file, return only the path
+"""
 function filepath(x::AbstractString)
     # if isdir(x)
     #     @warn "Calling `filepath` on directory"
@@ -191,6 +196,11 @@ function filepath(x::AbstractString)
     return splitdir(x)[1]
 end
 
+"""
+	validate_scp_config(configfile)
+
+	Try to load SCP config from JSON
+"""
 function validate_scp_config(configfile)
 	#@debug "Validating scp $configfile"
 	if !haskey(ENV, "USER")

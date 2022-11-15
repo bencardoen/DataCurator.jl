@@ -23,9 +23,9 @@ correctpath()
 
 
     @testset "loadct" begin
-        f=load_content(joinpath("test", "test.json"))
+        f=load_content("test.json")
         @test !isnothing(f)
-        f=load_content(joinpath("test", "test.msh"))
+        f=load_content("test.msh")
         @test !isnothing(f)
     end
 

@@ -178,6 +178,8 @@ function runme()
 		posttoslack(join(msgs, "\n"), endpoint)
     end
 	@info "Complete with exit status $r"
+	delete!(ENV, "DC_SSH_CONFIG")
+	delete!(ENV, "DC_owncloud_configuration")
 end
 
 runme()
