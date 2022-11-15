@@ -30,7 +30,7 @@ You can install DataCurator in 4 ways:
 
 #### As a Julia package
 You need:
-- Julia
+- [Julia](https://julialang.org/downloads/)
 
 ```julia
 using Pkg;
