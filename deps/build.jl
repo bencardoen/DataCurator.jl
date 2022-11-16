@@ -14,6 +14,8 @@ ENV["R_HOME"] = "*"
 # We're in our own env, so explicitly adding them now does not harm.
 Pkg.add("Conda")
 Pkg.add("PyCall")
+Pkg.add("HDF5")
+Pkg.build("HDF5")
 ## --> Initiates an PyConda env local to us
 Pkg.build("PyCall")
 Pkg.build("Conda")
