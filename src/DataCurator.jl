@@ -406,6 +406,7 @@ function describe_image(x::AbstractVector{<:Any}, axis::Int)
 	N = length(x)
 	p = ProgressMeter.Progress(N)
 	r=[DataFrame() for _ in 1:N]
+	@info "Describing image $x with statistics"
 	@threads for i in 1:N
 		r[i] = describe_image(x[i], axis)
 		next!(p)
@@ -576,6 +577,7 @@ end
 function describe_objects(x::AbstractVector)
 	#@debug "Calling vectorized describe objects"
 	N = length(x)
+	@info "Describing objects in images"
 	p = ProgressMeter.Progress(N)
 	r=[DataFrame() for _ in 1:N]
 	@threads for i in 1:N
@@ -2501,19 +2503,49 @@ function whitespace_to(x, y)
 end
 # whitespace_to = (x, y) -> replace(x, r"[\s,\t]" => y)
 tolowercase = x -> lowercase(x)
-has_lower = x -> any(islowercase(_x) for _x in x)
-has_upper = x -> any(isuppercase(_x) for _x in x)
+function has_lower(x)
+	return any(islowercase(_x) for _x in x)
+end
+
+function has_upper(x)
+	return any(isuppercase(_x) for _x in x)
+end
+# has_lower = x -> any(islowercase(_x) for _x in x)
+# has_upper = x -> any(isuppercase(_x) for _x in x)
 is_lower = x -> ~has_upper(x)
 is_upper = x -> ~has_lower(x)
 has_whitespace = x -> ~isnothing(match(r"[\s,\t]", x))
 show_warning = x -> @warn x
-show_warn_with_message = (x, y) -> @warn "$x :: $y"
+"""
+	show_warn_with_message(x, message)
+
+	For a matched file or directory `x`, log a warning with `x` and a custom message.
+"""
+function show_warn_with_message(x, message)
+	@warn "$(x) \t $(message)"
+end
+# show_warn_with_message = (x, y) -> @warn "$x :: $y"
 warn_on_fail = x -> show_warning(x)
 halt = x -> begin @info "Triggered early exit for $x"; return :quit; end
 quit = x -> return :quit
-keep_going = x-> :proceed
+"""
+	keep_going(_)
+
+	A placeholder function to allow explicit continuing of processing.
+"""
+function keep_going(_)
+	return :proceed
+end
 ✓ = keep_going
-filename = x->basename(x)
+"""
+	filenam(fname)
+
+	Return the filename of a file, e.g. "/a/b/c.txt" returns "c.txt".
+"""
+function filename(fname)
+	return basename(fname)
+end
+# filename = x->basename(x)
 integer_name = x->~isnothing(tryparse(Int, basename(x)))
 has_integer_in_name = x->read_int(basename(x))
 has_float_in_name = x->read_float(basename(x))
@@ -2549,12 +2581,22 @@ end
 function less_than_n_files(x, k)
 	length(files(x)) < k
 end
+"""
+	subdirs(path)
+
+	Return an array of sub-directories for path
+"""
 function subdirs(x)
 	[_x for _x in read_dir(x) if isdir(x)]
 end
 has_n_subdirs = (x, k) -> (length(subdirs(x))==k)
 less_than_n_subdirs = (x, k) -> (length(subdirs(x))<k)
 log_to_file = (x, fname) -> write_file(fname, x)
+"""
+	log_to_file(x, logfile, reason)
+
+	Record file or path `x` to a logfile, with a given message `reason`
+"""
 log_to_file_with_message = (x, fname, reason) -> write_file(fname, "$(x) :: reason $(reason)")
 ignore = x -> nothing
 always = x->true
