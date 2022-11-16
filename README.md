@@ -119,9 +119,7 @@ julia>using Pkg; Pkg.activate("."); Pkg.build(); Pkg.instantiate(); Pkg.test();
 
 #### As an executable image
 You need:
-- A command line environment (WSL on windows, any shell on Linux or MAC)
-
-See [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator_f35_j1.6) for up to date images.
+- A Linux-equivalent command line environment (WSL on windows, any shell on Linux or MAC)
 
 <a name="singularity"></a>
 #### As a Singularity container
@@ -130,6 +128,12 @@ You need:
 - [Singularity](https://singularity-docs.readthedocs.io/en/latest/)
 ```bash
 singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator_f35_j1.6:0.0.1
+```
+
+Or
+
+```bash
+cp /project/rrg-hamarneh/singularity_images/datacurator.sif .
 ```
 
 The container provides:
