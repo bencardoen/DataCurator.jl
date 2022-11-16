@@ -104,7 +104,7 @@ This assumes you have SSH configured.
 ```toml
 [global]
 
-at_exit=["schedule_script", "runscript.sh"
+at_exit=["schedule_script", "runscript.sh"]
 ```
 where an example runscript is found [online](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/example_slurm.sh).
 At the end of the curation, DataCurator will then execute:

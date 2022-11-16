@@ -156,6 +156,11 @@ function is_rainstorm(file)
 	return ! isnothing(load_rainstorm(file))
 end
 
+"""
+	column_names(csvfile)
+
+	Return an array of the column names for `csvfile`
+"""
 function column_names(x::T) where{T<:AbstractString}
 	return names(CSV.read(x, DataFrame))
 end
@@ -179,6 +184,12 @@ is_file = x -> isfile(x)
 has_n_columns = (x, k) -> length(column_names(x)) == k
 has_less_than_n_columns = (x, k) -> length(column_names(x)) < k
 has_more_than_or_n_columns = (x, k) -> length(column_names(x)) >= k
+
+"""
+	has_columns_named(file, names)
+
+	Check that `file` is a DataFrames D where `names` ⊂ of the column names(D).
+"""
 function has_columns_named(x::AbstractString, nms::AbstractVector{T}) where T<:AbstractString
     cn = column_names(x)
     return all(c ∈ cn for c in nms)
@@ -190,17 +201,14 @@ end
 	Given a file, return only the path
 """
 function filepath(x::AbstractString)
-    # if isdir(x)
-    #     @warn "Calling `filepath` on directory"
-    #     @warn "For directory /a/b/c this becomes /a/b"
-    # end
     return splitdir(x)[1]
 end
 
 """
 	validate_scp_config(configfile)
 
-	Try to load SCP config from JSON
+	Try to load SCP config from JSON.
+	If successful, returns true, and saves configuration in ENV["DC_SSH_CONFIG"]
 """
 function validate_scp_config(configfile)
 	#@debug "Validating scp $configfile"
@@ -251,6 +259,16 @@ function mk_remote_path(path="")
 	end
 end
 
+"""
+	upload_to_scp(file)
+
+	For a given file, upload to a remote server using SCP.
+	Assumes `validate_scp_config` has succeded.
+
+	*Notes*
+	- a file with whitespace in name or path, will have this converted to replace all whitespace with '_'
+	- copying works asynchronously, given that the copy operation can run for a long time, and so avoids blocking
+"""
 function upload_to_scp(file)
 	idir=ENV["DC_inputdirectory"]
 	@debug "Upload to SCP with $file and root $idir"
@@ -283,6 +301,12 @@ function upload_to_scp(file)
 	return file
 end
 
+"""
+	scptmp(tempfile, config, path)
+
+	Copy tmp using scp to remote path.
+	Remove `tmp` on success
+"""
 function scptmp(t, conf, path)
 	read(`scp -C -P $(conf["port"]) $(t) $(conf["user"])@$(conf["remote"]):$(path)`, String)
 	rm(t)
@@ -322,6 +346,13 @@ is_hidden = x -> is_hidden_file(x) || is_hidden_dir(x)
 not_hidden = x -> ~is_hidden(x)
 is_dir = x -> isdir(x)
 
+
+"""
+	describe_image(x, dimension)
+
+	Create a DataFrame that contains a succinct description of the intensity distribution of the image.
+	For example, given a 3D image, with dimension=3, describes the intensity distribution of each z-slice.
+"""
 function describe_image(x::AbstractString, axis::Int)
     #@debug "Describe: loading $x with $axis"
     img = load_content(x)
@@ -330,6 +361,11 @@ function describe_image(x::AbstractString, axis::Int)
     return df
 end
 
+"""
+	describe_image(x)
+
+	Create a DataFrame that contains a succinct description of the intensity distribution of the image.
+"""
 function describe_image(x::AbstractString)
     #@debug "Describe: loading $x"
     img = load_content(x)
@@ -459,6 +495,14 @@ function getextent2(box)
     return xy
 end
 
+"""
+	groupbycolumn(dataframe, columns, targets, functions, names)
+
+	Group a dataframe by `columns`, selecting `targets`, and using `functions` to do the aggregation, e.g. sum, max, ... .
+	```julia
+	dfa = groupbycolumn(df, ["cell", "replicate"], ["area"] ["sum"], ["area_of_sum_per_cell"])
+	```
+"""
 function groupbycolumn(df::DataFrame, columns, targets, functions, names)
 	#@debug "Group by with $columns $targets $functions $names"
     gdf = groupby(df, columns)
@@ -467,6 +511,14 @@ function groupbycolumn(df::DataFrame, columns, targets, functions, names)
 	return y
 end
 
+"""
+	groupbycolumn(dataframe, columns, targets, functions, names)
+
+	Group a dataframe by `columns`, selecting `targets`, and using `functions` to do the aggregation, e.g. sum, max, ... .
+	```julia
+	dfa = groupbycolumn(df, ["cell", "replicate"], ["area"] ["sum"], ["area_of_sum_per_cell"])
+	```
+"""
 function groupbycolumn(df::AbstractString, columns, targets, functions, names)
 	#@debug "Group by column $columns $targets $functions $names"
 	x=load_content(df)
@@ -477,6 +529,11 @@ function groupbycolumn(df::AbstractString, columns, targets, functions, names)
 	return df
 end
 
+"""
+	describe_objects(img)
+
+	For an image, use connected compoments to split the image into objects, and record statistics of each object, return a DataFrame.
+"""
 function describe_objects(img::AbstractArray{T, 2}) where {T<:Any}
 	b = copy(img)
     b[b .> 0] .= 1
@@ -533,6 +590,11 @@ function canwrite(fname)
     end
 end
 
+"""
+	describe_objects(img)
+
+	For an image, use connected compoments to split the image into objects, and record statistics of each object, return a DataFrame.
+"""
 function describe_objects(img::AbstractArray{T, 3}) where {T<:Any}
     b = copy(img)
     b[b .> 0] .= 1
@@ -627,7 +689,15 @@ function closing_image(img)
     return erode_image(dilate_image(img))
 end
 
+"""
+    threshold_image(img, operator, value)
 
+	Returns the image where all pixels are set to zero where operator(pixel, value) == true
+
+	```julia
+	threshold_image(img, "<", 0.25)
+	```
+"""
 function threshold_image(x::AbstractArray, operator::AbstractString, value::AbstractString)
     return threshold_image(x, operator, parse(Float64, value))
 end
@@ -642,10 +712,15 @@ function threshold_image(x::AbstractArray, operator::AbstractString, value::Numb
     @match operator begin
         "<" => (x[x.<value].= 0)
         ">" => (x[x.>value].= 0)
+		"<=" => (x[x.<=value].= 0)
+        ">=" => (x[x.>=value].= 0)
         "=" => (x[x.==value].= 0)
+		"==" => (x[x.==value].= 0)
         "abs >" => (x[abs.(x) .> value].= 0)
         "abs <" => (x[abs.(x) .<value].= 0)
         "abs =" => (x[abs.(x) .==value].= 0)
+		"abs ==" => (x[abs.(x) .==value].= 0)
+		_ => throw(ArgumentError("Unsupported operator $operator"))
     end
     return x
 end
