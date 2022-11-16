@@ -22,6 +22,7 @@ remove
 delete_file
 delete_folder
 path_only
+file_smaller_than # Usage ["file_smaller_than" , "test.tif", "10GB"]
 filepath
 show_warning
 log_to_file_with_message

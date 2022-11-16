@@ -35,7 +35,7 @@ using PyCall
 using RCall
 pyimport("smlmvis")
 
-export topdown, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, file_attribute, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -47,7 +47,7 @@ copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
-halt, keep_going, has_integer_in_name, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
+halt, keep_going, has_integer_in_name, file_smaller_than, file_greater_than, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
@@ -57,7 +57,8 @@ gaussian, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, open
 is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
 
-
+file_smaller_than = (f, v) -> file_attribute(f, "size", v, "<")
+file_greater_than = (f, v) -> file_attribute(f, "size", v, ">")
 
 """
 	load_mesh(x)
@@ -1502,6 +1503,58 @@ function execute_dataframe_function(df::DataFrame, command::AbstractString, colu
         _ => throw(ArgumentError("Invalid comman $command"))
     end
 end
+
+"""
+    file_attribute(fname, attribute, value, op)
+
+    Checks if the `attribute` (size, modified) of given `fname` matches the given conditions.
+
+	# Examples
+	```julia-repl
+	julia> file_attribute("test.txt", "size", "10GB", "<")
+	true
+	```
+"""
+function file_attribute(fname, attribute, value, op)
+    st=stat(fname)
+    a=@match attribute begin
+        "size" => st.size
+        "modified" => st.mtime
+        _ => throw(ArgumentError("Invalid op $op"))
+    end
+    opf = lookup(op)
+    v = decode_value(value, attribute)
+    @debug "$v $op $attribute $value"
+    return opf(a, v)
+end
+
+function decode_value(value, attribute)
+    @match attribute begin
+        "size" => descriptive_size(value)
+        "modified" => value
+    end
+end
+
+function tofloat(sz)
+    tryparse(Float64, sz[1:end-2])
+end
+
+function descriptive_size(sz)
+    if endswith(sz, "MB")
+        return tofloat(sz) * 2^30
+    end
+    if endswith(sz, "GB")
+        return tofloat(sz) * 2^30
+    end
+    if endswith(sz, "TB")
+        return tofloat(sz) * 2^40
+    end
+    if endswith(sz, "KB")
+        return tofloat(sz) * 2^10
+    end
+    throw(ArgumentError("Invalid size descriptor $sz"))
+end
+
 #
 # function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
 #     ### Change to accept vector of tuples
@@ -1768,6 +1821,19 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     end
 end
 
+"""
+	flipfunctor(f)
+
+	Given a function argument, return its negation.
+
+	# Example
+	```julia-repl
+	julia> f = x -> false
+	julia> g=flipfunctor(f)
+	julia> g(2)
+	true
+	```
+"""
 function flipfunctor(f)
     return x -> ~f(x)
 end
@@ -1895,6 +1961,11 @@ function load_table(x::DataFrame)
     return x
 end
 
+"""
+	slice_image(img::Array, dim, m::T, M::T)
+
+	Slice the image along dimension `dim` from m to M
+"""
 function slice_image(img::Array, dim, m::T, M::T) where {T<:Integer}
     check_slice(img, dim, m, M)
     return @match dim begin

@@ -29,6 +29,13 @@ correctpath()
         @test !isnothing(f)
     end
 
+    @testset "filesize" begin
+        Images.save("test.tif", zeros(1000, 1000))
+        @test file_smaller_than("test.tif", "10GB")
+        @test !file_greater_than("test.tif", "10GB")
+        remove("test.tif")
+    end
+
     @testset "rainstorm" begin
         cs = ["x_nm", "y_nm", "z_coord", "idx", "frame_idx", "x_coord", "y_coord", "I", "sig_x",
            "sig_y", "avg_brightness", "res", "res_Row", "res_Col", "roi_min",
