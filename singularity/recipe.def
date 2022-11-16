@@ -55,7 +55,7 @@ From: fedora:35
     export JULIA_DEPOT_PATH=/opt/juliadepot
 
 %runscript
-    echo "Executing runjulia.sh with args $@"
+    echo "Executing DataCurator with arguments $@"
     /opt/DataCurator.jl/runjulia.sh "$@"
 
 %labels

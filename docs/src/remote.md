@@ -149,6 +149,16 @@ you@remote.com>./datacurator.sif -r recipe.toml -e endpoint.txt &
 you@remote.com>CTRL-B-D # logout but leave running
 ```
 
+
+## Singularity
+If you use the Singularity image on a cluster, ensure you set the right file access.
+```bash
+export SINGULARITY_BINDPATH="/scratch/$USER, $SLURM_TMPDIR"
+singularity run datacurator.sif -r recipe.toml
+```
+By default, only the /home/username directory can be read by Singularity.
+
+
 ## Notes
 Please make sure the configurations of either service is ok before testing it in a recipe. Network based actions are brittle, and can hang. We try to use non-blocking actions where possible.
 Note that for large transfers it can be easier to move all data to the remote server, and do the curation there. Naturally, network speed, disk speed and so forth determine when this is the case.
