@@ -35,7 +35,7 @@ using PyCall
 using RCall
 pyimport("smlmvis")
 
-export topdown, file_attribute, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, validate_owncloud, file_attribute, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -421,7 +421,7 @@ end
 
 function _make_remote_path(conf)
 	IOCapture.capture() do
-    	@async o=read(`curl -X PUT -u $(conf["user"]):$(conf["token"]) "$(conf["remote"])" -X MKCOL`, String)
+    	read(`curl -X PUT -u $(conf["user"]):$(conf["token"]) "$(conf["remote"])" -X MKCOL`, String)
 	end
 end
 
@@ -2732,22 +2732,40 @@ function decode_r(str)
     return x -> rcopy(g(x))
 end
 
+function validate_owncloud(configfile)
+	c=configfile
+	try
+    	tb = JSON.parse(String(read(c)))
+		#@debug "Read $(tb)"
+		_initialize_remote(tb)
+		ENV["DC_owncloud_configuration"]=String(read(c))
+    	return tb
+	catch e
+    	@error "Reading $c failed because of $e"
+    end
+end
+
 function decode_owncloud(config)
 	c = config["owncloud_configuration"]
 	if c == ""
-		#@debug "No owncloud configuration active"
 		return nothing
 	else
-		try
-        	tb = JSON.parse(String(read(c)))
-			#@debug "Read $(tb)"
-			_initialize_remote(tb)
-			ENV["DC_owncloud_configuration"]=String(read(c))
-        	return tb
-    	catch e
-        	@error "Reading $c failed because of $e"
-        end
-    end
+		return validate_owncloud(c)
+	end
+	# if c == ""
+	# 	#@debug "No owncloud configuration active"
+	# 	return nothing
+	# else
+	# 	try
+    #     	tb = JSON.parse(String(read(c)))
+	# 		#@debug "Read $(tb)"
+	# 		_initialize_remote(tb)
+	# 		ENV["DC_owncloud_configuration"]=String(read(c))
+    #     	return tb
+    # 	catch e
+    #     	@error "Reading $c failed because of $e"
+    #     end
+    # end
 end
 
 function validate_global(config)
