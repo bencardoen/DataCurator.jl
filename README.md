@@ -56,7 +56,7 @@ repository
 
 ## Table of Contents
 1. Quickstart
-2. [Installation](#install)
+2. [Installation](#installation)
    1. [Installing]
       1. Julia package
       2. Cloned repository
@@ -93,16 +93,12 @@ You need:
 - Julia
 
 ```julia
-using Pkg;
-Pkg.add(url="https://github.com/bencardoen/DataCurator.jl")
+using Pkg
+Pkg.activate(".") # Optional if you want to install in a self contained environment
+Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git")
+Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git")
+Pkg.build("DataCurator")
 Pkg.test("DataCurator")
-using DataCurator
-```
-or interactively
-```julia
-julia> ] # typing right bracket opens package manager
-pkg 1.x> add https://github.com/bencardoen/DataCurator.jl
-pkg 1.x> test DataCurator
 ```
 
 Note: when this repo is private this will prompt for username and github token (not psswd)
@@ -117,7 +113,7 @@ git clone git@github.com:bencardoen/DataCurator.jl.git ## Assumes ssh
 # git clone https://github.com/bencardoen/DataCurator.jl.git ## For non SSH
 cd DataCurator.jl
 julia
-julia>using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.test();
+julia>using Pkg; Pkg.activate("."); Pkg.build(); Pkg.instantiate(); Pkg.test();
 ```
 
 
