@@ -32,12 +32,14 @@ You can install DataCurator in 4 ways:
 You need:
 - [Julia](https://julialang.org/downloads/)
 
+Inside an empty directory:
 ```julia
-using Pkg;
+using Pkg
+Pkg.activate(".")
 Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git")
-Pkg.add(url="https://github.com/bencardoen/DataCurator.jl")
+Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git")
 Pkg.build("DataCurator")
-using DataCurator
+Pkg.test("DataCurator")
 ```
 
 #### As a local repository
