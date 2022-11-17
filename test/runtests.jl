@@ -414,6 +414,7 @@ correctpath()
     end
 
     @testset "pipelineops" begin
+        correctpath()
         IN="testdir"
         delete_folder(IN)
         mkdir(IN)
@@ -429,7 +430,7 @@ correctpath()
     end
 
     @testset "saved_actions" begin
-
+        correctpath()
         IN="testdir"
         delete_folder("outputdir")
         delete_folder(IN)
@@ -448,6 +449,7 @@ correctpath()
 
 
     @testset "saved_actions" begin
+        correctpath()
         IN="testdir"
         delete_folder(IN)
         remove("channel.txt")

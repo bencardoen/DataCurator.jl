@@ -872,7 +872,7 @@ end
 
 function mode_copy(old::AbstractString, tmp::AbstractString, new::AbstractString)
     #@debug "Mode copy: $tmp to $new"
-    mv(tmp, new)
+    mv(tmp, new, force=true)
 end
 
 function mode_move(old::AbstractString, tmp::AbstractString, new::AbstractString)
@@ -3008,7 +3008,12 @@ end
 function delete_folder(x)
     if isdir(x)
         rm(x; force=true, recursive=true)
-    end
+    else
+		@error "You're asking to delete $x but it's not a directory"
+	end
+	if isdir(x)
+		@error "FAILED DELETING $x"
+	end
 end
 
 function list_to_file(x, f)
