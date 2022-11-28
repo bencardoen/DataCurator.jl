@@ -507,28 +507,33 @@ correctpath()
     end
 
     @testset "transform_api" begin
-        c = global_logger()
-        global_logger(NullLogger())
-        remove("test.tif")
-        remove("TEST.tif")
-        Images.save("TEST.tif", zeros(3,3))
-        transform_wrapper("TEST.tif", tolowercase, identity, mode_move)
-        @test isfile("TEST.tif") == false
-        @test isfile("test.tif") == true
-        remove("test.tif")
-        remove("TEST.tif")
-        Images.save("TEST.tif", zeros(3,3))
-        transform_wrapper("TEST.tif", tolowercase, identity, mode_copy)
-        @test isfile("TEST.tif") == true
-        @test isfile("test.tif") == true
-        remove("test.tif")
-        remove("TEST.tif")
-        Images.save("TEST.tif", zeros(3,3))
-        transform_wrapper("TEST.tif", tolowercase, identity, mode_inplace)
-        @test isfile("TEST.tif") == false
-        @test isfile("test.tif") == true
-        remove("test.tif")
-        remove("TEST.tif")
+        if is_case_inssensitive_fs()
+            @info "Case insensitive FS, skipping test"
+            @test true
+        else
+            c = global_logger()
+            global_logger(NullLogger())
+            remove("test.tif")
+            remove("TEST.tif")
+            Images.save("TEST.tif", zeros(3,3))
+            transform_wrapper("TEST.tif", tolowercase, identity, mode_move)
+            @test isfile("TEST.tif") == false
+            @test isfile("test.tif") == true
+            remove("test.tif")
+            remove("TEST.tif")
+            Images.save("TEST.tif", zeros(3,3))
+            transform_wrapper("TEST.tif", tolowercase, identity, mode_copy)
+            @test isfile("TEST.tif") == true
+            @test isfile("test.tif") == true
+            remove("test.tif")
+            remove("TEST.tif")
+            Images.save("TEST.tif", zeros(3,3))
+            transform_wrapper("TEST.tif", tolowercase, identity, mode_inplace)
+            @test isfile("TEST.tif") == false
+            @test isfile("test.tif") == true
+            remove("test.tif")
+            remove("TEST.tif")
+        end
     end
 
     @testset "tmp" begin
@@ -692,24 +697,29 @@ correctpath()
     end
 
     @testset "content_and_names" begin
-        c = global_logger()
-        global_logger(NullLogger())
-        IN="testdir"
-        delete_folder(IN)
-        mkdir(IN)
-        D = zeros(3,3)
-        D[2,2] = 0.75
-        D[2,1] = 0.5
-        Images.save(joinpath(IN, "TEST.tif"), D)
-        res = create_template_from_toml(joinpath("..","example_recipes","content_and_naming.toml"))
-        c, t = res
-        cts, cls, rv = delegate(c, t)
-        Q = readdir(IN) |> collect
-        @test length(Q) == 2
-        E = Images.load(joinpath(IN,"test.tif"))
-        @test sum(E) == 1
-        @test size(E) == (3,1)
-        rm(IN; recursive=true)
+        if is_case_inssensitive_fs()
+            @info "Case insensitive FS, skipping test"
+            @test true
+        else
+            c = global_logger()
+            global_logger(NullLogger())
+            IN="testdir"
+            delete_folder(IN)
+            mkdir(IN)
+            D = zeros(3,3)
+            D[2,2] = 0.75
+            D[2,1] = 0.5
+            Images.save(joinpath(IN, "TEST.tif"), D)
+            res = create_template_from_toml(joinpath("..","example_recipes","content_and_naming.toml"))
+            c, t = res
+            cts, cls, rv = delegate(c, t)
+            Q = readdir(IN) |> collect
+            @test length(Q) == 2
+            E = Images.load(joinpath(IN,"test.tif"))
+            @test sum(E) == 1
+            @test size(E) == (3,1)
+            rm(IN; recursive=true)
+        end
     end
 
     @testset "describe" begin
@@ -1423,33 +1433,41 @@ correctpath()
     end
 
     @testset "transform" begin
-        c = global_logger()
-        global_logger(NullLogger())
-        root = mktempdir()
-        mkpath(joinpath(root, "a"))
-        pt = joinpath(root, "a")
-        @test isdir(pt)
-        file = joinpath(root, "a", "a.txt")
-        touch(file)
-        @test isfile(file)
-        nf = transform_copy(file, x->x)
-        @test isfile(nf)
-        up = x -> uppercase(x)
-        nf = transform_inplace(file, up)
-        @test ~isfile(file)
-        @test isfile(nf)
-        nd = transform_copy(pt, up)
-        @test isdir(nd)
-        @test isdir(pt)
-        rm(root, recursive=true, force=true)
-        root = mktempdir()
-        PT = joinpath(root, "a")
-        mkpath(PT)
-        nf = transform_inplace(PT, up)
-        @test isdir(nf)
-        @test ~isdir(PT)
-        rm(root, recursive=true, force=true)
-        global_logger(c)
+        if is_case_inssensitive_fs()
+            @info "Case insensitive FS, skipping case tests"
+            @test true
+        else
+            c = global_logger()
+            global_logger(NullLogger())
+            root = mktempdir()
+            mkpath(joinpath(root, "a"))
+            pt = joinpath(root, "a")
+            @test isdir(pt)
+            file = joinpath(root, "a", "a.txt")
+            touch(file)
+            @test isfile(file)
+            nf = transform_copy(file, x->x)
+            @test isfile(nf)
+            up = x -> uppercase(x)
+            nf = transform_inplace(file, up)
+            @test ~isfile(file)
+            @test isfile(nf)
+            nd = transform_copy(pt, up)
+            @test isdir(nd)
+            @test isdir(pt)
+            rm(root, recursive=true, force=true)
+            root = mktempdir()
+            PT = joinpath(root, "a")
+            mkpath(PT)
+            if isdir(joinpath(root, "A"))
+                remove(joinpath(root, "A"))
+            end
+            nf = transform_inplace(PT, up)
+            @test isdir(nf)
+            @test ~isdir(PT)
+            rm(root, recursive=true, force=true)
+            global_logger(c)
+        end
     end
 
     @testset "traversal" begin
