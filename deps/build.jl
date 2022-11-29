@@ -15,22 +15,21 @@ ENV["R_HOME"] = "*"
 Pkg.add("Conda")
 Pkg.add("PyCall")
 Pkg.add("HDF5")
+Pkg.add("RCall")
 Pkg.build("HDF5")
 ## --> Initiates an PyConda env local to us
 Pkg.build("PyCall")
-Pkg.build("Conda")
-Pkg.add("RCall")
 Pkg.build("RCall")
 # Precompile
 using PyCall
 using Conda
 using RCall
 ## Add the two packages we need
-Conda.pip_interop(true)
+# Conda.pip_interop(true)
 # Conda.add("gcc=12.1.0"; channel="conda-forge")
 # Pin this version, to avoid clashes with libgcc.34
 # Conda.add("scipy=1.8.0"))
-Conda.pip("install", "smlmvis")
+Conda.add("smlmvis", channel="bcardoen")
 Conda.add("meshio"; channel="conda-forge")
 PyCall.pyimport("smlmvis");
 @info "Success!"
