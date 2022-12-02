@@ -23,6 +23,25 @@ isnothing(p) ## Should be false
 ```
 This works thanks to [PyCall.jl and Conda.jl](https://github.com/JuliaPy/PyCall.jl)
 
+#### Note on installing
+When DataCurator builds, it will try to use your existing Python installation.
+If the environment variable PYTHON is defined, then DataCurator will asume you have installed all dependencies:
+```bash
+apt install python3 -y
+apt install python3-pip -y
+pip3 install smlmvis
+pip3 install meshio
+export PYTHON=`which python3`
+julia -e 'using Pkg, Pkg.build("DataCurator")'
+```
+If you want DataCurator to install Python in a self-contained env, then do
+```bash
+unset PYTHON
+# or export PYTHON=""
+julia -e ...
+```
+See also [deps/build.jl] for how this is configured, if you want finer grained control.
+
 ### Using R in templates
 You can use R functions
 ```julia
