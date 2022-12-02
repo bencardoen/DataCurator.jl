@@ -2,7 +2,11 @@ using Pkg;
 using Logging;
 @info "Initiating build"
 ## We want the Conda local Python env, anything else is out of control
-ENV["PYTHON"] = ""
+install_p = false
+if !haskey(ENV, "PYTHON")
+    install_p = true
+    ENV["PYTHON"] = ""
+end
 # if "R_HOME" ∈ keys(ENV)
 #     @info "R set, using existing install"
 # else
@@ -29,7 +33,9 @@ using RCall
 # Conda.add("gcc=12.1.0"; channel="conda-forge")
 # Pin this version, to avoid clashes with libgcc.34
 # Conda.add("scipy=1.8.0"))
-Conda.add("smlmvis", channel="bcardoen")
-Conda.add("meshio"; channel="conda-forge")
+if install_p
+    Conda.add("smlmvis", channel="bcardoen")
+    Conda.add("meshio"; channel="conda-forge")
+end
 PyCall.pyimport("smlmvis");
 @info "Success!"

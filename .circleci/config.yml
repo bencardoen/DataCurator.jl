@@ -9,10 +9,16 @@ jobs:
     steps:
       - run: pwd
       - run: ls -alsht
+      - run: apt update
+      - run: apt install python3 -y
+      - run: apt install python3-pip -y
+      - run: pip3 install smlmvis
+      - run: pip3 install meshio
       - run:
           no_output_timeout: 45m
           command: julia -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"), Pkg.add(url="git@github.com:bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
           environment:
             R_HOME : "*"
+            PYTHON : "/usr/bin/python3"
       - run:
           command: julia -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; Codecov.submit(Codecov.process_folder())'
