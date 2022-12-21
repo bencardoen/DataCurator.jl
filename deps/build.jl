@@ -26,6 +26,7 @@ Pkg.build("PyCall")
 Pkg.build("RCall")
 # Precompile
 using PyCall
+using Logging
 using Conda
 using RCall
 ## Add the two packages we need
@@ -33,9 +34,17 @@ using RCall
 # Conda.add("gcc=12.1.0"; channel="conda-forge")
 # Pin this version, to avoid clashes with libgcc.34
 # Conda.add("scipy=1.8.0"))
-if install_p
+try
+    PyCall.pyimport("smlmvis");
+    PyCall.pyimport("meshio");
+catch e
+    @warn "Failed import $e -- installing"
     Conda.add("smlmvis", channel="bcardoen")
     Conda.add("meshio"; channel="conda-forge")
 end
+# if install_p
+#     Conda.add("smlmvis", channel="bcardoen")
+#     Conda.add("meshio"; channel="conda-forge")
+# end
 PyCall.pyimport("smlmvis");
 @info "Success!"
