@@ -107,8 +107,9 @@ If you experience any problems, please create an issue with the DC version, temp
 
 
 ### Acknowledgement
-DataCurator could not work without packages like:
+DataCurator could not work without packages such as:
 - [Slack.jl](https://github.com/JuliaLangSlack/Slack.jl)
+- [Images.jl](https://github.com/JuliaLangSlack/Images.jl)
 - [PyCall.jl/Conda.jl](https://github.com/JuliaPy/Conda.jl)
 - [RCall.jl](https://juliainterop.github.io/RCall.jl/stable/)
 - [SlurmMonitor.jl](https://github.com/bencardoen/SlurmMonitor.jl)
