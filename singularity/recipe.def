@@ -6,9 +6,10 @@ From: fedora:35
 
 %post
     ## Get the tools we'll need
-    dnf install -y wget unzip python3 g++ openssh-clients curl
+    dnf install -y wget unzip python3 python3-pip g++ openssh-clients curl
     dnf groupinstall -y 'Development Tools'
-
+    pip3 install smlmvis
+    pip3 install meshio
     ## Setup Julia
     export JLMJV=1.7
     export JLV=$JLMJV.1
