@@ -7,12 +7,12 @@ if !haskey(ENV, "PYTHON")
     install_p = true
     ENV["PYTHON"] = ""
 end
-# if "R_HOME" ∈ keys(ENV)
-#     @info "R set, using existing install"
-# else
-#     ENV["R_HOME"] = "*"
-# end
-ENV["R_HOME"] = "*"
+if !haskey(ENV, "R_HOME")
+    @info "R set, using existing install"
+else
+    ENV["R_HOME"] = "*"
+end
+# ENV["R_HOME"] = "*"
 # ENV["LD_PRELOAD"] = joinpath(ENV["HOME"], ".julia/conda/3/lib/libstdc++.so.6.0.30")
 # Conda and PyCall are dependencies, but we need to make sure they get prebuilt first.
 # We're in our own env, so explicitly adding them now does not harm.
