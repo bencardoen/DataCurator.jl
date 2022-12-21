@@ -39,7 +39,12 @@ try
     PyCall.pyimport("meshio");
 catch e
     @warn "Failed import $e -- installing"
-    Conda.add("smlmvis", channel="bcardoen")
+    println("Failed import $e -- installing")
+    Conda.pip_interop(true)
+    Conda.add("gcc=12.1.0"; channel="conda-forge")
+    Pin this version, to avoid clashes with libgcc.34
+    Conda.add("scipy=1.8.0"))
+    Conda.pip("install", "smlmvis")
     Conda.add("meshio"; channel="conda-forge")
 end
 # if install_p
