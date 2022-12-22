@@ -68,8 +68,7 @@ repository
    1. [Installing]
       1. Julia package
       2. Cloned repository
-      3. [Singularity image] (#singularity)
-      4. Executable image
+      3. [Singularity image](#singularity)
 
 ## Quickstart
 Assuming you have the [Singularity image](bit.ly/datacurator_jl):
@@ -78,7 +77,7 @@ Assuming you have the [Singularity image](bit.ly/datacurator_jl):
 wget bit.ly/datacurator_jl -O datacurator.sif
 # Set executable
 chmod u+x ./datacurator.sif
-# Copy an exampel recipe
+# Copy an example recipe
 cp example_recipes/count.toml .
 # Create test data
 mkdir testdir
@@ -88,6 +87,18 @@ datacurator.sif -r count.toml
 ```
 That should show output similar to
 ![Results](outcome.png)
+
+If you haven't cloned the repository, `count.toml` should look like this
+```toml
+[global]
+act_on_success=true
+counters = ["filecount", ["filesize", "size_of_file"]]
+inputdirectory = "testdir"
+[any]
+all=true
+conditions = ["isfile"]
+actions=[["count", "filecount"], ["count", "filesize"]]
+```
 
 <a name="installation"></a>
 ### Installation
@@ -122,12 +133,10 @@ julia>using Pkg; Pkg.activate("."); Pkg.build(); Pkg.instantiate(); Pkg.test();
 ```
 
 
-#### As an executable image
-You need:
-- A Linux-equivalent command line environment (WSL on windows, any shell on Linux or MAC)
+
 
 <a name="singularity"></a>
-#### As a Singularity container
+#### As a Singularity container / executable image
 You need:
 - A command line environment (WSL on windows, any shell on Linux or MAC)
 - [Singularity](https://singularity-docs.readthedocs.io/en/latest/)
@@ -136,7 +145,7 @@ wget bit.ly/datacurator_jl -O datacurator.sif
 chmod u+x datacurator.sif
 ```
 
-This download a container image providing:
+This downloads a container image providing:
 - Fedora 35 base environment
 - Julia 1.7.1 base installation
 - DataCurator installed in its own environment at /opt/DataCurator.jl
