@@ -1,6 +1,6 @@
 # DataCurator
 
-<img src="datacurator-logos.png" alt="Concept" width="100"/>
+<img src="datacurator-logos.png" alt="Concept" width="250"/>
 
 A multithreaded package to validate, curate, and transform large heterogeneous datasets using reproducible recipes, which can be created both in TOML human readable format, or in Julia.
 
@@ -24,7 +24,7 @@ DataCurator is a Swiss army knife that ensures:
 
 ## Singularity Image
 You can find the container image at [bit.ly/datacurator_jl](bit.ly/datacurator_jl)
-![Singularity](qr.png){width=50px} 
+<img src="qr.png" alt="Singularity image" width="50"/>
 
 ## Documentation
 ### Markdown [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md)
