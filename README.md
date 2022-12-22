@@ -24,7 +24,7 @@ DataCurator is a Swiss army knife that ensures:
 
 ## Singularity Image
 You can find the container image at [bit.ly/datacurator_jl](bit.ly/datacurator_jl)
-![Singularity](qr.png)
+![Singularity](qr.png){width=50px} 
 
 ## Documentation
 ### Markdown [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md)
