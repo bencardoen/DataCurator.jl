@@ -1,28 +1,40 @@
 # Usage
 This chapter details how to quickly get started using DataCurator, either in recipe (text only) mode, or using the Julia API.
 ## Using recipes only
+
 ```bash
-./DataCurator.sif -r myrecipe.toml [---verbose]
+./datacurator.sif -r myrecipe.toml [---verbose]
 ```
 or a bit more advanced:
 ```bash
-singularity exec DataCurator.sif julia --project=/opt/DataCurator.jl --sysimage /opt/DataCurator.jl/sys_img.so /opt/DataCurator.jl/src/curator.jl --recipe myrecipe.toml
+singularity exec datacurator.sif julia --project=/opt/DataCurator.jl --sysimage /opt/DataCurator.jl/sys_img.so /opt/DataCurator.jl/src/curator.jl --recipe myrecipe.toml
 ```
 You can see why we made the executable image with the very short command, right?
 
 However, it can be useful to explore the package more inside the singularity image
 
 ```bash
-singularity exec DataCurator.sif julia <your script>
+singularity exec datacurator.sif julia <your script>
 ```
 
 You can also open a shell inside the image
 ```bash
-singularity shell DataCurator.sif
+singularity shell datacurator.sif
 singularity>julia
 julia 1.x>
 ```
 
+### Note on file permission errors
+If you get read/write errors, but the files exist:
+If you run into issues with files or directories not found, this is because the Singularity container by default has **no access except to your $HOME directory**. Use
+```bash
+singularity run -B /scratch image.sif ...
+```
+where /scratch is a directory you want read/write access to.
+If you use this often, use a environment variable:
+```bash
+ export SINGULARITY_BIND="/opt,/data:/mnt"
+```
 ## Recipes + Julia
 Either run this in the image, or with the package
 ```julia
@@ -42,7 +54,7 @@ end
 ```
 See the API reference for full details.
 
-## Using the Julia API 
+## Using the Julia API
 When you can write Julia you can do anything the template recipes allow and extend it with your own functions, compile more complex functions, and so forth. In this section we'll walk you through how to do this.
 
 ### Typesafe templates
