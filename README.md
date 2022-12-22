@@ -23,8 +23,10 @@ DataCurator is a Swiss army knife that ensures:
 [![codecov](https://codecov.io/gh/bencardoen/DataCurator.jl/branch/main/graph/badge.svg?token=GI7MQH1VNA)](https://codecov.io/gh/bencardoen/DataCurator.jl)
 
 ## Singularity Image
+
+<img src="qr.png" alt="Singularity image" width="100"/>
+
 You can find the container image at [bit.ly/datacurator_jl](bit.ly/datacurator_jl)
-<img src="qr.png" alt="Singularity image" width="50"/>
 
 ## Documentation
 ### Markdown [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md)
