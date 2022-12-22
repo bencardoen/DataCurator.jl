@@ -83,7 +83,7 @@ cp example_recipes/count.toml .
 mkdir testdir
 touch testdir/text.txt
 # Execute
-datacurator.sif -r count.toml
+./datacurator.sif -r count.toml
 ```
 That should show output similar to
 ![Results](outcome.png)
