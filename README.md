@@ -27,17 +27,22 @@ You can find the container image at [bit.ly/datacurator_jl](bit.ly/datacurator_j
 ![Singularity](qr.png)
 
 ## Documentation
-### Markdown [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md)
+### Markdown
+[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) (clickable link)
+The documentation in markdown makes it easier to reuse code snippets.
+See [documentation source folder](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src) and the [examples](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes)
+
 ### HTML
-After cloning / downloading, please open [docs/build/index.html](docs/build/index.html) with a browser.
+After [cloning](#cloned) the project, please open [docs/build/index.html](docs/build/index.html) with a browser.
 This will be replaced by github pages + actions.
 
-You can build the docs yourself
+If you have Julia, you can build the docs yourself
 ```bash
 cd docs
 julia --project=.. make.jl
 ```
-Then open docs/build/index.html with a browser of choice.
+Then open docs/build/index.html with a browser of your choice.
+
 ### PDF
 Alternatively, if you have texlive and the [Documenter.jl](https://juliadocs.github.io/Documenter.jl/stable/man/other-formats/) dependencies, you can generate a pdf
 ```bash
@@ -67,7 +72,7 @@ repository
 2. [Installation](#installation)
    1. [Installing]
       1. Julia package
-      2. Cloned repository
+      2. [Cloned repository](#cloned)
       3. [Singularity image](#singularity)
 
 ## Quickstart
@@ -119,6 +124,7 @@ Pkg.test("DataCurator")
 
 Note: when this repo is private this will prompt for username and github token (not psswd)
 
+<a name="cloned"></a>
 #### As a local repository
 You need:
 - Julia
