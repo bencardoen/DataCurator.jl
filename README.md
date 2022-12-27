@@ -1,6 +1,6 @@
 # DataCurator
 
-![Concept](datacurator-logos.png)
+<img src="datacurator-logos.png" alt="Concept" width="250"/>
 
 A multithreaded package to validate, curate, and transform large heterogeneous datasets using reproducible recipes, which can be created both in TOML human readable format, or in Julia.
 
@@ -23,8 +23,10 @@ DataCurator is a Swiss army knife that ensures:
 [![codecov](https://codecov.io/gh/bencardoen/DataCurator.jl/branch/main/graph/badge.svg?token=GI7MQH1VNA)](https://codecov.io/gh/bencardoen/DataCurator.jl)
 
 ## Singularity Image
+
+<img src="qr.png" alt="Singularity image" width="100"/>
+
 You can find the container image at [bit.ly/datacurator_jl](bit.ly/datacurator_jl)
-![Singularity](qr.png)
 
 ## Documentation
 ### Markdown
@@ -88,7 +90,7 @@ cp example_recipes/count.toml .
 mkdir testdir
 touch testdir/text.txt
 # Execute
-datacurator.sif -r count.toml
+./datacurator.sif -r count.toml
 ```
 That should show output similar to
 ![Results](outcome.png)
