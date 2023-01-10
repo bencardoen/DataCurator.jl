@@ -1,12 +1,12 @@
 # DataCurator
 
-<img src="datacurator-logos.png" alt="Concept" width="250"/>
+<img src="overview.png" alt="Concept" width="600"/>
 
 A multithreaded package to validate, curate, and transform large heterogeneous datasets using reproducible recipes, which can be created both in TOML human readable format, or in Julia.
 
 A key aim of this package is that recipes can read/written by any STEM researcher without the need for being able to write code, making data sharing/validation faster, more accurate, and reproducible.
 
-![Concept](venn.png)
+<!-- ![Concept](overview.png) -->
 
 DataCurator is a Swiss army knife that ensures:
 - pipelines can focus on the algorithm/problem solving
@@ -14,7 +14,7 @@ DataCurator is a Swiss army knife that ensures:
 - validation huge datasets at high speed
 - out-of-the-box operation without the need for code or dependencies
 
-![Concept](whatami.png)
+<!-- ![Concept](whatami.png) -->
 
 ## Status
 
