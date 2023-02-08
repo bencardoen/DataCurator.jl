@@ -407,6 +407,19 @@ Please see the directory [example_recipes](https://github.com/bencardoen/DataCur
 
 ### Advanced usage
 
+#### Image Colocalization
+The following recipe computes a set of image colocalization metrics on paired tif files.
+```toml
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+all=true
+conditions = ["is_dir"]
+actions=[["image_colocalization", 3, "[1,2].tif", "is_2d_img", "."]]
+```
+This will for each directory find `1.tif` and `2.tif` files, and if those are 2D images, compute colocalization, save the results in image and CSV format.
+
 ##### Verify a complex, deep dataset layout.
 This is an example of a real world dataset, with comments.
 

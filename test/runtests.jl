@@ -21,7 +21,6 @@ correctpath()
 
 @testset "DataCurator.jl" begin
 
-
     @testset "loadct" begin
         f=load_content("test.json")
         @test !isnothing(f)
@@ -316,6 +315,32 @@ correctpath()
         cts, cls, rv = delegate(c, t)
         delete_folder(IN)
     end
+
+    @testset "testcoloc" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        @info pwd()
+        @test isdir(IN)
+        Images.save(joinpath(IN, "1.tif"), rand(100, 100))
+        Images.save(joinpath(IN, "2.tif"), rand(100, 100))
+        res = create_template_from_toml(joinpath("..","example_recipes","coloc.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        delete_folder(IN)
+    end
+
+
+# t="colocdir"
+# mkpath(t)
+# Images.save(joinpath(t, "1.tif"), rand(100, 100))
+# Images.save(joinpath(t, "2.tif"), rand(100, 100))
+# res = create_template_from_toml(joinpath(".","example_recipes","coloc.toml"))
+# c, t = res
+# @time cts, cls, rv = delegate(c, t)
+
 
 
     @testset "testcolumnaggoc" begin
