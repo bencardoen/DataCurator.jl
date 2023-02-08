@@ -16,6 +16,8 @@ DataCurator is a Swiss army knife that ensures:
 
 <!-- ![Concept](whatami.png) -->
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7527517.svg)](https://doi.org/10.5281/zenodo.7527517)
+
 ## Status
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/bencardoen/DataCurator.jl/tree/main.svg?style=svg&circle-token=fd1f85a0afddb5f49ddc7a7252aad2a1ddaf80f9)](https://dl.circleci.com/status-badge/redirect/gh/bencardoen/DataCurator.jl/tree/main)
@@ -187,6 +189,21 @@ singularity exec image.sif julia --project=/opt/DataCurator.jl -e 'using DataCur
 ```
 
 ## Cite
+If you find this useful, consider referencing:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7527517.svg)](https://doi.org/10.5281/zenodo.7527517)
+
+```bibtex
+@software{ben_cardoen_2023_7527517,
+  author       = {Ben Cardoen},
+  title        = {DataCurator},
+  month        = jan,
+  year         = 2023,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.7527517},
+  url          = {https://doi.org/10.5281/zenodo.7527517}
+}
+```
 
 ## See also
 DataCurator relies heavily on existing Julia packages for specialized functionality:
