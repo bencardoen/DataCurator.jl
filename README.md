@@ -101,6 +101,7 @@ If you haven't cloned the repository, `count.toml` should look like this
 act_on_success=true
 counters = ["filecount", ["filesize", "size_of_file"]]
 inputdirectory = "testdir"
+parallel=true
 [any]
 all=true
 conditions = ["isfile"]

@@ -14,6 +14,7 @@ From: fedora:35
     export JLMJV=1.7
     export JLV=$JLMJV.1
     export PYTHON=`which python3`
+    unset R_HOME
     export R_HOME=`R RHOME`
     echo $R_HOME
     export JULIA_TGZ=julia-$JLV-linux-x86_64.tar.gz

@@ -10,6 +10,7 @@ end
 if !haskey(ENV, "R_HOME")
     @info "R set, using existing install"
 else
+    @info "R not set, using existing install"
     ENV["R_HOME"] = "*"
 end
 # ENV["R_HOME"] = "*"

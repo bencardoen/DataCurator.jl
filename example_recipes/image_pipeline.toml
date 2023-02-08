@@ -1,6 +1,4 @@
 
-# Example of the full transformation notation
-# For each tif file, do a max projection along Y, then binarize the resulting image
 [global]
 act_on_success=true
 inputdirectory = "testdir"
