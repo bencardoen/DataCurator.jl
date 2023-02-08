@@ -27,6 +27,7 @@ using ImageFiltering
 using ImageMorphology
 using Statistics
 import TOML
+using Colocalization
 using ProgressMeter
 using HDF5
 using MAT
@@ -46,7 +47,7 @@ shared_list_to_file, addentry!, load_gsd, is_gsd, n_files_or_more, less_than_n_f
 copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
-validate_global, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
+validate_global, type_files, image_files, image_colocalization, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
 halt, keep_going, has_integer_in_name, file_smaller_than, file_greater_than, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
@@ -68,6 +69,61 @@ file_greater_than = (f, v) -> file_attribute(f, "size", v, ">")
 function load_mesh(x)
 	p = pyimport("meshio")
 	return p.read(x)
+end
+
+"""
+	type_files(dir, condition)
+
+	Find all files in `dir` matching condition.
+
+	Example: `type_files(dir, is_2d_img)`
+"""
+function type_files(dir, condition)
+    @info "Single condition"
+    [f for f in files(dir) if condition(f)]
+end
+
+"""
+	image_colocalization(directory, window, filter, condition, outputdir)
+
+	Compute for a pair of images in `directory` all colocalization metrics.
+	`condition` controls the types of files to be considered, default 'is_img'
+	Filter allows you to provide pattern matching, say you want only `1.tif` and `2.tif`, then "[1,2]*.tif" would work
+	For each metric results are saved in outputdir.
+"""
+function image_colocalization(dir, window=3, filter="", condition="is_img", outdir=".")
+    f=lookup(condition)
+    imgs = type_files(dir, f)
+    @debug "Image files $imgs"
+    if filter != ""
+        @debug "Filtering"
+        imgs = [i for i in imgs if !isnothing(safe_match(i, Regex(filter)))]
+        @debug "Filtered files $imgs"
+    end
+    if length(imgs) != 2
+        @warn "Nr of images in $dir != 2, failing"
+        return
+    end
+    res = colocalize_all(Images.load(imgs[1]), Images.load(imgs[2]); windowsize=window)
+    for k in keys(res)
+        @info "Writing image colocalization for metric $k"
+        if any(isnan.(res[k]))
+            @warn "NaN in metric $k"
+        end
+        Images.save(joinpath(outdir, "$k.tif"), map(Images.clamp01nan, res[k]))
+    end
+    @info "Writing colocalization results"
+    df = summarize_colocalization(res, imgs[1], imgs[2])
+    CSV.write(joinpath(outdir, "colocalization.csv"), df)
+end
+
+"""
+	image_files(dir)
+
+	Shorthand for type_files(dir, is_img)
+"""
+function image_files(dir)
+    type_files(dir, is_img)
 end
 
 

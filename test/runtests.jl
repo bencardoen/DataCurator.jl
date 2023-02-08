@@ -29,6 +29,16 @@ correctpath()
         @test !isnothing(f)
     end
 
+
+    @testset "coloc" begin
+        t=mktempdir()
+        Images.save(joinpath(t, "1.tif"), zeros(100, 100))
+        Images.save(joinpath(t, "2.tif"), zeros(100, 100))
+        @test length(image_files(t)) == 2
+        image_colocalization(t, 3, "[1,2].tif", "is_2d_img", t)
+        rm(t, recursive=true, force=true)
+    end
+
     @testset "filesize" begin
         Images.save("test.tif", zeros(1000, 1000))
         @test file_smaller_than("test.tif", "10GB")
