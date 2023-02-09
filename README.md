@@ -28,7 +28,7 @@ DataCurator is a Swiss army knife that ensures:
 
 <img src="qr.png" alt="Singularity image" width="100"/>
 
-You can find the container image at [bit.ly](https://bit.ly/datacurator_jl_v1_1)
+You can find the container image at [bit.ly](https://bit.ly/datacurator_jl_v1_1) or at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
 
 ## Documentation
 ### Markdown
@@ -93,6 +93,10 @@ mkdir testdir
 touch testdir/text.txt
 # Execute
 ./datacurator.sif -r count.toml
+```
+If you have the singularity CLI you can download the latest image version as well
+```bash
+singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
 ```
 That should show output similar to
 ![Results](outcome.png)
