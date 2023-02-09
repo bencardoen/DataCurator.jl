@@ -28,7 +28,7 @@ DataCurator is a Swiss army knife that ensures:
 
 <img src="qr.png" alt="Singularity image" width="100"/>
 
-You can find the container image at [bit.ly/datacurator_jl](bit.ly/datacurator_jl)
+You can find the container image at [bit.ly](https://bit.ly/datacurator_jl_v1_1)
 
 ## Documentation
 ### Markdown
@@ -80,10 +80,10 @@ repository
       3. [Singularity image](#singularity)
 
 ## Quickstart
-Assuming you have the [Singularity image](bit.ly/datacurator_jl):
+Assuming you have the [Singularity image](https://bit.ly/datacurator_jl_v1_1l):
 ```bash
 # Download
-wget bit.ly/datacurator_jl -O datacurator.sif
+wget https://bit.ly/datacurator_jl_v1_1 -O datacurator.sif
 # Set executable
 chmod u+x ./datacurator.sif
 # Copy an example recipe
@@ -121,6 +121,7 @@ You need:
 ```julia
 using Pkg
 Pkg.activate(".") # Optional if you want to install in a self contained environment
+Pkg.add(url="https://github.com/bencardoen/Colocalization.jl.git")
 Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git")
 Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git")
 Pkg.build("DataCurator")
@@ -206,9 +207,14 @@ If you find this useful, consider referencing:
 ```
 
 ## See also
+
+### Dependencies
 DataCurator relies heavily on existing Julia packages for specialized functionality:
 - [Images.jl](https://github.com/JuliaImages/Images.jl)
 - [DataFrames.jl](https://dataframes.juliadata.org/stable/)
 - [CSV.jl](https://csv.juliadata.org/stable/)
 - [RCall.jl](https://github.com/JuliaInterop/RCall.jl)
 - [PyCall.jl](https://github.com/JuliaPy/PyCall.jl)
+
+### Related software
+- [Open Microscopy OMERO](https://www.openmicroscopy.org/omero/)
