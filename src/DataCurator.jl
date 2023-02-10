@@ -44,7 +44,7 @@ any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_fi
 is_img, is_kd_img, is_2d_img, is_3d_img, is_dlp, load_dlp, is_rgb, read_dir, files, subdirs, buildcomp, has_n_files, has_n_subdirs, decode_filelist,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault, is_grayscale,
 shared_list_to_file, addentry!, load_gsd, is_gsd, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
-copy_to, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
+copy_to, decode_j, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, type_files, image_files, image_colocalization, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
@@ -115,6 +115,7 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", outd
     @info "Writing colocalization results"
     df = summarize_colocalization(res, imgs[1], imgs[2])
     CSV.write(joinpath(outdir, "colocalization.csv"), df)
+	return df
 end
 
 """
@@ -2963,6 +2964,17 @@ function decode_python(str)
     end
 end
 
+"""
+	lookup(symbol::AbstractString)
+
+	Tries to find `symbol` either as a Python, R, or Julia function.
+
+	lookup("maximum") will work, as will lookup("julia.CSV.write") or lookup("python.meshio.read") or  lookup("R.base.sum")
+
+	The only requirement is that the package is installed in either DataCurator or the linked Python/Julia/R instance.
+
+	Returns a callable object, or nothing if resolving fails.
+"""
 function lookup(sym)
     try
         return getfield(DataCurator, Symbol(sym))
@@ -2973,12 +2985,14 @@ function lookup(sym)
             return getfield(Main, Symbol(sym))
         catch
 			if occursin(".", sym)
-				@info "$sym not found in main, trying Python ..."
+				@info "$sym not found in main, trying other languages ..."
 				st=split(sym, ".")
 				selector = lowercase(st[1])
+				@info "Target language set to $(st[1])"
 				@match selector begin
 					"python" => return decode_python(sym)
 					"r" 	=> return decode_r(sym)
+					"julia" => return decode_j(sym)
 			        	   _ => throw(ArgumentError("Invalid symbol $sym"))
 				end
 			end
@@ -2987,6 +3001,31 @@ function lookup(sym)
 		return nothing
     end
 	throw(ArgumentError("Invalid symbol $sym"))
+	return nothing
+end
+
+
+function decode_j(sym)
+	try
+		s = split(sym, ".")
+		if length(s) != 3
+			@error "Invalid specifier"
+			throw(ArgumentError("Invalid module specifier: use julia.module.function, e.g. julia.CSV.write"))
+		end
+		_, modulename, functioname = split(sym, ".")
+		@info "Trying to import $functioname from $modulename"
+		eval(Meta.parse("import $(modulename).$(functioname)"))
+		f=getfield(Main, Symbol(functioname))
+		if isnothing(f)
+			throw(ArgumentError("Failed decoding $sym, expected something like julia.modulename.functionname"))
+		else
+			@info "Success!"
+			return f
+		end
+	catch e
+		@error "Failed decoding $sym"
+		throw(ArgumentError("Failed decoding $sym, expected something like julia.modulename.functionname"))
+	end
 	return nothing
 end
 

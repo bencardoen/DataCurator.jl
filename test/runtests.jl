@@ -28,6 +28,9 @@ correctpath()
         @test !isnothing(f)
     end
 
+    # @testset "rj" begin
+        # @test !isnothing(decode_j("Julia.SmlmTools.align"))
+    # end
 
     @testset "coloc" begin
         t=mktempdir()

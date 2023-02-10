@@ -3,6 +3,29 @@ Using existing Python or R code arguably could not be simpler:
 ```toml
 actions=["python.meshio.read", "R.base.sum"]
 ```
+For Julia packages that are not available (included with DataCurator):
+```toml
+actions=["julia.CSV.write"]
+```
+The syntax is
+```
+"<language>.<module>.<function>"
+```
+For Julia, DataCurator will try to import the module, it **should** be at least present in your current installation.
+Iow if this works
+```julia
+import Module.function
+```
+then this will work too
+```toml
+actions=["julia.Module.function"]
+```
+You can test using Julia
+```julia
+using DataCurator
+decode_j("julia.Module.function")
+```
+Functions included in DataCurator and any in current scope do **not** need to be included this way, for those you can just use "functionname".
 
 ### Using Python packages/code
 Let's say you have an existing python module which you want to use in the template.
