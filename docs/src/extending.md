@@ -20,10 +20,10 @@ then this will work too
 ```toml
 actions=["julia.Module.function"]
 ```
-You can test using Julia
+You can test using the API in Julia, e.g.
 ```julia
 using DataCurator
-decode_j("julia.Module.function")
+f=decode_j("julia.CSV.write")
 ```
 Functions included in DataCurator and any in current scope do **not** need to be included this way, for those you can just use "functionname".
 

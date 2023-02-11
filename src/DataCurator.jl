@@ -20,6 +20,7 @@ import Images
 import SlurmMonitor
 import Logging
 using LoggingExtras
+using SmlmTools
 using Match
 using CSV
 using DataFrames
@@ -52,7 +53,7 @@ halt, keep_going, has_integer_in_name, file_smaller_than, file_greater_than, has
 dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
-remove_from_to, stack_list_to_image, concat_to_table, make_aggregator, describe_objects, load_rainstorm, is_rainstorm,
+remove_from_to, stack_list_to_image, smlm_alignment, concat_to_table, make_aggregator, describe_objects, load_rainstorm, is_rainstorm,
 gaussian, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
@@ -118,6 +119,35 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", outd
 	return df
 end
 
+
+"""
+
+"""
+function smlm_alignment(dir, filter="", condition="is_gsd", outdir=".")
+	@debug "Alignment with $dir $filter $condition $outdir"
+    f=lookup(condition)
+	# @debug "Alignment with $dir $filter $condition $outdir"
+	# imgs = files(dir)
+	# @debug "Found $imgs in $dir"
+	# if filter != ""
+    #     @debug "Filtering"
+    #     imgs = [i for i in imgs if !isnothing(safe_match(i, Regex(filter)))]
+    #     @debug "Filtered files $imgs"
+    # end
+    imgs = type_files(dir, f)
+    @debug "Image files $imgs"
+    if filter != ""
+        @debug "Filtering"
+        imgs = [i for i in imgs if !isnothing(safe_match(i, Regex(filter)))]
+        @debug "Filtered files $imgs"
+    end
+    if length(imgs) != 2
+        @warn "Nr of images in $dir != 2, failing"
+        return
+    end
+    return align(imgs[1], imgs[2]; outdir=outdir)
+end
+
 """
 	image_files(dir)
 
@@ -168,7 +198,10 @@ function load_gsd(file)
 end
 
 function is_gsd(file)
-	return ! isnothing(load_gsd(file))
+	if endswith(file, ".bin") || endswith(file, ".ascii")
+		return ! isnothing(load_gsd(file))
+	end
+	return false
 end
 
 
@@ -3004,7 +3037,6 @@ function lookup(sym)
 	return nothing
 end
 
-
 function decode_j(sym)
 	try
 		s = split(sym, ".")
@@ -3014,8 +3046,12 @@ function decode_j(sym)
 		end
 		_, modulename, functioname = split(sym, ".")
 		@info "Trying to import $functioname from $modulename"
-		eval(Meta.parse("import $(modulename).$(functioname)"))
-		f=getfield(Main, Symbol(functioname))
+		eval(Meta.parse("import $(modulename)"))
+		@info "Module loaded $modulename"
+		@info "Loading handle to module"
+		md=getfield(DataCurator, Symbol(modulename))
+		@info "Done, loading function"
+		f=getfield(md, Symbol(functioname))
 		if isnothing(f)
 			throw(ArgumentError("Failed decoding $sym, expected something like julia.modulename.functionname"))
 		else
@@ -3023,11 +3059,12 @@ function decode_j(sym)
 			return f
 		end
 	catch e
-		@error "Failed decoding $sym"
+		@error "Failed decoding $sym due to $e"
 		throw(ArgumentError("Failed decoding $sym, expected something like julia.modulename.functionname"))
 	end
 	return nothing
 end
+
 
 function guess_argument(str)
     if integer_name(str)
