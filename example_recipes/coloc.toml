@@ -5,5 +5,5 @@ inputdirectory = "testdir"
 all=true
 conditions = ["is_dir"]
 # actions=[["count", "c1"]]
-actions=[["image_colocalization", 3, "[1,2].tif", "is_2d_img", "/dev/shm"]]
+actions=[["image_colocalization", 3, "[1,2].tif", "is_2d_img", "."]]
 # image_colocalization(t, 3, "[1,2].tif", "is_2d_img", t)
