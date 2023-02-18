@@ -4,10 +4,11 @@ using Logging;
 ## We want the Conda local Python env, anything else is out of control
 install_p = false
 if !haskey(ENV, "PYTHON")
+    @info "PYTHON ENV not set --> settng to empty"
     install_p = true
     ENV["PYTHON"] = ""
 end
-if !haskey(ENV, "R_HOME")
+if haskey(ENV, "R_HOME")
     @info "R set, using existing install"
 else
     @info "R not set, using existing install"
