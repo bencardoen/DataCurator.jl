@@ -6,6 +6,9 @@ A multithreaded package to validate, curate, and transform large heterogeneous d
 
 A key aim of this package is that recipes can read/written by any STEM researcher without the need for being able to write code, making data sharing/validation faster, more accurate, and reproducible.
 
+## Preprint
+You can find our preprint [here](https://www.researchgate.net/publication/368557426_DataCuratorjl_Efficient_portable_and_reproducible_validation_curation_and_transformation_of_large_heterogeneous_datasets_using_human-readable_recipes_compiled_into_machine_verifiable_templates)
+
 <!-- ![Concept](overview.png) -->
 
 DataCurator is a Swiss army knife that ensures:
