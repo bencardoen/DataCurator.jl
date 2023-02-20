@@ -16,7 +16,7 @@ jobs:
       - run: pip3 install meshio
       - run:
           no_output_timeout: 45m
-          command: julia -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/Colocalization.jl.git"), Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"),Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
+          command: julia -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/Colocalization.jl.git"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
           environment:
             R_HOME : "*"
             PYTHON : "/usr/bin/python3"
