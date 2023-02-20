@@ -30,7 +30,6 @@ You can install DataCurator in 3 ways:
 You need:
 - A command line environment (WSL on windows, any shell on Linux or MAC)
 - [Singularity](https://singularity-docs.readthedocs.io/en/latest/)
--
 You'll download an `image`, which is a stand alone environment we prepare for you, with all dependencies. You don't need Julia, nor Singularity, but you do need some way of interacting with it on the command line.
 
 ```bash
@@ -70,6 +69,7 @@ Then in Julia
 ```julia
 using Pkg
 Pkg.activate(".")
+Pkg.add(url="https://github.com/bencardoen/Colocalization.jl.git")
 Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git")
 Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git")
 Pkg.build("DataCurator")
