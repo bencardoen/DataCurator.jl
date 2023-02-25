@@ -123,7 +123,7 @@ end
 """
 
 """
-function smlm_alignment(dir, filter="", condition="is_gsd", outdir=".")
+function smlm_alignment(dir, filter="", condition="is_gsd", outdir=dir)
 	@debug "Alignment with $dir $filter $condition $outdir"
     f=lookup(condition)
 	# @debug "Alignment with $dir $filter $condition $outdir"
@@ -145,7 +145,8 @@ function smlm_alignment(dir, filter="", condition="is_gsd", outdir=".")
         @warn "Nr of images in $dir != 2, failing"
         return
     end
-    return align(imgs[1], imgs[2]; outdir=outdir)
+    t = condition == "is_gsd" ? "gsd" : "thunderstorm" 
+    return align(imgs[1], imgs[2]; outdir=outdir, type=t)
 end
 
 """
@@ -204,7 +205,9 @@ function is_gsd(file)
 	return false
 end
 
-
+function is_thunderstorm(file)
+    return endswith(file, "csv")
+end
 
 """
 	load_rainstorm(file)
