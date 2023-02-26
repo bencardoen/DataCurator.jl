@@ -92,7 +92,7 @@ end
 	Filter allows you to provide pattern matching, say you want only `1.tif` and `2.tif`, then "[1,2]*.tif" would work
 	For each metric results are saved in outputdir.
 """
-function image_colocalization(dir, window=3, filter="", condition="is_img", outdir=".")
+function image_colocalization(dir, window=3, filter="", condition="is_img", outdir=dir)
     f=lookup(condition)
     imgs = type_files(dir, f)
     @debug "Image files $imgs"
@@ -121,19 +121,16 @@ end
 
 
 """
+    use SmlmTools's alignment on point clouds
+
+    This loads in 3D (or 2D) point clouds, finds the fiducials and tracks them over time, registring the images. 
+    Then it registers the 2 channels. 
+    The nearest pair of fiducials is used, with a distance of up to 400nm between them. Up to 2 candidates per channels are considered.
 
 """
 function smlm_alignment(dir, filter="", condition="is_gsd", outdir=dir)
 	@debug "Alignment with $dir $filter $condition $outdir"
     f=lookup(condition)
-	# @debug "Alignment with $dir $filter $condition $outdir"
-	# imgs = files(dir)
-	# @debug "Found $imgs in $dir"
-	# if filter != ""
-    #     @debug "Filtering"
-    #     imgs = [i for i in imgs if !isnothing(safe_match(i, Regex(filter)))]
-    #     @debug "Filtered files $imgs"
-    # end
     imgs = type_files(dir, f)
     @debug "Image files $imgs"
     if filter != ""
@@ -2066,7 +2063,7 @@ function _printtoslack(x, argument, endpoint)
 end
 
 """
-    delegate(config, template)
+    (config, template)
     Uses the configuration, and template create by `create_template_from_toml', to execute the verifier as specified.
     Returns the counters and file lists, if any are defined.
 """
