@@ -284,9 +284,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.Distributions]]
 deps = ["ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns", "Test"]
-git-tree-sha1 = "9a782b47da6ee4cb3d041764e0c6830469105984"
+git-tree-sha1 = "d71264a7b9a95dca3b8fff4477d94a837346c545"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.83"
+version = "0.25.84"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
@@ -1266,9 +1266,9 @@ version = "0.4.0+0"
 
 [[deps.Roots]]
 deps = ["ChainRulesCore", "CommonSolve", "Printf", "Setfield"]
-git-tree-sha1 = "a3db467ce768343235032a1ca0830fc64158dadf"
+git-tree-sha1 = "9c2f5d3768804ed465f0c51540c6074ae9f63900"
 uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
-version = "2.0.8"
+version = "2.0.9"
 
 [[deps.Rotations]]
 deps = ["LinearAlgebra", "Quaternions", "Random", "StaticArrays", "Statistics"]

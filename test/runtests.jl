@@ -31,6 +31,22 @@ correctpath()
     # @testset "rj" begin
         # @test !isnothing(decode_j("Julia.SmlmTools.align"))
     # end
+    @testset "c+a" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        cp("1p.csv", joinpath(IN, "1p.csv"))
+        cp("2p.csv", joinpath(IN, "2p.csv"))
+        res = create_template_from_toml(joinpath("..","example_recipes","coloc_and_align.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        @test isfile(joinpath(IN, "aligned_c1.csv"))
+        @test isfile(joinpath(IN, "aligned_c1.csv"))
+        @test isfile(joinpath(IN, "manders.tif"))
+        delete_folder(IN)
+    end
 
     @testset "coloc" begin
         t=mktempdir()
@@ -319,21 +335,21 @@ correctpath()
         delete_folder(IN)
     end
 
-    @testset "testcoloc" begin
-        correctpath()
-        IN="testdir"
-        delete_folder("outdir")
-        delete_folder(IN)
-        mkdir(IN)
-        @info pwd()
-        @test isdir(IN)
-        Images.save(joinpath(IN, "1.tif"), rand(100, 100))
-        Images.save(joinpath(IN, "2.tif"), rand(100, 100))
-        res = create_template_from_toml(joinpath("..","example_recipes","coloc.toml"))
-        c, t = res
-        cts, cls, rv = delegate(c, t)
-        delete_folder(IN)
-    end
+    # @testset "testcoloc" begin
+    #     correctpath()
+    #     IN="testdir"
+    #     delete_folder("outdir")
+    #     delete_folder(IN)
+    #     mkdir(IN)
+    #     @info pwd()
+    #     @test isdir(IN)
+    #     Images.save(joinpath(IN, "1.tif"), rand(100, 100))
+    #     Images.save(joinpath(IN, "2.tif"), rand(100, 100))
+    #     res = create_template_from_toml(joinpath("..","example_recipes","coloc.toml"))
+    #     c, t = res
+    #     cts, cls, rv = delegate(c, t)
+    #     delete_folder(IN)
+    # end
 
 
 # t="colocdir"

@@ -111,6 +111,7 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", outd
         if any(isnan.(res[k]))
             @warn "NaN in metric $k"
         end
+        @info "Saving to $(joinpath(outdir, "$k.tif"))"
         Images.save(joinpath(outdir, "$k.tif"), map(Images.clamp01nan, res[k]))
     end
     @info "Writing colocalization results"
