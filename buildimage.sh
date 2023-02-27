@@ -22,7 +22,7 @@ set -euo pipefail
 NOW=$(date +"%m--%d--%Y ~ %I:%M:%S")
 echo "Starting processing at $NOW"
 
-CUR="/home/bcardoen/SFUVault/repositories/$PROJECT"
+CUR="/home/bcardoen/repositories/$PROJECT"
 TMP=/dev/shm
 cd $TMP
 git clone git@github.com:bencardoen/$PROJECT.git
