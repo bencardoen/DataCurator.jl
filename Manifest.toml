@@ -137,10 +137,12 @@ uuid = "944b1d66-785c-5afd-91f1-9de20f533193"
 version = "0.7.1"
 
 [[deps.Colocalization]]
-deps = ["ArgParse", "CSV", "DataFrames", "Dates", "Distributions", "ImageFiltering", "ImageMorphology", "Images", "Logging", "LoggingExtras", "ProgressMeter", "Random", "Statistics", "Test"]
-git-tree-sha1 = "540a25738c45cdc2a9bf61b6528563682bf529d4"
+deps = ["ArgParse", "CSV", "DataFrames", "Dates", "Distributions", "ImageFiltering", "ImageMorphology", "ImageSegmentation", "Images", "Logging", "LoggingExtras", "ProgressMeter", "Random", "Statistics", "Test"]
+git-tree-sha1 = "7523541c70d79d39f176e398703ab62889bd49dc"
+repo-rev = "0c0264d"
+repo-url = "https://github.com/bencardoen/Colocalization.jl.git"
 uuid = "5deedb61-f8ac-43ca-82f0-d70c51e04289"
-version = "0.1.1"
+version = "0.2.0"
 
 [[deps.ColorSchemes]]
 deps = ["ColorTypes", "ColorVectorSpace", "Colors", "FixedPointNumbers", "Random", "SnoopPrecompile"]
@@ -712,9 +714,9 @@ uuid = "41ab1584-1d38-5bbf-9106-f11c6c58b48f"
 version = "1.2.0"
 
 [[deps.IrrationalConstants]]
-git-tree-sha1 = "3868cac300a188a7c3a74f9abd930e52ce1a7a51"
+git-tree-sha1 = "630b497eafcc20001bba38a4651b327dcfc491d2"
 uuid = "92d709cd-6900-40b7-9082-c6be49f344b6"
-version = "0.2.1"
+version = "0.2.2"
 
 [[deps.IterTools]]
 git-tree-sha1 = "fa6287a4469f5e048d763df38279ee729fbd44e5"

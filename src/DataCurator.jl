@@ -92,7 +92,7 @@ end
 	Filter allows you to provide pattern matching, say you want only `1.tif` and `2.tif`, then "[1,2]*.tif" would work
 	For each metric results are saved in outputdir.
 """
-function image_colocalization(dir, window=3, filter="", condition="is_img", outdir=dir)
+function image_colocalization(dir, window=3, filter="", condition="is_img", preprocess=nothing, outdir=dir)
     f=lookup(condition)
     imgs = type_files(dir, f)
     @debug "Image files $imgs"
@@ -105,7 +105,18 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", outd
         @warn "Nr of images in $dir != 2, failing"
         return
     end
-    res = colocalize_all(Images.load(imgs[1]), Images.load(imgs[2]); windowsize=window)
+    A, B = Images.load(imgs[1]), Images.load(imgs[2])
+    if !isnothing(preprocess)
+        if preprocess == "segment"
+            @info "Segmenting first .."
+            A, B = Colocalization.segment(A), Colocalization.segment(B)
+        end
+        if preprocess == "filter"
+            @info "Filtering first .."
+            A, B = Colocalization.filter_projection(A, window, 0), Colocalization.filter_projection(B, window, 0)
+        end
+    end
+    res = colocalize_all(A, B; windowsize=window)
     for k in keys(res)
         @info "Writing image colocalization for metric $k"
         if any(isnan.(res[k]))
