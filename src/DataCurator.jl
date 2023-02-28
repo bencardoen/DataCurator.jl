@@ -2881,7 +2881,15 @@ function validate_global(config)
         return nothing
     else
         indir = glob_config["inputdirectory"]
-        isdir(indir) ? nothing : throw(ArgumentError("$indir is not a valid directory"))
+        if haskey(ENV, "DC_inputdirectory")
+            _i = ENV["DC_inputdirectory"]
+            @info "Overriding inputdirectory $indir  with environment variable $(_i)"
+            indir = _i
+        end
+        if ~isdir(indir)
+            throw(ArgumentError("$indir is not a valid directory"))
+            return nothing
+        end
         if ~isabspath(indir)
             @warn "Input directory is not an absolute path, resolving..."
             ab = abspath(indir)

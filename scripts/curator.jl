@@ -55,45 +55,10 @@ end
 
 
 function update_template(template, indir, outdir)
-    UDR=indir
-    # ODR=outdir
-    cw=true
-    if !canwrite(template)
-        @warn "Can't update $template in place, using tmp copy"
-        cw = false
-    end
-    x = nothing
-    f1, f2 = false, false
-    s=readlines(template)
-    for (i, _s) in enumerate(s)
-        # println(_s)
-        if startswith(_s, "inputdirectory")
-            n = "inputdirectory=\"$UDR\" \n"
-            s[i]= n
-            f1 = true
-        end
-        ## Todo, no longer works with aggregator extensions
-        ## Either move to global outputdirectory, or skip, or find a way to replace smarter
-        # if startswith(_s, "file_lists")
-        #     s[i]= "file_lists=[\"inlist\", [\"outlist\", \"$ODR\"]]"
-        #     f2 = true
-        # end
-    end
-
-    if ~f1
-        @error "Failed converting template, make sure the directories exist and the template is not corrupt."
-        throw(ArgumentError("Failed updating template"))
-    end
-    @info "Updating $template with $indir"
-    if cw
-        write(template, join(s, "\n")...)
-        return template
-    else
-        t="temp.toml"
-        @warn "Temporary template = $t"
-        write(t, join(s, "\n")...)
-        return t
-    end
+    @info "Updating global configuration with $indir and $outdir"
+    ENV["DC_inputdirectory"] = indir
+    ENV["DC_outputdirectory"] = outdir
+    return template
 end
 
 function runme()
