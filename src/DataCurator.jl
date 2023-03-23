@@ -2274,13 +2274,14 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
 		#@debug "Loaded table with dim $(size(tb)) and columns $(names(tb))"
         push!(tables, tb)
     end
-    #@debug "Saving total of $(length(tables)) to $name csv"
+    @info "Saving total of $(length(tables)) to $name csv"
     DF = vcat(tables...)
     if ~endswith(name, ".csv")
         #@debug "Postfixing .csv"
         name="$(name).csv"
     end
     @info "Writing to $name"
+    @info "Current path = $(pwd()))"
     CSV.write("$name", DF)
 	if haskey(ENV, "DC_owncloud_configuration")
 		#@debug "Owncloud config active .. uploading"
