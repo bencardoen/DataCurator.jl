@@ -4,4 +4,4 @@ inputdirectory = "testdir"
 [any]
 all=true
 conditions = ["is_dir"]
-actions=[["smlm_alignment","p.csv", "is_thunderstorm"], ["image_colocalization", 3, "C[1,2].tif", "is_2d_img", "filter"]]
+actions=[["smlm_alignment",".csv", "is_thunderstorm", "500"], ["image_colocalization", 3, "C[1,2].tif", "is_2d_img", "filter"]]
