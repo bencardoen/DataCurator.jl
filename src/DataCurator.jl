@@ -141,7 +141,7 @@ end
 
 """
 function smlm_alignment(dir, filter="", condition="is_gsd", maxdistance=400, outdir=dir)
-	@debug "Alignment with $dir $filter $condition $outdir"
+    @info "Alignment with $dir $filter $condition $outdir $maxdistance"
     f=lookup(condition)
     imgs = type_files(dir, f)
     @debug "Image files $imgs"
