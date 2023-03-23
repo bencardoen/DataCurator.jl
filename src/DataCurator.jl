@@ -155,7 +155,7 @@ function smlm_alignment(dir, filter="", condition="is_gsd", outdir=dir, maxdista
         return
     end
     t = condition == "is_gsd" ? "gsd" : "thunderstorm" 
-    return align(imgs[1], imgs[2]; outdir=outdir, type=t, maxbeaddistance=maxdistance)
+    return align(imgs[1], imgs[2]; outdir=outdir, type=t, maxbeaddistancenm=maxdistance)
 end
 
 """
