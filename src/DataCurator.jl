@@ -24,6 +24,7 @@ using SmlmTools
 using Match
 using CSV
 using DataFrames
+using SQLite
 using ImageFiltering
 using ImageMorphology
 using Statistics
@@ -50,11 +51,11 @@ safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, type_files, image_files, image_colocalization, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
 halt, keep_going, has_integer_in_name, file_smaller_than, file_greater_than, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
-dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
+dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive, extract_table_as_dataframe, dataframe_to_sqlite, extract_sql_as_dataframe, sqlite_has_tables,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
 remove_from_to, stack_list_to_image, smlm_alignment, concat_to_table, make_aggregator, describe_objects, load_rainstorm, is_rainstorm,
-gaussian, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
+gaussian, is_sqlite, load_sqlite, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
@@ -70,6 +71,69 @@ file_greater_than = (f, v) -> file_attribute(f, "size", v, ">")
 function load_mesh(x)
 	p = pyimport("meshio")
 	return p.read(x)
+end
+
+"""
+	sqlite_has_tables(db, tables)
+    
+    Check if the sqlite database `db` has all the tables named in `tables`.
+"""
+function sqlite_has_tables(db, tables)
+    @info "Checking if $db has tables $tables"
+    sq = load_sqlite(db)
+    if isnothing(sq)
+        @warn "Not a database $db)"
+        return false
+    end
+    try 
+        tb = SQLite.tables(sq)
+        tbnames = [_t.name for _t in tb]
+        return all(x -> x in tbnames, tables)
+    catch y
+        @warn "Checking tables failed: $y"
+    end
+end
+
+"""
+	extract_table_as_dataframe(db, tablename)
+    
+    From sqlite database named db, extract the table named tablename and return it as a dataframe.
+"""
+function extract_table_as_dataframe(db, tablename)
+    @info "Extracting table $tablename from $db"
+    sq = load_sqlite(db)
+    if isnothing(sq)
+        return nothing
+    end
+    return DBInterface.execute(sq, "SELECT * FROM $tablename") |> DataFrame
+end
+
+
+"""
+	extract_sql_as_dataframe(db, sql)
+    
+    Execute `sql` query on db (filename) and return the results as a dataframe.
+"""
+function extract_sql_as_dataframe(db, sql)
+    @info "Running $sql on $db"
+    sq = load_sqlite(db)
+    if isnothing(sq)
+        return nothing
+    end
+    return DBInterface.execute(sq, sql) |> DataFrame
+end
+
+function dataframe_to_sqlite(df::DataFrame, dbname::S, tablename::S) where {T<:DataFrame, S<:AbstractString}
+    @info "Saving dataframe $df to sqlite $dbname as $tablename"
+    if !is_sqlite(dbname)
+        @info "$dbname does not exist, creating"
+    end
+    try 
+        db = SQLite.DB(dbname)
+        tablename = df |> SQLite.load!(db, "$tablename")
+    catch y
+        @warn "Saving dataframe failed: $y"
+    end
 end
 
 """
@@ -131,6 +195,25 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
 	return df
 end
 
+
+function load_sqlite(name)
+    if !isfile(name)
+        @warn "File $name does not exist"
+        return nothing
+    end
+    @info "Trying to load $name as SQLite"
+    try
+        return SQLite.DB(name)
+    catch e
+        @warn "Failed to load $name as SQLite"
+       return  nothing
+    end
+end
+
+function is_sqlite(name)
+    @info "Testing if $name is a SQLite database"
+    !isnothing(load_sqlite(name))
+end
 
 """
     use SmlmTools's alignment on point clouds
@@ -937,6 +1020,9 @@ function load_content(x::AbstractString)
     if ex ∈ [".json", ".jsn", ".JSON"]
 		return JSON.parse(String(read(x)))
 	end
+    # if is_sqlite(x)
+    #     return load_sqlite(x)
+    # end
 	q = try_mesh(x)
 	if isnothing(q)
 	    @error "No matching file type (img, csv), assuming your functions know how to handle this"
@@ -2281,8 +2367,18 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
         name="$(name).csv"
     end
     @info "Writing to $name"
-    @info "Current path = $(pwd()))"
-    CSV.write("$name", DF)
+    "Current path = $(pwd()))"
+    if haskey(ENV, "DC_write_to_sqlite")
+        @info "Saving to SQLite"
+        dbname = ENV["DC_write_to_sqlite"]
+        @info "Using DB $dbname"
+		dataframe_to_sqlite(DF, dbname, name[1:end-4])
+        name=dbname
+        delete!(ENV, "DC_write_to_sqlite")
+	else
+        @info "Current path = $(pwd()))"
+        CSV.write("$name", DF)
+    end
 	if haskey(ENV, "DC_owncloud_configuration")
 		#@debug "Owncloud config active .. uploading"
 		upload_to_owncloud(name)
@@ -2667,6 +2763,9 @@ function is_type_file(x, t)
 	isfile(x) && endswith(x, t)
 end
 is_csv_file = x -> is_type_file(x, ".csv")
+
+
+
 function has_image_extension(x)
 	splitext(x)[2] ∈ [".tif", ".png", ".jpg", ".jpeg"]
 end
@@ -2872,7 +2971,7 @@ function decode_owncloud(config)
 end
 
 function validate_global(config)
-    glob_defaults = Dict([("endpoint", ""),("at_exit", ""),("owncloud_configuration", ""),("scp_configuration", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    glob_defaults = Dict([("endpoint", ""),("at_exit", ""),("owncloud_configuration", ""), ("save_tables_to_sqlite", false), ("scp_configuration", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     glob_default_types = Dict([("endpoint", String),("at_exit", String),("parallel", Bool), ("owncloud_configuration", String),("scp_configuration", String), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
     glob_config = config["global"]
@@ -2882,6 +2981,7 @@ function validate_global(config)
         return nothing
     else
         indir = glob_config["inputdirectory"]
+        @info "Inputdirectory is set to $indir"
         if haskey(ENV, "DC_inputdirectory")
             _i = ENV["DC_inputdirectory"]
             @info "Overriding inputdirectory $indir  with environment variable $(_i)"
@@ -2913,6 +3013,7 @@ function validate_global(config)
                 "common_conditions" => nothing
                 "outputdirectory" => nothing
 				"at_exit" => nothing
+                "save_tables_to_sqlite" => nothing
                 _ => handle_default!(val, key, glob_defaults)
             end
         else
@@ -2924,6 +3025,10 @@ function validate_global(config)
         #@debug "Handling common actions"
         #@debug glob_config
         handle_common_actions(glob_config, glob_defaults)
+    end
+    if haskey(glob_config, "save_tables_to_sqlite")
+        @info "Saving to SQLite active"
+        ENV["DC_write_to_sqlite"] = glob_config["save_tables_to_sqlite"]
     end
     if haskey(glob_config, "common_conditions")
         #@debug "Handling common conditions"

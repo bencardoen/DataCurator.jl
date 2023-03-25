@@ -1,0 +1,10 @@
+#THis workflow finds SQLite3 databases, if they ha
+[global]
+act_on_success=true
+file_lists = [{name="table", transformer=["extract_sql_as_dataframe", "select * from temp"], aggregator="concat_to_table"}]
+inputdirectory = "testdir"
+save_tables_to_sqlite="test.db" # Save aggregated tables to this SQLite database
+[any]
+all=true
+conditions = ["is_file", "is_sqlite", ["sqlite_has_tables", ["temp"]]]
+actions=[["->", "table"]]

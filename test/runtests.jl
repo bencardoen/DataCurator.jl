@@ -21,6 +21,20 @@ correctpath()
 
 @testset "DataCurator.jl" begin
 
+    # @testset "sqliterecipe" begin
+    #     t = mktempdir()
+    #     dt = DataFrame(zeros(5, 50), :auto);
+    #     dataframe_to_sqlite(dt, joinpath(t, "testx.db"), "temp")
+    #     @test isfile(joinpath(t, "testx.db"))
+    #     res = create_template_from_toml(joinpath("..","example_recipes","database.toml"))
+    #     c, t = res
+    #     @info c["inputdirectory"]
+    #     c["inputdirectory"] = t  
+    #     cts, cls, rv = delegate(c, t)
+    #     delete_folder(t)
+    #     end
+
+
     @testset "loadct" begin
         f=load_content("test.json")
         @test !isnothing(f)
@@ -335,30 +349,20 @@ correctpath()
         delete_folder(IN)
     end
 
-    # @testset "testcoloc" begin
-    #     correctpath()
-    #     IN="testdir"
-    #     delete_folder("outdir")
-    #     delete_folder(IN)
-    #     mkdir(IN)
-    #     @info pwd()
-    #     @test isdir(IN)
-    #     Images.save(joinpath(IN, "1.tif"), rand(100, 100))
-    #     Images.save(joinpath(IN, "2.tif"), rand(100, 100))
-    #     res = create_template_from_toml(joinpath("..","example_recipes","coloc.toml"))
-    #     c, t = res
-    #     cts, cls, rv = delegate(c, t)
-    #     delete_folder(IN)
-    # end
 
+    @testset "sqlite" begin
+        dt = DataFrame(zeros(5, 50), :auto);
+        if isfile("textx.db")
+            rm("testx.db ")
+        end
+        dataframe_to_sqlite(dt, "testx.db", "temp")
+        @test isfile("testx.db")
+        @test is_sqlite("testx.db")
+        @test extract_table_as_dataframe("testx.db", "temp") == dt
+        rm("testx.db")
+    end
 
-# t="colocdir"
-# mkpath(t)
-# Images.save(joinpath(t, "1.tif"), rand(100, 100))
-# Images.save(joinpath(t, "2.tif"), rand(100, 100))
-# res = create_template_from_toml(joinpath(".","example_recipes","coloc.toml"))
-# c, t = res
-# @time cts, cls, rv = delegate(c, t)
+ 
 
 
 
@@ -1660,4 +1664,23 @@ correctpath()
     end
 
 
+    @testset "sqliterecipe" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        # abspath
+        dt = DataFrame(zeros(5, 50), :auto);
+        dataframe_to_sqlite(dt, joinpath(IN, "testx.db"), "temp")
+        @test isfile(joinpath(IN, "testx.db"))
+        res = create_template_from_toml(joinpath("..","example_recipes","database.toml"))
+        c, t = res
+        @info c["inputdirectory"]
+        # c["inputdirectory"] = t 
+        
+        # delete_folder(IN) 
+        cts, cls, rv = delegate(c, t)
+        delete_folder(IN)
+    end
 end
