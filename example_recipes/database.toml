@@ -1,8 +1,9 @@
 [global]
 act_on_success=true
-# file_lists = [{name="table", transformer=["groupbycolumn", ["x1", "x2"], ["x3"], ["sum"], ["x3_sum"]], aggregator="concat_to_table"}]
-inputdirectory = "testdir"
+file_lists = [{name="table", transformer=["extract_sql_as_dataframe", "select * from temp"], aggregator="concat_to_table"}]
+inputdirectory = "tx"
+# save_tables_to_sqlite=true
 [any]
 all=true
-conditions = ["is_sqlite", ["sqlite_has_tables", ["test"]]]
-actions=["show_warning"]
+conditions = ["is_file", "is_sqlite", ["sqlite_has_tables", ["temp"]]]
+actions=[["->", "table"]]

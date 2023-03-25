@@ -2360,8 +2360,14 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
         name="$(name).csv"
     end
     @info "Writing to $name"
-    @info "Current path = $(pwd()))"
-    CSV.write("$name", DF)
+    "Current path = $(pwd()))"
+    if haskey(ENV, "DC_write_to_sqlite")
+        @info "Saving to SQLite"
+		dataframe_to_sqlite(DF, name)
+	else
+        @info "Current path = $(pwd()))"
+        CSV.write("$name", DF)
+    end
 	if haskey(ENV, "DC_owncloud_configuration")
 		#@debug "Owncloud config active .. uploading"
 		upload_to_owncloud(name)
@@ -2954,7 +2960,7 @@ function decode_owncloud(config)
 end
 
 function validate_global(config)
-    glob_defaults = Dict([("endpoint", ""),("at_exit", ""),("owncloud_configuration", ""),("scp_configuration", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
+    glob_defaults = Dict([("endpoint", ""),("at_exit", ""),("owncloud_configuration", ""), ("save_tables_to_sqlite", false), ("scp_configuration", ""),("parallel", false),("common_conditions", Dict()), ("outputdirectory", nothing),("common_actions", Dict()), ("counters", Dict()), ("file_lists", Dict()),("regex", false),("act_on_success", false), ("inputdirectory", nothing),("traversal", Symbol("bottomup")), ("hierarchical", false)])
     glob_default_types = Dict([("endpoint", String),("at_exit", String),("parallel", Bool), ("owncloud_configuration", String),("scp_configuration", String), ("counters", AbstractDict), ("file_lists", AbstractDict),("act_on_success", Bool), ("inputdirectory", AbstractString), ("traversal", Symbol("bottomup")), ("hierarchical", Bool)])
     ~haskey(config, "global") ? throw(MissingException("Missing entry global")) : nothing
     glob_config = config["global"]
@@ -2995,6 +3001,7 @@ function validate_global(config)
                 "common_conditions" => nothing
                 "outputdirectory" => nothing
 				"at_exit" => nothing
+                "save_tables_to_sqlite" => nothing
                 _ => handle_default!(val, key, glob_defaults)
             end
         else
@@ -3006,6 +3013,10 @@ function validate_global(config)
         #@debug "Handling common actions"
         #@debug glob_config
         handle_common_actions(glob_config, glob_defaults)
+    end
+    if haskey(glob_config, "save_tables_to_sqlite")
+        @info "Saving to SQLite active"
+        ENV["DC_write_to_sqlite"] = glob_config["save_tables_to_sqlite"]
     end
     if haskey(glob_config, "common_conditions")
         #@debug "Handling common conditions"
