@@ -31,7 +31,7 @@ DataCurator is a Swiss army knife that ensures:
 
 <img src="qr.png" alt="Singularity image" width="100"/>
 
-You can find the container image at [bit.ly](https://bit.ly/datacurator_jl_v1_1) or at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
+You can find the container image at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
 
 ## Documentation
 ### Markdown
@@ -75,143 +75,44 @@ repository
 
 
 ## Table of Contents
-1. Quickstart
+1. [Quickstart](#quickstart)
 2. [Installation](#installation)
-   1. [Installing]
-      1. Julia package
-      2. [Cloned repository](#cloned)
-      3. [Singularity image](#singularity)
 
+<a name="installation"></a>
 ## Quickstart
-Assuming you have the [Singularity image](https://bit.ly/datacurator_jl_v1_1l):
-```bash
-# Download
-wget https://bit.ly/datacurator_jl_v1_1 -O datacurator.sif
-# Set executable
-chmod u+x ./datacurator.sif
-# Copy an example recipe
-cp example_recipes/count.toml .
-# Create test data
-mkdir testdir
-touch testdir/text.txt
-# Execute
-./datacurator.sif -r count.toml
-```
-If you have the singularity CLI you can download the latest image version as well
+* Get [Singularity](https://apptainer.org/user-docs/master/quick_start.html)
+* Get the latest [Singularity image]([https://bit.ly/datacurator_jl_v1_1l](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)):
+ 
 ```bash
 singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
 ```
+#### Set executable
+```bash
+chmod u+x ./datacurator.sif
+```
+#### Copy an example recipe
+```bash
+ wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml
+```
+#### Create test data
+```bash
+mkdir testdir
+touch testdir/text.txt
+```
+#### Run
+```bash
+./datacurator.sif -r count.toml
+```
+
 That should show output similar to
 ![Results](outcome.png)
 
-If you haven't cloned the repository, `count.toml` should look like this
-```toml
-[global]
-act_on_success=true
-counters = ["filecount", ["filesize", "size_of_file"]]
-inputdirectory = "testdir"
-parallel=true
-[any]
-all=true
-conditions = ["isfile"]
-actions=[["count", "filecount"], ["count", "filesize"]]
-```
+The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml)
 
 <a name="installation"></a>
 ### Installation
-You can install DataCurator in 1 of 3 ways, as a Julia package in your global Julia environment, as a local package (no change to global), or completely isolated as a container or executable image.
+Please the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
 
-#### As a Julia package
-You need:
-- Julia
-
-```julia
-using Pkg
-Pkg.activate(".") # Optional if you want to install in a self contained environment
-Pkg.add(url="https://github.com/bencardoen/Colocalization.jl.git")
-Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git")
-Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git")
-Pkg.build("DataCurator")
-Pkg.test("DataCurator")
-```
-
-Note: when this repo is private this will prompt for username and github token (not psswd)
-
-<a name="cloned"></a>
-#### As a local repository
-You need:
-- Julia
-- git
-
-```bash
-git clone git@github.com:bencardoen/DataCurator.jl.git ## Assumes ssh
-# git clone https://github.com/bencardoen/DataCurator.jl.git ## For non SSH
-cd DataCurator.jl
-julia
-julia>using Pkg; Pkg.activate("."); Pkg.build(); Pkg.instantiate(); Pkg.test();
-```
-
-
-
-
-<a name="singularity"></a>
-#### As a Singularity container / executable image
-You need:
-- A command line environment (WSL on windows, any shell on Linux or MAC)
-- [Singularity](https://singularity-docs.readthedocs.io/en/latest/)
-```bash
-wget bit.ly/datacurator_jl -O datacurator.sif
-chmod u+x datacurator.sif
-```
-
-This downloads a container image providing:
-- Fedora 35 base environment
-- Julia 1.7.1 base installation
-- DataCurator installed in its own environment at /opt/DataCurator.jl
-- All dependencies
-- Python
-- R
-
-
-##### Execute recipes with the container
-```bash
-./datacurator.sif -r myrecipe.toml
-```
-See [curator.jl](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/curator.jl) for the arguments and usage. See [example_recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes) for example recipes to test.
-
-Note that this is equivalent to
-```bash
-singularity run datacurator.sif /opt/DataCurator.jl/runjulia.sh -r myrecipe.toml
-```
-
-##### Get an interactive julia shell inside the container
-```bash
-singularity shell datacurator.sif
-Singularity>julia --project=/opt/DataCurator.jl
-julia>
-```
-
-##### Execute Julia commands with the container
-```bash
-singularity exec image.sif julia --project=/opt/DataCurator.jl -e 'using DataCurator";'
-```
-
-## Cite
-If you find this useful, consider referencing:
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7527517.svg)](https://doi.org/10.5281/zenodo.7527517)
-
-```bibtex
-@software{ben_cardoen_2023_7527517,
-  author       = {Ben Cardoen},
-  title        = {DataCurator},
-  month        = jan,
-  year         = 2023,
-  publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.7527517},
-  url          = {https://doi.org/10.5281/zenodo.7527517}
-}
-```
 
 ## See also
 
