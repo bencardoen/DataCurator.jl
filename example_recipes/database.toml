@@ -2,7 +2,7 @@
 [global]
 act_on_success=true
 file_lists = [{name="table", transformer=["extract_sql_as_dataframe", "select * from temp"], aggregator="concat_to_table"}]
-inputdirectory = "testtbdir"
+inputdirectory = "testdir"
 save_tables_to_sqlite="test.db" # Save aggregated tables to this SQLite database
 [any]
 all=true

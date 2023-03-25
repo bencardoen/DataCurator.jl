@@ -1665,15 +1665,22 @@ correctpath()
 
 
     @testset "sqliterecipe" begin
-        t = mktempdir()
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        # abspath
         dt = DataFrame(zeros(5, 50), :auto);
-        dataframe_to_sqlite(dt, joinpath(t, "testx.db"), "temp")
-        @test isfile(joinpath(t, "testx.db"))
+        dataframe_to_sqlite(dt, joinpath(IN, "testx.db"), "temp")
+        @test isfile(joinpath(IN, "testx.db"))
         res = create_template_from_toml(joinpath("..","example_recipes","database.toml"))
         c, t = res
         @info c["inputdirectory"]
-        c["inputdirectory"] = t  
+        # c["inputdirectory"] = t 
+        
+        # delete_folder(IN) 
         cts, cls, rv = delegate(c, t)
-        delete_folder(t)
+        delete_folder(IN)
     end
 end
