@@ -24,6 +24,7 @@ using SmlmTools
 using Match
 using CSV
 using DataFrames
+using SQLite
 using ImageFiltering
 using ImageMorphology
 using Statistics
@@ -50,11 +51,11 @@ safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, type_files, image_files, image_colocalization, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
 halt, keep_going, has_integer_in_name, file_smaller_than, file_greater_than, has_float_in_name, is_8bit_img, is_16bit_img, column_names, make_tuple, add_to_mat, add_to_hdf5, not_hidden, mt,
-dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive,
+dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remove_from_to_exclusive, extract_table_as_dataframe, dataframe_to_sqlite, extract_sql_as_dataframe, sqlite_has_tables,
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
 remove_from_to, stack_list_to_image, smlm_alignment, concat_to_table, make_aggregator, describe_objects, load_rainstorm, is_rainstorm,
-gaussian, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
+gaussian, is_sqlite, load_sqlite, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
@@ -70,6 +71,53 @@ file_greater_than = (f, v) -> file_attribute(f, "size", v, ">")
 function load_mesh(x)
 	p = pyimport("meshio")
 	return p.read(x)
+end
+
+"""
+	sqlite_has_tables(db, tables)
+    
+    Check if the sqlite database `db` has all the tables named in `tables`.
+"""
+function sqlite_has_tables(db, tables)
+    sq = load_sqlite(db)
+    tb = SQLite.tables(sq)
+    tbnames = [_t.name for _t in tb]
+    return all(x -> x in tbnames, tables)
+end
+
+"""
+	extract_table_as_dataframe(db, tablename)
+    
+    From sqlite database named db, extract the table named tablename and return it as a dataframe.
+"""
+function extract_table_as_dataframe(db, tablename)
+    @info "Extracting table $tablename from $db"
+    sq = load_sqlite(db)
+    if isnothing(sq)
+        return nothing
+    end
+    return DBInterface.execute(sq, "SELECT * FROM $tablename") |> DataFrame
+end
+
+
+"""
+	extract_sql_as_dataframe(db, sql)
+    
+    Execute `sql` query on db (filename) and return the results as a dataframe.
+"""
+function extract_sql_as_dataframe(db, sql)
+    @info "Running $sql on $db"
+    sq = load_sqlite(db)
+    if isnothing(sq)
+        return nothing
+    end
+    return DBInterface.execute(sq, sql) |> DataFrame
+end
+
+function dataframe_to_sqlite(df, dbname, tablename)
+    @info "Saving dataframe $df to sqlite $dbname as $tablename"
+    db = SQLite.DB(dbname)
+    tablename = df |> SQLite.load!(db, "$tablename")
 end
 
 """
@@ -131,6 +179,24 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
 	return df
 end
 
+
+function load_sqlite(name)
+    if !isfile(name)
+        @warn "File $name does not exist"
+        return nothing
+    end
+    @info "Trying to load $name as SQLite"
+    try
+        return SQLite.DB(name)
+    catch
+        @warn "Failed to load $name as SQLite"
+        nothing
+    end
+end
+
+function is_sqlite(name)
+    !isnothing(load_sqlite(name))
+end
 
 """
     use SmlmTools's alignment on point clouds
@@ -937,6 +1003,9 @@ function load_content(x::AbstractString)
     if ex ∈ [".json", ".jsn", ".JSON"]
 		return JSON.parse(String(read(x)))
 	end
+    if is_sqlite(x)
+        return load_sqlite(x)
+    end
 	q = try_mesh(x)
 	if isnothing(q)
 	    @error "No matching file type (img, csv), assuming your functions know how to handle this"
@@ -2667,6 +2736,9 @@ function is_type_file(x, t)
 	isfile(x) && endswith(x, t)
 end
 is_csv_file = x -> is_type_file(x, ".csv")
+
+
+
 function has_image_extension(x)
 	splitext(x)[2] ∈ [".tif", ".png", ".jpg", ".jpeg"]
 end

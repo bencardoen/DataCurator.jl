@@ -335,6 +335,18 @@ correctpath()
         delete_folder(IN)
     end
 
+    @testset "sqlite" begin
+        dt = DataFrame(zeros(5, 50), :auto);
+        if isfile("textx.db")
+            rm("testx.db ")
+        end
+        dataframe_to_sqlite(dt, "testx.db", "temp")
+        @test isfile("testx.db")
+        @test is_sqlite("testx.db")
+        @test extract_table_as_dataframe("testx.db", "temp") == dt
+        rm("testx.db")
+    end
+
     # @testset "testcoloc" begin
     #     correctpath()
     #     IN="testdir"
