@@ -100,6 +100,31 @@ and
 This can be useful when you're generating input / output lists for batch processing, where you pipeline expects to see a directory with csv files, and wants to write output to an equivalent location starting at a different path. (e.g. SLURM array jobs)
 
 ### Content:
+#### Database operations
+DataCurator supports SQLite file based databases, but it is not our intent to replace database engines and their schema verification. We do however provide a few operations to help you work with SQLite databases.
+Checking if a file is a SQLite database:
+```toml
+is_sqlite_file
+```
+Running SQL Queries:
+```toml
+extract_sql_as_dataframe(db, sql)
+```
+Or shorthand, if you just need 1 table
+```
+extract_table_as_dataframe(db, tablename)
+```
+
+In addition, you save to SQLite databases if you aggregate tabular data, which is by default saved to CSV.
+In the global section, add:
+```toml
+save_tables_to_sqlite="yourdbfile"
+```
+
+The [testcases](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes/database.toml) have an example recipe that can get you started.
+
+**Note** As of writing, this support is in beta, if you encounter bugs or need extra functionality, please make an issue.
+
 #### Image operations
 These operations fall into 3 categories:
 - Increase dimension, e.g. 10 2D images to 1 3D

@@ -123,10 +123,17 @@ function extract_sql_as_dataframe(db, sql)
     return DBInterface.execute(sq, sql) |> DataFrame
 end
 
-function dataframe_to_sqlite(df, dbname, tablename)
+function dataframe_to_sqlite(df::DataFrame, dbname::S, tablename::S) where {T<:DataFrame, S<:AbstractString}
     @info "Saving dataframe $df to sqlite $dbname as $tablename"
-    db = SQLite.DB(dbname)
-    tablename = df |> SQLite.load!(db, "$tablename")
+    if !is_sqlite(dbname)
+        @info "$dbname does not exist, creating"
+    end
+    try 
+        db = SQLite.DB(dbname)
+        tablename = df |> SQLite.load!(db, "$tablename")
+    catch y
+        @warn "Saving dataframe failed: $y"
+    end
 end
 
 """
@@ -2363,7 +2370,11 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
     "Current path = $(pwd()))"
     if haskey(ENV, "DC_write_to_sqlite")
         @info "Saving to SQLite"
-		dataframe_to_sqlite(DF, name)
+        dbname = ENV["DC_write_to_sqlite"]
+        @info "Using DB $dbname"
+		dataframe_to_sqlite(DF, dbname, name[1:end-4])
+        name=dbname
+        delete!(ENV, "DC_write_to_sqlite")
 	else
         @info "Current path = $(pwd()))"
         CSV.write("$name", DF)
@@ -2970,6 +2981,7 @@ function validate_global(config)
         return nothing
     else
         indir = glob_config["inputdirectory"]
+        @info "Inputdirectory is set to $indir"
         if haskey(ENV, "DC_inputdirectory")
             _i = ENV["DC_inputdirectory"]
             @info "Overriding inputdirectory $indir  with environment variable $(_i)"
