@@ -79,10 +79,19 @@ end
     Check if the sqlite database `db` has all the tables named in `tables`.
 """
 function sqlite_has_tables(db, tables)
+    @info "Checking if $db has tables $tables"
     sq = load_sqlite(db)
-    tb = SQLite.tables(sq)
-    tbnames = [_t.name for _t in tb]
-    return all(x -> x in tbnames, tables)
+    if isnothing(sq)
+        @warn "Not a database $db)"
+        return false
+    end
+    try 
+        tb = SQLite.tables(sq)
+        tbnames = [_t.name for _t in tb]
+        return all(x -> x in tbnames, tables)
+    catch y
+        @warn "Checking tables failed: $y"
+    end
 end
 
 """
@@ -188,13 +197,14 @@ function load_sqlite(name)
     @info "Trying to load $name as SQLite"
     try
         return SQLite.DB(name)
-    catch
+    catch e
         @warn "Failed to load $name as SQLite"
-        nothing
+       return  nothing
     end
 end
 
 function is_sqlite(name)
+    @info "Testing if $name is a SQLite database"
     !isnothing(load_sqlite(name))
 end
 
@@ -1003,9 +1013,9 @@ function load_content(x::AbstractString)
     if ex ∈ [".json", ".jsn", ".JSON"]
 		return JSON.parse(String(read(x)))
 	end
-    if is_sqlite(x)
-        return load_sqlite(x)
-    end
+    # if is_sqlite(x)
+    #     return load_sqlite(x)
+    # end
 	q = try_mesh(x)
 	if isnothing(q)
 	    @error "No matching file type (img, csv), assuming your functions know how to handle this"

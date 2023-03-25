@@ -335,6 +335,21 @@ correctpath()
         delete_folder(IN)
     end
 
+    @testset "sqliterecipe" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        dt = DataFrame(zeros(5, 50), :auto);
+        dataframe_to_sqlite(dt, joinpath(IN, "testx.db"), "temp")
+        @test isfile(joinpath(IN, "testx.db"))
+        res = create_template_from_toml(joinpath("..","example_recipes","database.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        delete_folder(IN)
+    end
+
     @testset "sqlite" begin
         dt = DataFrame(zeros(5, 50), :auto);
         if isfile("textx.db")
