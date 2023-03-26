@@ -11,13 +11,6 @@ A multithreaded package to validate, curate, and transform large heterogeneous d
 - [Remote usage](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/remote.md)
 - [Using Python or R](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/extending.md)
 
-For full documentation:
-```bash
-cd docs && julia --project=.. make.jl
-```
-Documentation in HTML will be generated in [build](./build), then open [index.html](build/index.html)
-You can also view the [documentation online](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md)
-
 ```@contents
 Depth = 5
 ```
@@ -33,9 +26,15 @@ DataCurator is a Swiss army knife that ensures:
 ![Concept](assets/whatami.png)
 
 ## Quickstart
-We'll show 2 simple examples on how to get started, for a more complete manual please see individual sections in the left pane.
-### Validate
-Check that a directory only contains CSV files, list them in a file, and list any file that's incorrect.
+We'll show 2 simple examples on how to get started.
+
+DataCurator works on `recipe`, TOML text files (see [examples](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes)), which we will include inline here to illustrate how to use them.
+
+**Note** All the examples are tested automatically, so you can rest assured that test work.
+
+### Validate a dataset
+Let's say we have a dataset, and you only expect it to contain CSV files. At this point, you don't care much about the structure or hierarchy of the files, or the naming patterns. 
+You want to create a report (text file) with all csv files, and one with files or directories that are not.
 
 ```toml
 [global]
@@ -53,57 +52,39 @@ Execute:
 ```
 
 ### Curate
-Flatten all **.txt** files, `flatten` refers to extracting all files from a nested hierarchy (a directory with many subdirectories, each with their own subdirectories and so forth) into 1 single set of files in 1 directory, for ease of processing.
+So far we've been looking at file names and types, but DataCurator can look inside as well, and transform the contents.
+Where validation only verifies datasets, and does not change them, curation can change the data. Often curation is step 2 after validation, it's nice to check if your expectations match data, but if they don't, you still need to intervene.
 
-Create a `recipe.toml` file with:
+Let's say you have a dataset with image files in `tif` format. Rather than just building lists of them, or checking that they're there, for the right files we want to do some pre-processing. 
+We also want to change the filenames, because they have a mix of upper and lower case, and the actual analysis pipeline we will feed them in later expects lowercase only.
+
+Note that `#` is a comment line
 
 ```toml
+# Start of the recipe, this configures global options
 [global]
+act_on_success=true
 inputdirectory = "testdir"
-regex=true
+# Your rules, `any` means you do not care at what level/depth files are checked
 [any]
-all=true
-conditions = ["isfile", ["endswith", ".*.txt"]]
-actions = [["flatten_to", "outdir"]]
+# When to act, in this case, you want to only work on tif files
+conditions=["is_tif_file"]
+# What to do
+actions=[{name_transform=["tolowercase"], content_transform=[ ["gaussian", 3],
+                                                                "laplacian",
+                                                                ["threshold_image", "abs >", 0.01],
+                                                                ["apply_to_image", ["abs"]],
+                                                                "otsu_threshold_image",
+                                                                "erode_image"], mode="copy"}]
 ```
+This is already fairly complex, but it shows you that you can stack any number of `actions` on top of any number of `conditions`, giving you a lot of freedom.
+And yet, you did not need to write any code.
 
-```bash
-./DataCurator.sif -r myrecipe.toml
-```
-
-
-### A more complex example
 In [full_api.toml](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes/full_api.toml) you can see an example of how you can specify an entire image processing pipeline with a simple `recipe`.
-```toml
-...
-actions=[
-        {name_transform=["tolowercase"],
-        content_transform=[
-                        ["slice_image", [1,2],[[20,50],[20,50]]],
-                        ["gaussian", 3],
-                        "laplacian",
-                        ["threshold_image", "abs <", 0.01],
-                        ["apply_to_image", ["abs"]],
-                        ["apply_to_image", ["log"]]
-                        "otsu_threshold_image",
-                        "erode_image"
-                        ],
-                        mode="copy"}
-        ]
-...
-```
-
-### Test data
-See [script](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/testdataset.jl) to generate a test dataset, and a test [recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/td.toml) to process it.
-```julia
-julia --project=. scripts/testdataset.jl
-julia --project=. scripts/curator.jl -r td.toml
-```
-Change the test directory if needed.
 
 
 ### Troubleshooting
-If you experience any problems, please create an issue with the DC version, template, and sample data to reproduce it, including the Julia version and OS.
+If you experience any problems, please [create an issue](https://github.com/bencardoen/DataCurator.jl/issues/new) with the DC version, template, and sample data to reproduce it, including the Julia version and OS.
 
 
 ### Acknowledgement
