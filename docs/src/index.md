@@ -50,6 +50,7 @@ Execute:
 ```bash
 ./DataCurator.sif -r myrecipe.toml
 ```
+When it completes, you will now have 2 text files in your current working directory, `non_csvs.txt` and `csvs.txt`.
 
 ### Curate
 So far we've been looking at file names and types, but DataCurator can look inside as well, and transform the contents.
