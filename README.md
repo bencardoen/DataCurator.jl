@@ -66,7 +66,7 @@ For a complete walkthrough, please see the [documentation](https://github.com/be
 The below steps work if you have access to a command line environment (WSL on Windows, Bash on Linux/MacOs). 
 
 * Get [Singularity](https://apptainer.org/user-docs/master/quick_start.html)
-* Get the latest [Singularity image]([https://bit.ly/datacurator_jl_v1_1l](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)):
+* Get the latest [Singularity image](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator):
  
 ```bash
 singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
