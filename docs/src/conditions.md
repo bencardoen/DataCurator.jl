@@ -102,11 +102,11 @@ This can be useful when you're generating input / output lists for batch process
 ### Content:
 #### Database operations
 DataCurator supports SQLite file based databases, but it is not our intent to replace database engines and their schema verification. We do however provide a few operations to help you work with SQLite databases.
-Checking if a file is a SQLite database:
+##### Checking if a file is a SQLite database:
 ```toml
 is_sqlite_file
 ```
-Running SQL Queries:
+##### Running SQL Queries:
 ```toml
 extract_sql_as_dataframe(db, sql)
 ```
@@ -123,7 +123,24 @@ save_tables_to_sqlite="yourdbfile"
 
 The [testcases](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes/database.toml) have an example recipe that can get you started.
 
-**Note** As of writing, this support is in beta, if you encounter bugs or need extra functionality, please make an issue.
+```toml
+# This workflow demonstrates the support for SQLite3 databases
+[global]
+act_on_success=true
+# Create an aggregator that will extract the table 'temp' from any database passed to it
+file_lists = [{name="table", transformer=["extract_sql_as_dataframe", "select * from temp"], aggregator="concat_to_table"}]
+inputdirectory = "testdir"
+# The aggregator `table` is by default saved to CSV, override it so we save the output to a new or existing SQLite db
+save_tables_to_sqlite="test.db" # Save aggregated tables to this SQLite database
+[any]
+all=true
+# Find all SQLite3 databases with a table `temp`
+conditions = ["is_file", "is_sqlite", ["sqlite_has_tables", ["temp"]]]
+# Aggregate them 
+actions=[["->", "table"]]
+```
+
+**Note** As of writing, this support is in **beta**, if you encounter bugs or need extra functionality, [please make an issue](https://github.com/bencardoen/DataCurator.jl/issues/new/choose).
 
 #### Image operations
 These operations fall into 3 categories:
