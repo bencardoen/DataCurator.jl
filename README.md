@@ -29,32 +29,13 @@ DataCurator is a Swiss army knife that ensures:
 
 ## Singularity Image
 
-<img src="qr.png" alt="Singularity image" width="100"/>
-
 You can find the container image at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
 
 ## Documentation
 ### Markdown
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) (clickable link)
 The documentation in markdown makes it easier to reuse code snippets.
-See [documentation source folder](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src) and the [examples](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes)
-
-### HTML
-After [cloning](#cloned) the project, please open [docs/build/index.html](docs/build/index.html) with a browser.
-This will be replaced by github pages + actions.
-
-If you have Julia, you can build the docs yourself
-```bash
-cd docs
-julia --project=.. make.jl
-```
-Then open docs/build/index.html with a browser of your choice.
-
-### PDF
-Alternatively, if you have texlive and the [Documenter.jl](https://juliadocs.github.io/Documenter.jl/stable/man/other-formats/) dependencies, you can generate a pdf
-```bash
-cd docs && julia --project=.. makepdf.jl
-```
+See [documentation source folder](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) and the [examples](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes)
 
 ## What to find where
 ```bash
