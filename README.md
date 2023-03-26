@@ -58,6 +58,7 @@ repository
 ## Table of Contents
 1. [Quickstart](#quickstart)
 2. [Installation](#installation)
+2. [Troubleshooting](#faq)
 
 <a name="installation"></a>
 ## Quickstart
@@ -94,10 +95,14 @@ The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen
 ### Installation
 Please the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
 
+<a name="faq"></a>
+## Troubleshooting
+If you have any issue, please search [the issues](https://github.com/bencardoen/DataCurator.jl/issues) to see if your problem has been encountered before. 
+If not, please [create a new issue](https://github.com/bencardoen/DataCurator.jl/issues/new/choose), and follow the templates for bugs and / or features you wish to be added.
 
-## See also
+If you have a workflow that DataCurator right now does not support, or not the way you'd like it to, you can mention this too. In that case, do share a **minimum** example of your data so we can add, upon completion of the feature, a new testcase.
 
-### Dependencies
+## Dependencies
 DataCurator relies heavily on existing Julia packages for specialized functionality:
 - [Images.jl](https://github.com/JuliaImages/Images.jl)
 - [DataFrames.jl](https://dataframes.juliadata.org/stable/)
@@ -105,5 +110,5 @@ DataCurator relies heavily on existing Julia packages for specialized functional
 - [RCall.jl](https://github.com/JuliaInterop/RCall.jl)
 - [PyCall.jl](https://github.com/JuliaPy/PyCall.jl)
 
-### Related software
+## Related software
 - [Open Microscopy OMERO](https://www.openmicroscopy.org/omero/)
