@@ -1,10 +1,14 @@
-#THis workflow finds SQLite3 databases, if they ha
+# This workflow demonstrates the support for SQLite3 databases
 [global]
 act_on_success=true
+# Create an aggregator that will extract the table 'temp' from any database passed to it
 file_lists = [{name="table", transformer=["extract_sql_as_dataframe", "select * from temp"], aggregator="concat_to_table"}]
 inputdirectory = "testdir"
+# The aggregator `table` is by default saved to CSV, override it so we save the output to a new or existing SQLite db
 save_tables_to_sqlite="test.db" # Save aggregated tables to this SQLite database
 [any]
 all=true
+# Find all SQLite3 databases with a table `temp`
 conditions = ["is_file", "is_sqlite", ["sqlite_has_tables", ["temp"]]]
+# Aggregate them 
 actions=[["->", "table"]]
