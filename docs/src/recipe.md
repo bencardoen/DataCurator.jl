@@ -1,15 +1,19 @@
 # A recipe using all/most of the possible features
 
+This document will walk you through all you can do with Datacurator, starting with how to structure a recipe, global configuration, to specific rules and uses examples to illustrate functionality.
+
+You can also check the [documented recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes) for examples that are tested to be correct on any version of the code.
+
 ## Recipes
 
-First, a recipe is a plain text file, in TOML format, designed to be as human friendly as possible.
+First, a `recipe` is a plain text file, in TOML format, designed to be as human friendly as possible.
 
 We'll run through all, or most of the features you can use, with example TOML snippets.
 
 
 Any `recipe` needs 2 parts
-- the global configuration
-- the actual template.
+- the `global` configuration
+- the `actual` template, a set of conditions and rules that you write, specifying how a dataset should be structured, and what to do with it if your conditions are matched (or not)
 
 The global configuration specifies **how** the template is applied, the template specifies the conditions/rules to apply, i.o.w. the **what** and **when**.
 
