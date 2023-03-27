@@ -3,7 +3,7 @@ This chapter details how to quickly get started using DataCurator, either in rec
 ## Using recipes only
 
 ```bash
-./datacurator.sif -r myrecipe.toml [---verbose]
+./datacurator.sif -r myrecipe.toml [--verbose]
 ```
 or a bit more advanced:
 ```bash
