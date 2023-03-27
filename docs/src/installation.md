@@ -68,14 +68,15 @@ The below assumes you know how to use git, and have Julia installed.
 git clone git@github.com:bencardoen/DataCurator.jl.git ## Assumes ssh
 # git clone https://github.com/bencardoen/DataCurator.jl.git ## For non SSH
 cd DataCurator.jl
-julia
+julia --project=. -e 'using Pkg; Pkg.update(); Pkg.build(); Pkg.instantiate()'
+julia --project=. -e 'using DataCurator'
 ```
-In Julia
-```julia
-using Pkg
-Pkg.activate('.')
-Pkg.test(".")
+
+#### Adding to an existing Julia installation
 ```
+ julia -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator");'
+```
+Optionally with `--project=.` if you're installing in a local env.
 #### Advanced usage/troubleshooting
 
 ##### I want to modify the container
@@ -105,7 +106,7 @@ If you use this often, use a environment variable:
 ```
 
 ##### It's so slow on first run !!
-If you use DataCurator as a Julia package or cloned repository, on first run Julia needs to compile functions and load packages. If you process large datasets, this cost (up to 20s) is meaningless. However, for smaller use case its starts to get annoying.
+If you use DataCurator as a Julia package or cloned repository, on first run Julia needs to compile functions and load packages. If you process large datasets, this cost (up to 20s) is meaningless. However, for smaller use case it can be annoying.
 
 We avoid this cost by using [PackageCompiler.jl] by
 - run a typical example of DataCurator so Julia sees which functions are common
