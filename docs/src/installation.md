@@ -132,4 +132,4 @@ That is all taken care of for you in the singularity image.
 If you wish to use the remote capabilities (Owncloud, Slack, SCP), you need [curl](https://curl.se/download.html), [scp, and ssh](https://www.openssh.com/) installed and configured
 
 ### Help !
-If any of the above is not clear, or not working, please report an issue online
+If any of the above is not clear, or not working, [please report an issue online](https://github.com/bencardoen/DataCurator.jl/issues/new/choose).
