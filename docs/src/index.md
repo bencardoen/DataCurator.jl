@@ -28,7 +28,7 @@ DataCurator is a Swiss army knife that ensures:
 ## Quickstart
 We'll show 2 simple examples on how to get started.
 
-DataCurator works on `recipe`, TOML text files (see [examples](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes)), which we will include inline here to illustrate how to use them.
+DataCurator works on `recipes`, TOML text files (see [examples](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes)), which we will include inline here to illustrate how to use them.
 
 **Note** All the examples are tested automatically, so you can rest assured that test work.
 
