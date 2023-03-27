@@ -44,7 +44,7 @@ See [TroubleShooting](#trouble) for common errors and their resolution.
 In order to guarantee that changes in code do not break existing functionality, we continually test DataCurator in Ubuntu and Fedora environments. 
 Those recipes are therefore the reference way to use DataCurator outside of the container image, as those are always guaranteed to work.
 - [Singularity recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/singularity/recipe.def)
-- [Ubuntu][CircleCI test script](https://github.com/bencardoen/DataCurator.jl/blob/main/.circleci/config.yml)
+- [Ubuntu](https://github.com/bencardoen/DataCurator.jl/blob/main/.circleci/config.yml)
 We do not have the build minutes/resources to test more OSes, but if you want to use DataCurator on another OS, you can use the following instructions.
 The Singularity image works on Windows, MacOS, and Linux as-is. 
 
