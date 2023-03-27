@@ -79,7 +79,7 @@ end
     Check if the sqlite database `db` has all the tables named in `tables`.
 """
 function sqlite_has_tables(db, tables)
-    @info "Checking if $db has tables $tables"
+    @debug "Checking if $db has tables $tables"
     sq = load_sqlite(db)
     if isnothing(sq)
         @warn "Not a database $db)"
@@ -100,7 +100,7 @@ end
     From sqlite database named db, extract the table named tablename and return it as a dataframe.
 """
 function extract_table_as_dataframe(db, tablename)
-    @info "Extracting table $tablename from $db"
+    @debug "Extracting table $tablename from $db"
     sq = load_sqlite(db)
     if isnothing(sq)
         return nothing
@@ -115,7 +115,7 @@ end
     Execute `sql` query on db (filename) and return the results as a dataframe.
 """
 function extract_sql_as_dataframe(db, sql)
-    @info "Running $sql on $db"
+    @debug "Running $sql on $db"
     sq = load_sqlite(db)
     if isnothing(sq)
         return nothing
@@ -192,13 +192,13 @@ end
 function dataframe_to_sqlite(df::T, dbname::S, tablename::S) where {T<:DataFrame, S<:AbstractString}
     @debug "Saving dataframe $df to sqlite $dbname as $tablename"
     if !is_sqlite(dbname)
-        @info "$dbname does not exist, creating"
+        @info "🤨 $dbname does not exist, creating"
     end
     try 
         db = SQLite.DB(dbname)
         tablename = df |> SQLite.load!(db, "$tablename")
     catch y
-        @warn "Saving dataframe failed: $y"
+        @warn "⚠ Saving dataframe failed: $y"
     end
 end
 
@@ -3233,7 +3233,7 @@ function decode_j(sym)
 	try
 		s = split(sym, ".")
 		if length(s) != 3
-			@error "Invalid specifier"
+			@error "❗❗❗ Invalid specifier $(sym) ❗❗❗"
 			throw(ArgumentError("Invalid module specifier: use julia.module.function, e.g. julia.CSV.write"))
 		end
 		_, modulename, functioname = split(sym, ".")

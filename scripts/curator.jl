@@ -91,7 +91,7 @@ function runme()
 		return
     end
     if parsed_args["inputdirectory"] != ""
-        @info "Overriding template"
+        @info "Overriding template inputdirectory with $(parsed_args["inputdirectory"])"
         recipe = update_template(recipe, parsed_args["inputdirectory"], nothing)
     end
     @info "Reading template recipe $recipe"
@@ -100,7 +100,7 @@ function runme()
         @error "Failed reading $c"
         return
     end
-    @info "Reading complete "
+    @info "✓ Reading complete ✓"
     cfg, template = res
     @info "Running recipe on $(cfg["inputdirectory"])"
 	if cfg["endpoint"] == "" && !isnothing(endpoint)
@@ -135,6 +135,7 @@ function runme()
 	date_format = "yyyy-mm-dd HH:MM:SS"
 	msgs = ["DataCurator :construction_worker:", ":clock3: \t $(Dates.format(now(), date_format))", "Recipe \t $recipe", "Result \t $neatcode", ":stopwatch: \t $(@sprintf("%.2e",stop-start)) seconds"]
 	if ! isnothing(endpoint)
+        @info "Posting to Slack"
 		m = ":computer: \t $(readlines(`uname -nir`)[1])"
 		push!(msgs, m)
 		for (cn, _c) in enumerate(c)
@@ -142,7 +143,7 @@ function runme()
         end
 		posttoslack(join(msgs, "\n"), endpoint)
     end
-	@info "Complete with exit status $r"
+	@info "🏁✓ Complete with exit status $r ✓🏁"
 	delete!(ENV, "DC_SSH_CONFIG")
 	delete!(ENV, "DC_owncloud_configuration")
 end
