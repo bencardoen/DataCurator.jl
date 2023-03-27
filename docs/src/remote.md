@@ -41,6 +41,7 @@ else
   @warn "Failed"
 end
 ```
+
 ### Usage
 Triggering sending of messages:
 
