@@ -47,6 +47,7 @@ common_actions = {}                         # Don't repeat yourself, if you use 
 common_conditions = {}                      #
 file_lists = []                             # When you need to combine multiple files, this is where to specify it
 counters = []                               # If you want to keep track of certain conditions, count files, sizes, ...
+save_tables_to_sqlite=""             # Save aggregated output this this SQLite database ("" default saves to CSV)
 ```
 
 Next, we can either act on failure (usually in validation), or on success.
