@@ -55,7 +55,7 @@ dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remo
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
 remove_from_to, stack_list_to_image, smlm_alignment, concat_to_table, make_aggregator, describe_objects, load_rainstorm, is_rainstorm,
-gaussian, is_sqlite, load_sqlite, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image
+gaussian, is_sqlite, load_sqlite, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image, evaluate_sql, less_than_n_rows, greater_or_equal_than_n_rows, has_n_rows
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
@@ -79,7 +79,7 @@ end
     Check if the sqlite database `db` has all the tables named in `tables`.
 """
 function sqlite_has_tables(db, tables)
-    @info "Checking if $db has tables $tables"
+    @debug "Checking if $db has tables $tables"
     sq = load_sqlite(db)
     if isnothing(sq)
         @warn "Not a database $db)"
@@ -100,7 +100,7 @@ end
     From sqlite database named db, extract the table named tablename and return it as a dataframe.
 """
 function extract_table_as_dataframe(db, tablename)
-    @info "Extracting table $tablename from $db"
+    @debug "Extracting table $tablename from $db"
     sq = load_sqlite(db)
     if isnothing(sq)
         return nothing
@@ -115,7 +115,7 @@ end
     Execute `sql` query on db (filename) and return the results as a dataframe.
 """
 function extract_sql_as_dataframe(db, sql)
-    @info "Running $sql on $db"
+    @debug "Running $sql on $db"
     sq = load_sqlite(db)
     if isnothing(sq)
         return nothing
@@ -123,16 +123,82 @@ function extract_sql_as_dataframe(db, sql)
     return DBInterface.execute(sq, sql) |> DataFrame
 end
 
-function dataframe_to_sqlite(df::DataFrame, dbname::S, tablename::S) where {T<:DataFrame, S<:AbstractString}
-    @info "Saving dataframe $df to sqlite $dbname as $tablename"
+
+
+"""
+	evaluate_sql(db, sql)
+    
+    Evaluate query `sql` on db. Use in recipes like so : action=[["evaluate_sql", "SELECT * FROM table"]]
+
+    **Note** This is in beta support, SQL is not sanitized.
+    You most likely want the functions `has_n_rows`, `less_than_n_rows` and `greater_or_equal_than_n_rows` instead.
+"""
+function evaluate_sql(db, sql)
+    sq = load_sqlite(db)
+    if isnothing(sq)
+        return nothing
+    end
+    return DBInterface.execute(sq, sql) |> DataFrame
+end
+
+"""
+    has_n_rows(db, sql, n::Number)
+
+    Check that your query (sql) returns exactly n rows.
+"""
+function has_n_rows(db, sql, n::Number)
+    df = evaluate_sql(db, sql)
+    if isnothing(df)
+        return false
+    end
+    return size(df)[1] == n
+end
+
+
+"""
+    less_than_n_rows(db, sql, n::Number)
+
+    Check that your query (sql) returns < n rows.
+"""
+function less_than_n_rows(db, sql, n::Number)
+    df = evaluate_sql(db, sql)
+    if isnothing(df)
+        return false
+    end
+    return size(df)[1] < n
+end
+
+
+"""
+   greater_or_equal_than_n_rows(db, sql, n::Number)
+
+    Check that your query (sql) returns >= n rows.
+"""
+function greater_or_equal_than_n_rows(db, sql, n::Number)
+  df = evaluate_sql(db, sql)
+    if isnothing(df)
+        return false
+    end
+    return size(df)[1] >= n
+end
+
+
+"""
+	dataframe_to_sqlite(df, dbname, tablename)
+    
+    Save dataframe `df` to sqlite database `dbname` as table `tablename`.
+    If `dbname` does not exist, it will be created.
+"""
+function dataframe_to_sqlite(df::T, dbname::S, tablename::S) where {T<:DataFrame, S<:AbstractString}
+    @debug "Saving dataframe $df to sqlite $dbname as $tablename"
     if !is_sqlite(dbname)
-        @info "$dbname does not exist, creating"
+        @info "🤨 $dbname does not exist, creating"
     end
     try 
         db = SQLite.DB(dbname)
         tablename = df |> SQLite.load!(db, "$tablename")
     catch y
-        @warn "Saving dataframe failed: $y"
+        @warn "⚠ Saving dataframe failed: $y"
     end
 end
 
@@ -144,7 +210,7 @@ end
 	Example: `type_files(dir, is_2d_img)`
 """
 function type_files(dir, condition)
-    @info "Single condition"
+    @debug "Single condition"
     [f for f in files(dir) if condition(f)]
 end
 
@@ -172,24 +238,24 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
     A, B = Images.load(imgs[1]), Images.load(imgs[2])
     if !isnothing(preprocess)
         if preprocess == "segment"
-            @info "Segmenting first .."
+            @debug "Segmenting first .."
             A, B = Colocalization.segment(A), Colocalization.segment(B)
         end
         if preprocess == "filter"
-            @info "Filtering first .."
+            @debug "Filtering first .."
             A, B = Colocalization.filter_projection(A, window, 0), Colocalization.filter_projection(B, window, 0)
         end
     end
     res = colocalize_all(A, B; windowsize=window)
     for k in keys(res)
-        @info "Writing image colocalization for metric $k"
+        @debug "Writing image colocalization for metric $k"
         if any(isnan.(res[k]))
             @warn "NaN in metric $k"
         end
-        @info "Saving to $(joinpath(outdir, "$k.tif"))"
+        @debug "Saving to $(joinpath(outdir, "$k.tif"))"
         Images.save(joinpath(outdir, "$k.tif"), map(Images.clamp01nan, res[k]))
     end
-    @info "Writing colocalization results"
+    @info "Writing colocalization results to $outdir"
     df = summarize_colocalization(res, imgs[1], imgs[2])
     CSV.write(joinpath(outdir, "colocalization.csv"), df)
 	return df
@@ -201,7 +267,7 @@ function load_sqlite(name)
         @warn "File $name does not exist"
         return nothing
     end
-    @info "Trying to load $name as SQLite"
+    @debug "Trying to load $name as SQLite"
     try
         return SQLite.DB(name)
     catch e
@@ -211,7 +277,7 @@ function load_sqlite(name)
 end
 
 function is_sqlite(name)
-    @info "Testing if $name is a SQLite database"
+    @debug "Testing if $name is a SQLite database"
     !isnothing(load_sqlite(name))
 end
 
@@ -627,7 +693,7 @@ function describe_image(x::AbstractVector{<:Any}, axis::Int)
 	N = length(x)
 	p = ProgressMeter.Progress(N)
 	r=[DataFrame() for _ in 1:N]
-	@info "Describing image $x with statistics"
+	@debug "Describing image $x with statistics"
 	@threads for i in 1:N
 		r[i] = describe_image(x[i], axis)
 		next!(p)
@@ -824,7 +890,7 @@ end
 function describe_objects(x::AbstractVector)
 	#@debug "Calling vectorized describe objects"
 	N = length(x)
-	@info "Describing objects in images"
+	@debug "Describing objects in images"
 	p = ProgressMeter.Progress(N)
 	r=[DataFrame() for _ in 1:N]
 	@threads for i in 1:N
@@ -1028,7 +1094,7 @@ function load_content(x::AbstractString)
 	    @error "No matching file type (img, csv), assuming your functions know how to handle this"
 	    throw(ArgumentError("Invalid file content or not yet supported $x"))
 	else
-		@info "Loaded mesh for $x"
+		@debug "Loaded mesh for $x"
 		return q
 	end
 end
@@ -2196,9 +2262,9 @@ function delegate(config, template)
         aggregator_aggregate(ag)
         push!(lists, vcat(ag.list...))
     end
-    @info "Finished processing dataset located at $(config["inputdirectory"])"
+    @info "Finished processing dataset located at $(config["inputdirectory"]) 🏁🏁🏁"
     if rval == :quit
-        @warn "Dataset processing stopped early per your conditions"
+        @warn "⚠ Dataset processing stopped early per your conditions"
     else
         @info "Dataset processing completed without early exit"
     end
@@ -2211,7 +2277,7 @@ function load_table(x::AbstractString)
     try
         tb = CSV.read(x, DataFrame)
 		if "dc_filename" ∈ names(tb)
-			@warn "Filename already in table $x"
+			@warn "⚠ Filename already in table $x"
 		else
 			tb[!, :dc_filename] .= x
 		end
@@ -2422,7 +2488,7 @@ function sort_stack(list; aggregator=list_to_image)
             name, ext = splitext(b)
             m = match(r"[0-9]+$", name)
             if isnothing(m)
-                @warn "Not ending with slice integer, skipping"
+                @warn "⚠ Not ending with slice integer, skipping"
                 continue
             end
             mi = m.match
@@ -2600,7 +2666,7 @@ function create_template_from_toml(tomlfile)
         @error "Invalid configuration"
         return nothing
     end
-    @info "!!! Succesfully decoded your template !!!"
+    @info "✓ Succesfully decoded your template ✓"
     #@debug "Decoded template to $template"
     return glob, template
 end
@@ -2799,9 +2865,9 @@ show_warning = x -> @warn x
 	For a matched file or directory `x`, log a warning with `x` and a custom message.
 """
 function show_warn_with_message(x, message)
-	@warn "$(x) \t $(message)"
+	@warn "⚠ $(x) \t $(message)"
 end
-# show_warn_with_message = (x, y) -> @warn "$x :: $y"
+
 warn_on_fail = x -> show_warning(x)
 halt = x -> begin @info "Triggered early exit for $x"; return :quit; end
 quit = x -> return :quit
@@ -2826,7 +2892,7 @@ end
 integer_name = x->~isnothing(tryparse(Int, basename(x)))
 has_integer_in_name = x->read_int(basename(x))
 has_float_in_name = x->read_float(basename(x))
-quit_on_fail = x -> begin @warn "$x"; return :quit; end
+quit_on_fail = x -> begin @warn "⚠ $x"; return :quit; end
 # is_img = x -> isfile(x) && ~isnothing(try Images.load(x) catch e end;)
 is_img = has_image_extension
 # is_kd_img = (x, k) -> is_img(x) && (length(size(Images.load(x)))==k)
@@ -2992,9 +3058,9 @@ function validate_global(config)
             return nothing
         end
         if ~isabspath(indir)
-            @warn "Input directory is not an absolute path, resolving..."
+            @warn "🤨 Input directory is not an absolute path, resolving to absolute path"
             ab = abspath(indir)
-            @warn "...$indir -> $ab"
+            @warn "...$indir -> $ab ✓"
             indir = ab
         end
         glob_defaults["inputdirectory"] = indir
@@ -3017,7 +3083,7 @@ function validate_global(config)
                 _ => handle_default!(val, key, glob_defaults)
             end
         else
-            @error "Key $key in global not valid."
+            @error "❗❗❗ Key $key in global section not valid. ❗❗❗"
             return nothing
         end
     end
@@ -3097,7 +3163,7 @@ function handle_common_conditions(config, default)
         fun_desc = entry[name]
         fs = decode_function(fun_desc, default, condition=true)
         if isnothing(fs)
-            @warn "Invalid common condition $fun_desc for $name"
+            @warn "⚠ Invalid common condition $fun_desc for $name"
         else
             #@debug "Created common condition for $name"
             default["common_conditions"][name]=fs
@@ -3114,11 +3180,11 @@ function decode_python(str)
 	        p=pyimport(mod)
 	        return p[st[end]]
 		else
-			@warn "$str is not a valid python statement, use python.module.function syntax"
+			@warn "⚠ $str is not a valid python statement, use python.module.function syntax"
 			return nothing
 		end
     catch e
-        @error "Failed loading $str with e"
+        @error "❗ Failed loading $str with $e ❗"
         return nothing
     end
 end
@@ -3167,7 +3233,7 @@ function decode_j(sym)
 	try
 		s = split(sym, ".")
 		if length(s) != 3
-			@error "Invalid specifier"
+			@error "❗❗❗ Invalid specifier $(sym) ❗❗❗"
 			throw(ArgumentError("Invalid module specifier: use julia.module.function, e.g. julia.CSV.write"))
 		end
 		_, modulename, functioname = split(sym, ".")

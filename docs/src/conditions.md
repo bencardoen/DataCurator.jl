@@ -124,6 +124,7 @@ save_tables_to_sqlite="yourdbfile"
 The [testcases](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes/database.toml) have an example recipe that can get you started.
 
 ```toml
+<<<<<<< HEAD
 # This workflow demonstrates the support for SQLite3 databases
 [global]
 act_on_success=true
@@ -141,6 +142,27 @@ actions=[["->", "table"]]
 ```
 
 **Note** As of writing, this support is in **beta**, if you encounter bugs or need extra functionality, [please make an issue](https://github.com/bencardoen/DataCurator.jl/issues/new/choose).
+=======
+#This workflow finds SQLite3 databases, if they have a table named `temp`, and runs an SQL query before sending them to an aggregator.
+[global]
+act_on_success=true
+# Define the aggregator, this will extract from each found db the table `temp` and save it to a table named `table` in the SQLite database `test.db`
+file_lists = [{name="table", transformer=["extract_sql_as_dataframe", "select * from temp"], aggregator="concat_to_table"}]
+inputdirectory = "testdir"
+# Save aggregator output to this SQLite database
+# Note, it's up to you to ensure that this is possible, the database will be created if it exists, but if you try to aggregate conflicting data, that isn't something we can resolve at runtime.
+save_tables_to_sqlite="test.db"
+[any]
+all=true
+# A lot of duplication, but it's inteded to show what can be done
+# Test if the file is a SQLite database, if it has a table named `temp`, and if it has 5 rows where x2 = 0
+# If so, send it to the aggregator
+conditions = ["is_file", "is_sqlite", ["sqlite_has_tables", ["temp"]], ["has_n_rows","SELECT * FROM temp WHERE x2 = 0", 5]]
+actions=[["->", "table"]]
+```
+
+**Note** As of writing, this support is in beta, if you encounter bugs or need extra functionality, please make an issue.
+>>>>>>> sqlite
 
 #### Image operations
 These operations fall into 3 categories:
