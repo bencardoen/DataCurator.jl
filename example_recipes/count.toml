@@ -1,3 +1,5 @@
+# Cluster file systems can be very slow, because they are distributed or you have files that hit a use case for which those systems are not optimized (e.g 1e6 small files vs 1 big archive)
+# This script just counts files, in parallel, both their occurrence and their size in bytes, and saves the output.
 [global]
 act_on_success=true
 counters = ["filecount", ["filesize", "size_of_file"]]

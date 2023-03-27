@@ -1,6 +1,7 @@
 
 [global]
 act_on_success=true
+# Paired aggregators, one for CSV files, one for TIFF files
 file_lists = ["table","channel", "objects"]
 inputdirectory = "testdir"
 [any]

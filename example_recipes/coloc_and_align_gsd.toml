@@ -1,7 +1,10 @@
+# Superresolution alignment and colocalization.
 [global]
 act_on_success=true
 inputdirectory = "testdir"
 [any]
 all=true
 conditions = ["is_dir"]
+# For each directory, find matching GSD files, do temporal and cross channel alignment, and then do colocalization on the results.
+# Saves output in place
 actions=[["smlm_alignment",".bin", "is_gsd", 500], ["image_colocalization", 3, "C[1,2].tif", "is_2d_img", "filter"]]

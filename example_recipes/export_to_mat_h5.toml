@@ -1,3 +1,5 @@
+# Look for TIF files, save those to HDF5
+# Do the same with CSV, but save thos in MAT format
 [global]
 act_on_success=true
 inputdirectory = "testdir"

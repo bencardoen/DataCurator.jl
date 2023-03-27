@@ -2,5 +2,6 @@
 act_on_success=true
 inputdirectory = "testdir"
 [any]
+# Conditions and actions need to be paired, but you can compose multiple actions with `all` in a nested format like so:
 conditions=[["all",  "isfile", "is_csv_file"]]
 actions=[["all", ["log_to_file", "csvs.txt"], ["log_to_file", "all.txt"]]]

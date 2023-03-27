@@ -1,3 +1,5 @@
+# You can use Slack to send summaries, but also to do per-condition actions. 
+# Use wisely, you don't want to send 1e6 notifications.
 [global]
 act_on_success=true
 inputdirectory = "testdir"

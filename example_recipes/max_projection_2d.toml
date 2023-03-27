@@ -1,4 +1,5 @@
 
+# Max prooject an image stack (which collects tif files)
 [global]
 act_on_success=true
 file_lists = [{name="3dstack.tif", aggregator=["reduce_images", "maximum"]}]

@@ -1,6 +1,9 @@
 
 [global]
 act_on_success=true
+# We covered computing intensity statistics, but often you want a basic estimate of objects as well.
+# These aggregators do both, describe images, and describe objects, and save the results in CSV tables for you with the file name as a column.
+# Uses connected compoments to find objects.
 file_lists = [{name="objects", aggregator=[["describe_objects",
                                           "concat_to_table"]]},
               {name="channels", aggregator=[["describe_image",

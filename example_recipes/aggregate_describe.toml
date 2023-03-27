@@ -1,12 +1,11 @@
 
 [global]
 act_on_success=true
+# A common workflow in image processing is describing the intensity distribution, this aggregator will do that, and save the concatenated results to a CSV file with the name of each file as well as the summary stats.
 file_lists = [{name="image_stats", transformer=["describe_image", 3], aggregator="concat_to_table"}]
 inputdirectory = "testdir"
 [any]
 all=true
 # conditions=[["endswith", "*.tif"]]
 conditions = ["is_tif_file"]
-# actions=[["count", "c1"]]
 actions=[["add_to_file_list", "image_stats"]]
-#actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]

@@ -1,13 +1,17 @@
+# Minimal example of how you enforce a hierarchical template
 [global]
 act_on_success=false
 inputdirectory = "testdir"
 hierarchical=true
+# Anything not covered below
 [any]
 conditions = ["never"]
 actions=["show_warning"]
+# Top directory (`inputdirectory`)
 [level_1]
 conditions = ["isdir"]
 actions = ["show_warning"]
+# First subdirectory
 [level_2]
 conditions = ["isfile"]
 actions = ["show_warning"]

@@ -1,5 +1,8 @@
 
 [global]
+# A frequent task is to extract files to process for batch processing, and build lists for e.g. SLURM to process in array jobs that can take weeks to run. 
+# This tells DataCurator to do that for you, build in and output lists, that match each other, and can be used to run batch jobs.
+# `sort` and unique are used to remove duplicates, and `shared_list_to_file` is used to build the lists.
 act_on_success=true
 file_lists = [{name="table", aggregator=[["filepath",
                                           "sort",

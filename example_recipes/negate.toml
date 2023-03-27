@@ -4,5 +4,6 @@ inputdirectory = "testdir"
 regex=true
 [any]
 all=true
+# You can negate conditions with "not"
 conditions = ["isfile", ["not", "endswith", ".*.txt"]]
 actions = [["flatten_to", "outdir"], "warn_on_fail"]

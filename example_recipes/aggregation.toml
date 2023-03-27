@@ -6,7 +6,9 @@ parallel=false
 file_lists=["inlist", ["outlist", "/tmp/output"], ["t", "concat_to_table"]]
 regex=true
 [any]
+# You can also remove files, obviously as a last step of your actions.
 # Whatever is not defined below, e.g. too deep of a level --> fail and delete
 all=true
 conditions=["never"]
+# Files pass through these actions LEFT-TO-RIGHT, if you modify a file in place, be aware that this will propagate through your actions.
 actions=["show_warning", ["log_to_file_with_message", "errors.txt", "Unexpected file/directory"], "remove"]

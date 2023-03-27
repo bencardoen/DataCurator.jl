@@ -4,8 +4,5 @@ file_lists = [{name="table", transformer=["extract_columns", ["x1"]], aggregator
 inputdirectory = "testdir"
 [any]
 all=true
-# conditions=[["endswith", "*.tif"]]
 conditions = ["is_csv_file"]
-# actions=[["count", "c1"]]
 actions=[["add_to_file_list", "table"]]
-#actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]

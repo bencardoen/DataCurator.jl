@@ -6,4 +6,7 @@ act_on_success=true
 inputdirectory = "testdir"
 [any]
 conditions=["is_tif_file"]
+# You can transform both the file name, AND the content of the file, using this context. 
+# This will only work if DataCurator can understand your file type, it will try common types first, then try to use the file extension to guess the type.
+# 'coyp' mode will copy the transformed file, not work inplace
 actions=[{name_transform=["tolowercase"], content_transform=[["reduce_image", ["maximum", 2]], "mask"], mode="copy"}]

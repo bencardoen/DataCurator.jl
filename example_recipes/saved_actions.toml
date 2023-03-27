@@ -2,6 +2,7 @@
 act_on_success=true
 inputdirectory = "testdir"
 outputdirectory = "outputdir"
+# Actions and conditions can be saved/defined once, to be reused later
 common_actions = {react=[["all", "show_warning", ["log_to_file", "errors.txt"], "remove"]]}
 common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]]}
 [any]

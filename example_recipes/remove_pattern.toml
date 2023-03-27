@@ -1,3 +1,5 @@
+# Find files matching a pattern that you don't like, remove the pattern, and copy the renamed file
+# If you're good with bash/Linux tools, you could do this with grep/find/xargs/cp, but it'd involved a regex or two and probably not quite do what you wanted, as regexes tend to increase problems before they solve them.
 [global]
 act_on_success=true
 inputdirectory = "testdir"

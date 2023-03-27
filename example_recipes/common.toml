@@ -1,3 +1,6 @@
+# Don't repeat yourself
+# Often you have conditions or actions that you use in multiple place, you can define those ahead of time. 
+# This avoids making an edit in one place, and not propagate it to the rest of the recipe.
 [global]
 act_on_success=true
 inputdirectory = "testdir"
@@ -8,5 +11,6 @@ common_actions = {do_on_invalid=[["all", "show_warning", ["log_to_file", "errors
 common_conditions = {is_3d_channel=[["all", "is_tif_file", "is_3d_img", "filename_ends_with_integer"]], dir_only=[["all", "isdir", ["not", "is_hidden"]]]}
 [any]
 all=true
+# As a bonus, this keeps your actual template cleaner looking
 conditions=["is_3d_channel", "dir_only"]
 actions=["do_on_invalid"]

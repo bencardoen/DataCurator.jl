@@ -2,11 +2,7 @@
 [global]
 act_on_success=true
 owncloud_configuration="owncloud.json"
-# file_lists = [{name="table", aggregator=[["filepath",
-                                          # "sort",
-                                          # "unique",
-                                          # "shared_list_to_file",
-                                          # "upload_to_owncloud"]]}]
+# SCP upload, instead of owncloud. This requires that you have SSH configured between the target systems.
 file_lists = [{name="table", aggregator=[["shared_list_to_table","upload_to_scp"]]}]                                    
 inputdirectory = "testdir"
 [any]

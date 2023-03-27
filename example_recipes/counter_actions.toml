@@ -1,3 +1,5 @@
+# So far you've seen IF <condtiion> DO <action>
+# But you can also do both, e.g. IF <condition> DO <action> ELSE DO <counter_action> 
 [global]
 act_on_success=true
 inputdirectory = "testdir"

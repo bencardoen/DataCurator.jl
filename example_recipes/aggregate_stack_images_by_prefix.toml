@@ -1,6 +1,7 @@
 
 [global]
 act_on_success=true
+# Stacking 2D images is fine, but often these are indexed by a prefix (e.g. "slice_001.tif", "slice_002.tif", etc.), this aggregator will stack all images sorted by prefix.
 file_lists = [{name="slices", aggregator="stack_images_by_prefix"}]
 inputdirectory = "testdir"
 [any]

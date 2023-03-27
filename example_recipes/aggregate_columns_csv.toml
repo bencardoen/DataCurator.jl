@@ -1,9 +1,12 @@
 [global]
 act_on_success=true
+# Create an aggregator that groups a dataframe by 2 columns, and computes the sum of the third.
 file_lists = [{name="table", transformer=["groupbycolumn", ["x1", "x2"], ["x3"], ["sum"], ["x3_sum"]], aggregator="concat_to_table"}]
 inputdirectory = "testdir"
+# Uploads to Owncloud with these credentials
 owncloud_configuration = "owncloud.json"
 [any]
 all=true
+# Any CSV files, at any level of the data. Note, it's up to you that these files have the columns used in the aggrator!. You can use has_columns_named to check for this.
 conditions = ["is_csv_file"]
 actions=[["add_to_file_list", "table"]]

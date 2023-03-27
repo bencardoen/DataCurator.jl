@@ -1,3 +1,4 @@
+# You have a deep dataset structure, and you want to flatten it to a single directory, but only the files you specify.
 [global]
 act_on_success = true
 inputdirectory = "testdir"

@@ -1,12 +1,9 @@
 
 [global]
 act_on_success=true
+# Should have your Owncloud credentials
 owncloud_configuration="owncloud.json"
-# file_lists = [{name="table", aggregator=[["filepath",
-                                          # "sort",
-                                          # "unique",
-                                          # "shared_list_to_file",
-                                          # "upload_to_owncloud"]]}]
+# Aggregation is fine, but usually you want to have the result handy, so why not upload to owncloud?
 file_lists = [{name="table", aggregator=[["shared_list_to_table","upload_to_owncloud"]]}]                                    
 inputdirectory = "testdir"
 [any]

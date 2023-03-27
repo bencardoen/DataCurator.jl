@@ -1,3 +1,4 @@
+# Shells scripts can be sensitive to spaces in names, this replaces those with `_` and lowercases the name
 [global]
 act_on_success=true
 inputdirectory = "testdir"

@@ -1,12 +1,10 @@
 
 [global]
 act_on_success=true
+# Stack 2D images to 3D, in order of traversal. If you want a different order, use the "sort" or unique actions.
 file_lists = [{name="3dstack.tif", aggregator="stack_images"}]
 inputdirectory = "testdir"
 [any]
 all=true
-# conditions=[["endswith", "*.tif"]]
 conditions = ["is_tif_file"]
-# actions=[["count", "c1"]]
 actions=[["add_to_file_list", "3dstack.tif"]]
-#actions=[["count", "c1"], ["count", "c2"], ["add_to_file_list", "infiles"], ["add_to_file_list", "outfiles"]]

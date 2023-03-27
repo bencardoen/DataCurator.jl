@@ -2,7 +2,7 @@
 act_on_success=true
 inputdirectory = "testdir"
 [any]
-# Whatever is not defined below, e.g. too deep of a level --> fail and delete
+# You often do not need all of your content, e.g. 1 out of 128 columns. You can specify in words what kind of filter conditions you want applied to extract your data
 all=true
 conditions=["is_csv_file", "has_upper"]
 actions=[{name_transform=["tolowercase"], content_transform=[["extract", ["x1", "less", 10]]], mode="copy"}]

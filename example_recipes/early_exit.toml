@@ -1,3 +1,6 @@
+# Sometimes you just want to halt on first failure, if you're quickly testing an assumption or validity of your data. 
+# Early exit allows you to do just that.
+# Bottomup means you start at the deepest level first, and work your way up.
 [global]
 act_on_success = true
 inputdirectory = "testdir"

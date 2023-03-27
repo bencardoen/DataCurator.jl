@@ -1,8 +1,10 @@
 [global]
 act_on_success=true
 inputdirectory = "testdir"
+# Expects SSH configuration in JSON format
 scp_configuration = "ssh.json"
 [any]
 all=true
 conditions = ["is_csv_file"]
+# Upload files, but change their path to the remote path
 actions=[["change_path", "/home/bcardoen/scratch"], "upload_to_scp"]
