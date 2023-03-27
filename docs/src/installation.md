@@ -62,7 +62,7 @@ export R_HOME="*"
 **Note** this may not always work, because it involves creating a Conda environment from scratch with R and Python, this can fail with timeouts, for example.
 
 
-The below assumes you know how to use git, and have Julia installed.
+The below assumes you know how to use git, and have [Julia installed](https://julialang.org/downloads/).
 #### Cloning repository
 ```bash
 git clone git@github.com:bencardoen/DataCurator.jl.git ## Assumes ssh
