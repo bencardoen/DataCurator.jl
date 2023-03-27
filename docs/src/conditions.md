@@ -124,25 +124,6 @@ save_tables_to_sqlite="yourdbfile"
 The [testcases](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes/database.toml) have an example recipe that can get you started.
 
 ```toml
-<<<<<<< HEAD
-# This workflow demonstrates the support for SQLite3 databases
-[global]
-act_on_success=true
-# Create an aggregator that will extract the table 'temp' from any database passed to it
-file_lists = [{name="table", transformer=["extract_sql_as_dataframe", "select * from temp"], aggregator="concat_to_table"}]
-inputdirectory = "testdir"
-# The aggregator `table` is by default saved to CSV, override it so we save the output to a new or existing SQLite db
-save_tables_to_sqlite="test.db" # Save aggregated tables to this SQLite database
-[any]
-all=true
-# Find all SQLite3 databases with a table `temp`
-conditions = ["is_file", "is_sqlite", ["sqlite_has_tables", ["temp"]]]
-# Aggregate them 
-actions=[["->", "table"]]
-```
-
-**Note** As of writing, this support is in **beta**, if you encounter bugs or need extra functionality, [please make an issue](https://github.com/bencardoen/DataCurator.jl/issues/new/choose).
-=======
 #This workflow finds SQLite3 databases, if they have a table named `temp`, and runs an SQL query before sending them to an aggregator.
 [global]
 act_on_success=true
@@ -162,7 +143,6 @@ actions=[["->", "table"]]
 ```
 
 **Note** As of writing, this support is in beta, if you encounter bugs or need extra functionality, please make an issue.
->>>>>>> sqlite
 
 #### Image operations
 These operations fall into 3 categories:
