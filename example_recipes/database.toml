@@ -8,7 +8,8 @@ inputdirectory = "testdir"
 save_tables_to_sqlite="test.db" # Save aggregated tables to this SQLite database
 [any]
 all=true
-# Find all SQLite3 databases with a table `temp`
-conditions = ["is_file", "is_sqlite", ["sqlite_has_tables", ["temp"]]]
+# Test if the file is a SQLite database, if it has a table named `temp`, and if it has 5 rows where x2 = 0
+# If so, send it to the aggregator
+conditions = ["is_file", "is_sqlite", ["sqlite_has_tables", ["temp"]], ["has_n_rows","SELECT * FROM temp WHERE x2 = 0", 5]]
 # Aggregate them 
 actions=[["->", "table"]]
