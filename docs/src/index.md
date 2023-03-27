@@ -5,10 +5,10 @@ A multithreaded package to validate, curate, and transform large heterogeneous d
 
 # Table of contents
 - [Installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md)
-- [Usage](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/usage.md)
-- [Conditions](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/conditions.md)
-- [Example Recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md)
-- [Remote usage](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/remote.md)
+- [Example Recipe -- detailed walkthrough](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md)
+- [Conditions & Rules : your toolbox of options to check, and actions you can perform](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/conditions.md)
+- [Usage -- How to use the Julia API if you need to](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/usage.md)
+- [Remote usage: posting to Slack, Owncloud, SSH/SCP](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/remote.md)
 - [Using Python or R](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/extending.md)
 
 ```@contents
