@@ -1683,4 +1683,21 @@ correctpath()
         cts, cls, rv = delegate(c, t)
         delete_folder(IN)
     end
+
+    @testset "sqlite_queries" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        dt = DataFrame(zeros(5, 2), :auto);
+        # IN = "/dev/shm"
+        rm(joinpath(IN, "testx2.db"), force=true)
+        dataframe_to_sqlite(dt, joinpath(IN, "testx2.db"), "temp")
+        df = evaluate_sql(joinpath(IN, "testx2.db"), "SELECT * FROM temp")
+        @test greater_or_equal_than_n_rows(joinpath(IN, "testx2.db"), "SELECT * FROM temp WHERE x2 = 0", 5) == true
+        @test less_than_n_rows(joinpath(IN, "testx2.db"), "SELECT * FROM temp WHERE x2 = 0", 5) == false
+        @test has_n_rows(joinpath(IN, "testx2.db"), "SELECT * FROM temp WHERE x2 = 0", 5) == true
+        delete_folder(IN)
+    end
 end
