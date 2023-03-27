@@ -80,16 +80,16 @@ Optionally with `--project=.` if you're installing in a local env.
 #### Advanced usage/troubleshooting
 
 ##### I want to modify the container
-Let's say you want to add 4GB of writeable changes.
+Let's say you want to add 4GB of writeable changes, for example to include your own Python, Julia, or R packages. Or perhaps you want to update the packages (e.g. compiler) inside the container.
 ```bash
-singularity overlay create --size 4096 datacurator.sif
-sudo singularity shell --writable datacurator.sif
-Singularity>
+singularity overlay create --size 4096 datacurator.sif # Adds 4G of writeable space that is overlaid on top of the source image
+sudo singularity shell --writable datacurator.sif      # Any changes are written in the overlay
+Singularity>                                           # Enter shell commands that change state, as long as you don't change more than 4GB, you can do anything
 ```
 
 ##### I want to change the image
 See [buildimage.sh](https://github.com/bencardoen/DataCurator.jl/tree/main/buildimage.sh) and [recipe.def](https://github.com/bencardoen/DataCurator.jl/tree/main/singularity/recipe.def) on how the images are built if you want to modify them.
-
+This script needs singularity installed, as well as git, zip, and wget.
 ```bash
 ./buildimage.sh # needs root
 ```
@@ -105,28 +105,21 @@ If you use this often, use a environment variable:
  export SINGULARITY_BIND="/opt,/data:/mnt"
 ```
 
-##### It's so slow on first run !!
-If you use DataCurator as a Julia package or cloned repository, on first run Julia needs to compile functions and load packages. If you process large datasets, this cost (up to 20s) is meaningless. However, for smaller use case it can be annoying.
+##### It's so slow on first run !! (without the image)
+If you use DataCurator as a Julia package or cloned repository, on first run Julia needs to compile functions and load packages. If you process large datasets, this cost (up to 20s) is meaningless. However, for smaller use cases it can be annoying.
 
-We avoid this cost by using [PackageCompiler.jl] by
-- run a typical example of DataCurator so Julia sees which functions are common
-- precompile all major dependencies into a system image
-- tell Julia to use that image instead.
+The short answer is that we precompile all tested code for you in the Singularity image, if you want to replicate this you can check the [recipe.def](https://github.com/bencardoen/DataCurator.jl/tree/main/singularity/recipe.def) file. 
+Note that this does require extra installation steps, included in that script.
 
-This is automated in the Singularity image, but for completeness:
+Precompiling can take up to 10-15 minutes, but is a one-time cost, and does not limit portability. 
+A clear advantage is that you will run compiled code, not interpreted code, so the performance boost can be quite significant for code that is called only a few times but does heavy processing.
+
+##### How do I control the number of threads ?
+Use the environment variable `JULIA_NUM_THREADS=k` like so:
 ```bash
-julia --project=. src/mktest.jl
-julia --project=. --trace-compile=dc_precompile.jl src/curator.jl -r example_recipes/aggregate_new_api.toml
-julia --project=. src/setupimage.jl
+export JULIA_NUM_THREADS=5
 ```
-Now when you want to run DataCurator, do:
-```bash
-julia --project=/opt/DataCurator.jl --sysimage /opt/DataCurator.jl/sys_img.so /opt/DataCurator.jl/src/curator.jl --recipe <YOURRECIPE.TOML>
-```
-Please do not copy these instructions, rather check the [buildimage.sh](https://github.com/bencardoen/DataCurator.jl/tree/main/buildimage.sh) script to see how it's done on the fly.
-Second, Precompile.jl means you will need a development environment, including but not limited to C++ compilers.
-That is all taken care of for you in the singularity image.
-
+If you want to disable multithreading, just set parallel=false in your recipe.
 
 #### Optional
 If you wish to use the remote capabilities (Owncloud, Slack, SCP), you need [curl](https://curl.se/download.html), [scp, and ssh](https://www.openssh.com/) installed and configured
