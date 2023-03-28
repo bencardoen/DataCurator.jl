@@ -1,7 +1,6 @@
 version: 2.1
 orbs:
   codecov: codecov/codecov@3.0.0
-  mac-permissions: circleci/macos
 jobs:
   build:
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
@@ -25,12 +24,11 @@ jobs:
           command: julia -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; Codecov.submit(Codecov.process_folder())'
           
 
-  build-mac:
+  buildmac:
     macos:
       xcode: 14.2.0
+
     steps:
-        - checkout
-        - run: echo 'chruby ruby-2.7' >> ~/.bash_profile
-        - mac-permissions/add-uitest-permissions
-        - run: bundle install
-        - run: bundle exec fastlane testandbuild          
+      # Commands will execute in macOS container
+      # with Xcode 14.2.0 installed
+      - run: xcodebuild -version
