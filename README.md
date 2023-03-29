@@ -81,7 +81,7 @@ Test by typing `singularity --version`. This will return `singularity version 3.
 
 #### Download the DataCurator container
 ```bash
-singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
+singularity pull datacurator.sif library://bcvcsert/datacurator/datacurator:latest
 ```
 #### Set executable
 ```bash
