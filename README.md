@@ -71,7 +71,7 @@ repository
 ## Quickstart with Singularity
 The recommended and simplest way to use DataCurator is via the Singularity container. (Note: DataCurator is only supported in a command line interface of a UNIX-based system.)
 
-#### Installing Singularity
+#### Install Singularity
 If you don't already have Singularity, install by 
 ```bash
 wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
@@ -79,7 +79,7 @@ sudo apt-get install ./singularity-container_3.8.7_amd64.deb
 ```
 Test by typing `singularity --version`. This will return `singularity version 3.8.7`
 
-#### Downloading the container
+#### Download the DataCurator container
 ```bash
 singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
 ```
@@ -87,7 +87,9 @@ singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
 ```bash
 chmod u+x ./datacurator.sif
 ```
-#### Copy an example recipe
+
+### Testing DataCurator with a minimal example 
+#### Copy the example recipe
 ```bash
  wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml
 ```
