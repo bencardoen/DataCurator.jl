@@ -6,8 +6,24 @@ Singularity images, unlike Docker images, can be run without root privileges, an
 If you follow this workflow, the installation is as simple as downloading the container image.
 
 #### Prerequisites
-* Get [Singularity](https://apptainer.org/user-docs/master/quick_start.html)
-* Get the latest [Singularity image](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator):
+You need Singularity, first.
+##### Linux or WSL
+The following works Debian based Linux or Windows Subsystem for Linux (WSL) 2.
+```bash
+wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
+sudo apt-get install ./singularity-container_3.8.7_amd64.deb
+```
+Test if it works
+```bash
+singularity --version
+```
+This will show
+```bash
+singularity version 3.8.7
+```
+##### Windows or Mac
+Please follow the Singularity instructions:
+* Get [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac)
  
  #### Get DataCurator
  Using the singularity CLI
@@ -17,7 +33,7 @@ singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
 or visit [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
 #### Set executable
 ```bash
-chmod u+x ./datacurator.sif
+chmod u+x ./datacurator_latest.sif
 ```
 #### Copy an example recipe
 ```bash

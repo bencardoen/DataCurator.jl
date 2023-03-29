@@ -22,3 +22,13 @@ jobs:
             PYTHON : "/usr/bin/python3"
       - run:
           command: julia -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; Codecov.submit(Codecov.process_folder())'
+          
+
+  buildmac:
+    macos:
+      xcode: 14.2.0
+
+    steps:
+      # Commands will execute in macOS container
+      # with Xcode 14.2.0 installed
+      - run: xcodebuild -version
