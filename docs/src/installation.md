@@ -25,15 +25,17 @@ singularity version 3.8.7
 Please follow the Singularity instructions:
 * Get [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac)
  
+**Note** Mac+M2 chips may not work reliably with Virtualbox/Vagrant. 
+ 
  #### Get DataCurator
  Using the singularity CLI
 ```bash
-singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
+singularity pull datacurator.sif library://bcvcsert/datacurator/datacurator:latest
 ```
 or visit [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
 #### Set executable
 ```bash
-chmod u+x ./datacurator_latest.sif
+chmod u+x ./datacurator.sif
 ```
 #### Copy an example recipe
 ```bash
