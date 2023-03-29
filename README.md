@@ -69,8 +69,7 @@ repository
 
 <a name="quickstart"></a>
 ## Quickstart with Singularity
-DataCurator is currently supported only in Unix-based systems with a command line environment. (ex. Linux, MacOs, WSL).
-The recommended and simplest way to use DataCurator is via the Singularity container. 
+The recommended and simplest way to use DataCurator is via the Singularity container. (Note: DataCurator is only supported in a command line interface of a UNIX-based system.)
 
 #### Installing Singularity
 If you don't already have Singularity, install by 
