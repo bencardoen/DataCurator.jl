@@ -43,6 +43,7 @@ From: fedora:35
     rm -rf /tmp/testdataset
     #Compute precompile
     julia --project=$LOCALPKG scripts/setupimage.jl
+    chmod -R 755 /opt/DataCurator.jl
     rm -rf /opt/juliadepot/logs
     ln -s /dev/shm/ /opt/juliadepot/logs
 
