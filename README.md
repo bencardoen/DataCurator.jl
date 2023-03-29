@@ -31,10 +31,8 @@ Code coverage (which parts of the source code are tested) : [![codecov](https://
 You can find the container image at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
 
 ## Documentation
-### Markdown
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) (clickable link)
-The documentation in markdown makes it easier to reuse code snippets.
-See [documentation source folder](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) and the [examples](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes)
+You can also view the documented [example recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes)
 
 ## What to find where
 ```bash
