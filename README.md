@@ -57,16 +57,14 @@ repository
 
 ## Table of Contents
 1. [Quickstart](#quickstart)
-2. [Installation](#installation)
 2. [Troubleshooting](#faq)
 
 <a name="installation"></a>
 ## Quickstart
 For a complete walkthrough, please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md).
 The below steps work if you have access to a command line environment (WSL on Windows, Bash on Linux/MacOs). 
-
-* Get [Singularity](https://apptainer.org/user-docs/master/quick_start.html)
-* Get the latest [Singularity image](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator):
+This assumes you have completed the [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
+If not, please do this first.
  
 ```bash
 singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
@@ -93,10 +91,6 @@ That should show output similar to
 ![Results](outcome.png)
 
 The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml)
-
-<a name="installation"></a>
-### Installation
-Please the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
 
 <a name="faq"></a>
 ## Troubleshooting
