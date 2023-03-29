@@ -11,7 +11,16 @@ DataCurator is a Swiss army knife that ensures:
 - human readable `recipes` for future reproducibility
 - validation huge datasets at high speed
 - out-of-the-box operation without the need for code or dependencies
+## Table of Contents
+1. [Preprint](#preprint)
+2. [Status](#status)
+3. [Singularity Image](#image)
+4. [Documentation](#docs)
+5. [What to Find Where](#map)
+7. [Quickstart](#quickstart)
+8. [Troubleshooting](#faq)
 
+<a name="preprint"></a>
 ## Preprint
 You can find our preprint [here](https://www.researchgate.net/publication/368557426_DataCuratorjl_Efficient_portable_and_reproducible_validation_curation_and_transformation_of_large_heterogeneous_datasets_using_human-readable_recipes_compiled_into_machine_verifiable_templates)
 
@@ -21,19 +30,23 @@ You can find our preprint [here](https://www.researchgate.net/publication/368557
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7527517.svg)](https://doi.org/10.5281/zenodo.7527517)
 
+<a name="status"></a>
 ## Status
 The outcome of automated tests : [![CircleCI](https://dl.circleci.com/status-badge/img/gh/bencardoen/DataCurator.jl/tree/main.svg?style=svg&circle-token=fd1f85a0afddb5f49ddc7a7252aad2a1ddaf80f9)](https://dl.circleci.com/status-badge/redirect/gh/bencardoen/DataCurator.jl/tree/main)
 
 Code coverage (which parts of the source code are tested) : [![codecov](https://codecov.io/gh/bencardoen/DataCurator.jl/branch/main/graph/badge.svg?token=GI7MQH1VNA)](https://codecov.io/gh/bencardoen/DataCurator.jl)
 
+<a name="image"></a>
 ## Singularity Image
 
 You can find the container image at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
 
+<a name="docs"></a>
 ## Documentation
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) (clickable link)
 You can also view the documented [example recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes)
 
+<a name="map"></a>
 ## What to find where
 ```bash
 repository
@@ -50,11 +63,6 @@ repository
 └── runjulia.sh                  ## Required for Singularity image
 └── buildimage.sh                ## Rebuilds singularity image for you (Needs root !!)
 ```
-
-
-## Table of Contents
-1. [Quickstart](#quickstart)
-2. [Troubleshooting](#faq)
 
 <a name="installation"></a>
 ## Quickstart
