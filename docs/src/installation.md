@@ -33,7 +33,7 @@ singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
 or visit [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
 #### Set executable
 ```bash
-chmod u+x ./datacurator.sif
+chmod u+x ./datacurator_latest.sif
 ```
 #### Copy an example recipe
 ```bash
