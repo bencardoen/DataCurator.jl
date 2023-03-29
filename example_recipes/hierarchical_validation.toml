@@ -3,7 +3,7 @@
 act_on_success=false
 inputdirectory = "testdir"
 hierarchical=true
-# Anything not covered below
+# Anything not covered below 
 [any]
 conditions = ["never"]
 actions=["show_warning"]

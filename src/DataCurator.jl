@@ -2652,10 +2652,10 @@ function create_template_from_toml(tomlfile)
         return nothing
     end
     if glob["hierarchical"]
-        @info "Hierarchical template"
+        @info "Hierarchical recipe detected"
         template = extract_template(config, glob)
     else
-        @info "Flat template"
+        @info "Flat recipe detected"
         if ~haskey(config, "any")
             @error "No section with conditions/actions specified, please add a section [any] with conditions, actions."
             return nothing
@@ -3058,9 +3058,10 @@ function validate_global(config)
             return nothing
         end
         if ~isabspath(indir)
-            @warn "🤨 Input directory is not an absolute path, resolving to absolute path"
+            # @info "🤨 Input directory is not an absolute path, resolving to absolute path"
             ab = abspath(indir)
-            @warn "...$indir -> $ab ✓"
+            @info "🤨 Input directory is not an absolute path, resolving to absolute path .$indir -> $ab"
+            # @warn "...$indir -> $ab ✓"
             indir = ab
         end
         glob_defaults["inputdirectory"] = indir
