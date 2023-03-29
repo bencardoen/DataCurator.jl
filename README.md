@@ -66,6 +66,8 @@ The below steps work if you have access to a command line environment (WSL on Wi
 This assumes you have completed the [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
 If not, please do this first.
  
+ 
+#### Downloading the container
 ```bash
 singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
 ```
