@@ -11,6 +11,9 @@ DataCurator is a Swiss army knife that ensures:
 - human readable `recipes` for future reproducibility
 - validation huge datasets at high speed
 - out-of-the-box operation without the need for code or dependencies
+
+DataCurator is currently supported only in Unix-based systems with a command line environment. (ex. Linux, MacOs, WSL).
+
 ## Table of Contents
 1. [Preprint](#preprint)
 2. [Status](#status)
@@ -65,12 +68,18 @@ repository
 ```
 
 <a name="installation"></a>
-## Quickstart
-For a complete walkthrough, please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md).
-The below steps work if you have access to a command line environment (WSL on Windows, Bash on Linux/MacOs). 
-This assumes you have completed the [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
-If not, please do this first.
-  
+## Quickstart via Singularity
+DataCurator is currently supported only in Unix-based systems with a command line environment. (ex. Linux, MacOs, WSL).
+The recommended and simplest way to use DataCurator is via the Singularity container. 
+
+#### Installing Singularity
+If you don't already have Singularity, install by 
+```bash
+wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
+sudo apt-get install ./singularity-container_3.8.7_amd64.deb
+```
+Test by typing `singularity --version`. This will return `singularity version 3.8.7`
+
 #### Downloading the container
 ```bash
 singularity pull --arch amd64 library://bcvcsert/datacurator/datacurator:latest
@@ -97,6 +106,8 @@ That should show output similar to
 ![Results](outcome.png)
 
 The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml)
+
+For a complete walkthrough, please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md).
 
 <a name="faq"></a>
 ## Troubleshooting
