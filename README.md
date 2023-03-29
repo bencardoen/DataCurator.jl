@@ -67,7 +67,7 @@ repository
 └── buildimage.sh                ## Rebuilds singularity image for you (Needs root !!)
 ```
 
-<a name="installation"></a>
+<a name="quickstart"></a>
 ## Quickstart via Singularity
 DataCurator is currently supported only in Unix-based systems with a command line environment. (ex. Linux, MacOs, WSL).
 The recommended and simplest way to use DataCurator is via the Singularity container. 
