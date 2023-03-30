@@ -2266,7 +2266,7 @@ function delegate(config, template)
     if rval == :quit
         @warn "⚠ Dataset processing stopped early per your conditions"
     else
-        @info "Dataset processing completed without early exit"
+        @debug "Dataset processing completed without early exit"
     end
     #@debug "Changing back to current directory $CWD"
     cd(CWD)
@@ -2426,14 +2426,14 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
 		#@debug "Loaded table with dim $(size(tb)) and columns $(names(tb))"
         push!(tables, tb)
     end
-    @info "Saving total of $(length(tables)) to $name csv"
+    @debug "Saving total of $(length(tables)) to $name csv"
     DF = vcat(tables...)
     if ~endswith(name, ".csv")
         #@debug "Postfixing .csv"
         name="$(name).csv"
     end
-    @info "Writing to $name"
-    "Current path = $(pwd()))"
+    @info "Writing aggregated tables to $name"
+    # "Current path = $(pwd()))"
     if haskey(ENV, "DC_write_to_sqlite")
         @info "Saving to SQLite"
         dbname = ENV["DC_write_to_sqlite"]
