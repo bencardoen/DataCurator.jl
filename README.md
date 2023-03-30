@@ -18,7 +18,7 @@ DataCurator is currently supported only in Unix-based systems with a command lin
 1. [Preprint](#preprint)
 2. [Status](#status)
 3. [Singularity Image](#image)
-4. [Documentation](#docs)
+4. [Documentation (including installation)](#docs)
 5. [What to Find Where](#map)
 7. [Quickstart via Singularity](#quickstart)
 8. [Troubleshooting](#faq)
