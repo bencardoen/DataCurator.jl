@@ -54,8 +54,8 @@ jobs: # a basic unit of work in a run
           environment:
             R_HOME : "*"
             PYTHON : "/usr/bin/python3"
-      - run:
-          command: julia -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; Codecov.submit(Codecov.process_folder())'
+      #- run:
+          #command: julia -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; Codecov.submit(Codecov.process_folder())'
           
   
 # build:
