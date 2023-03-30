@@ -56,7 +56,7 @@ jobs:
   #         julia --project=. -e 'using Pkg; Pkg.test("DataCurator");'
           
           
- workflows:
+workflows:
   test_all:
     jobs:
       - build:
