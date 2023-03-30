@@ -1,12 +1,46 @@
 version: 2.1
-orbs:
-  codecov: codecov/codecov@3.0.0
-jobs:
-  build:
+
+jobs: # a basic unit of work in a run
+  mac: # your job name
+    macos:
+      xcode: 14.2.0 # indicate your selected version of Xcode
+    steps: # a series of commands to run
+      - checkout  # pull down code from your version control system.
+    
+      - run: |
+          # Install R
+          wget https://cran.r-project.org/bin/macosx/base/R-4.2.3.pkg
+          sudo installer -pkg R-4.2.3.pkg -target /
+          export R_HOME=`R RHOME`
+          # Install Julia
+          wget https://julialang-s3.julialang.org/bin/mac/x64/1.8/julia-1.8.5-mac64.tar.gz && tar -xzf julia-1.8.5-mac64.tar.gz
+          cd  julia-1.8.5/bin
+          export PATH="$PATH:`pwd`"
+          # Install Python
+          wget https://www.python.org/ftp/python/3.10.10/python-3.10.10-macos11.pkg
+          sudo installer -pkg python-3.10.10-macos11.pkg -target /
+          export PYTHON="/usr/bin/python3"
+          /usr/bin/pip3 install smlmvis
+          /usr/bin/pip3 install meshio
+          cd
+          mkdir test
+          cd test
+          # Check that dependencies (Python/R) work
+          julia --project=. -e 'using Pkg; Pkg.add("PyCall"); Pkg.add("RCall");'
+          julia --project=. -e 'using PyCall; pyimport("smlmvis")'
+          # Add Julia Dependencies
+          julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git");'
+          # Add DC
+          julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git");' 
+          # Run tests
+          julia --project=. -e 'using Pkg; Pkg.test("DataCurator");'
+         
+  linux: 
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
     docker:
       - image: julia:1.8
-    steps:
+    steps: 
+      - checkout
       - run: pwd
       - run: ls -alsht
       - run: apt update
@@ -23,40 +57,34 @@ jobs:
       - run:
           command: julia -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; Codecov.submit(Codecov.process_folder())'
           
-  # buildmac:
-  #   macos:
-  #     xcode: 14.2.0 # indicate your selected version of Xcode
-  #   steps: 
-  #     - run: |
-  #         # Install R
-  #         wget https://cran.r-project.org/bin/macosx/base/R-4.2.3.pkg
-  #         sudo installer -pkg R-4.2.3.pkg -target /
-  #         export R_HOME=`R RHOME`
-  #         # Install Julia
-  #         wget https://julialang-s3.julialang.org/bin/mac/x64/1.8/julia-1.8.5-mac64.tar.gz && tar -xzf julia-1.8.5-mac64.tar.gz
-  #         cd  julia-1.8.5/bin
-  #         export PATH="$PATH:`pwd`"
-  #         # Install Python
-  #         wget https://www.python.org/ftp/python/3.10.10/python-3.10.10-macos11.pkg
-  #         sudo installer -pkg python-3.10.10-macos11.pkg -target /
-  #         export PYTHON="/usr/bin/python3"
-  #         /usr/bin/pip3 install smlmvis
-  #         /usr/bin/pip3 install meshio
-  #         cd
-  #         mkdir test
-  #         cd test
-  #         # Check that dependencies (Python/R) work
-  #         julia --project=. -e 'using Pkg; Pkg.add("PyCall"); Pkg.add("RCall");'
-  #         julia --project=. -e 'using PyCall; pyimport("smlmvis")'
-  #         # Add Julia Dependencies
-  #         julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git");'
-  #         # Add DC
-  #         julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git");' 
-  #         # Run tests
-  #         julia --project=. -e 'using Pkg; Pkg.test("DataCurator");'
+  
+# build:
+#     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
+#     docker:
+#       - image: julia:1.8
+#     steps:
+#       - run: pwd
+#       - run: ls -alsht
+#       - run: apt update
+#       - run: apt install python3 -y
+#       - run: apt install python3-pip -y
+#       - run: pip3 install smlmvis
+#       - run: pip3 install meshio
+# #   build: 
+#     macos:
+#       xcode: 14.2.0 # indicate your selected version of Xcode
+#     steps: 
+#       - checkout
+#       - run:
+#          # build our application
+#          name: Build Application
+#          command: echo "Hi"
+
           
-          
- workflows:
-  test_all:
+workflows:
+  test_build:
     jobs:
-      - build:
+      - mac
+      - linux:
+          requires:
+            - mac
