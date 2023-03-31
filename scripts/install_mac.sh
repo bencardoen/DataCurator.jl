@@ -16,17 +16,16 @@
 
 set -xeuo pipefail
 
-
+echo "Assumes you have wget installed"
 # This script installs the dependencies for DataCurator on a Mac
 
+# Test if you're using ARM (M1) or Intel, which will determine which R and Julia to install
 USE_M1=0
 if [[ $(uname -m) == 'arm64' ]]; then
     echo "Using M1/arm64"
     USE_M1=1
 fi
 
-
-# Requirements : wget, sudo, pip3
     
 ## Testing if R is present
 if [ -f "/usr/local/bin/R" ]; then
@@ -52,6 +51,7 @@ else
 fi
 cd  julia-1.8.5/bin
 export PATH="$PATH:`pwd`"
+echo "Updated path to $PATH"
 
 # Test if /usr/bin/python3 is available
 if [ -f "/usr/bin/python3" ]; then
@@ -82,3 +82,4 @@ julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/Data
 echo "Done"
 echo "Julia environment with DataCurator is installed in `pwd`"
 echo "Usage : julia --project=. -e 'using DataCurator;'"
+echo "Make sure you update your PATH to $PATH !!"
