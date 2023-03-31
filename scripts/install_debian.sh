@@ -24,7 +24,9 @@ echo "Assumes you have wget installed"
 R_HOME : "*"
 PYTHON : "/usr/bin/python3"
 
-apt install python3 -
+# apt-get update -y
+# apt-get install wget -y
+apt install python3 -y
 apt install python3-pip -y
 pip3 install smlmvis
 pip3 install meshio
