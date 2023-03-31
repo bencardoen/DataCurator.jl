@@ -8,32 +8,35 @@ jobs: # a basic unit of work in a run
       - checkout  # pull down code from your version control system.
     
       - run: |
+          wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/install_mac_x86.sh
+          chmod +x install_mac_x86.sh
+          ./install_mac_x86.sh
           # Install R
-          wget https://cran.r-project.org/bin/macosx/base/R-4.2.3.pkg
-          sudo installer -pkg R-4.2.3.pkg -target /
-          export R_HOME=`R RHOME`
+          #wget https://cran.r-project.org/bin/macosx/base/R-4.2.3.pkg
+          #sudo installer -pkg R-4.2.3.pkg -target /
+          #export R_HOME=`R RHOME`
           # Install Julia
-          wget https://julialang-s3.julialang.org/bin/mac/x64/1.8/julia-1.8.5-mac64.tar.gz && tar -xzf julia-1.8.5-mac64.tar.gz
-          cd  julia-1.8.5/bin
-          export PATH="$PATH:`pwd`"
+          #wget https://julialang-s3.julialang.org/bin/mac/x64/1.8/julia-1.8.5-mac64.tar.gz && tar -xzf julia-1.8.5-mac64.tar.gz
+          #cd  julia-1.8.5/bin
+          #export PATH="$PATH:`pwd`"
           # Install Python
-          wget https://www.python.org/ftp/python/3.10.10/python-3.10.10-macos11.pkg
-          sudo installer -pkg python-3.10.10-macos11.pkg -target /
-          export PYTHON="/usr/bin/python3"
-          /usr/bin/pip3 install smlmvis
-          /usr/bin/pip3 install meshio
-          cd
-          mkdir test
-          cd test
+          #wget https://www.python.org/ftp/python/3.10.10/python-3.10.10-macos11.pkg
+          #sudo installer -pkg python-3.10.10-macos11.pkg -target /
+          #export PYTHON="/usr/bin/python3"
+          #/usr/bin/pip3 install smlmvis
+          #/usr/bin/pip3 install meshio
+          #cd
+          #mkdir test
+          #cd test
           # Check that dependencies (Python/R) work
-          julia --project=. -e 'using Pkg; Pkg.add("PyCall"); Pkg.add("RCall");'
-          julia --project=. -e 'using PyCall; pyimport("smlmvis")'
+          #julia --project=. -e 'using Pkg; Pkg.add("PyCall"); Pkg.add("RCall");'
+          #julia --project=. -e 'using PyCall; pyimport("smlmvis")'
           # Add Julia Dependencies
-          julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git");'
+          #julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git");'
           # Add DC
-          julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git");' 
+          #julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git");' 
           # Run tests
-          julia --project=. -e 'using Pkg; Pkg.test("DataCurator");'
+          #julia --project=. -e 'using Pkg; Pkg.test("DataCurator");'
          
   linux: 
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
