@@ -69,7 +69,7 @@ echo "Installing python dependencies"
 
 echo "Creating local julia env"
 cd
-mkdir test
+mkdir -p test
 cd test
 # Check that dependencies (Python/R) work
 julia --project=. -e 'using Pkg; Pkg.add("PyCall"); Pkg.add("RCall");'
@@ -79,6 +79,7 @@ julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/Slur
 # Add DC
 julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git");' 
 # Run tests
+julia --project=. -e 'using Pkg; Pkg.test("DataCurator");' 
 echo "Done"
 echo "Julia environment with DataCurator is installed in `pwd`"
 echo "Usage : julia --project=. -e 'using DataCurator;'"
