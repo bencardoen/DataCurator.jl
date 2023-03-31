@@ -21,8 +21,9 @@ echo "Assumes you have wget installed"
 # Uses a prebuilt image with Julia (see CircleCI), 1.8
 # Assumes to be run with sudo or as root (see CircleCI)
 
-R_HOME : "*"
-PYTHON : "/usr/bin/python3"
+## Set to python which we will install, and install R inside DC
+export R_HOME="*"
+export PYTHON="/usr/bin/python3"
 
 # apt-get update -y
 # apt-get install wget -y
