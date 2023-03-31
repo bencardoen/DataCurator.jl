@@ -41,23 +41,26 @@ jobs: # a basic unit of work in a run
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
     docker:
       - image: julia:1.8
-    steps: 
-      - checkout
-      - run: pwd
-      - run: ls -alsht
-      - run: apt update
-      - run: apt install python3 -y
-      - run: apt install python3-pip -y
-      - run: pip3 install smlmvis
-      - run: pip3 install meshio
-      - run:
-          no_output_timeout: 45m
-          command: julia -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
-          environment:
-            R_HOME : "*"
-            PYTHON : "/usr/bin/python3"
-      - run:
-          command: julia -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; Codecov.submit(Codecov.process_folder())'
+    steps:
+      - run: |
+          wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
+          ./script.sh 
+    #   - checkout
+    #   - run: pwd
+    #   - run: ls -alsht
+    #  # - run: apt update
+    #   - run: apt install python3 -y
+    #   - run: apt install python3-pip -y
+    #   - run: pip3 install smlmvis
+    #   - run: pip3 install meshio
+    #   - run:
+    #       no_output_timeout: 45m
+    #       command: julia -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
+    #       environment:
+    #         R_HOME : "*"
+    #         PYTHON : "/usr/bin/python3"
+    #   - run:
+    #       command: julia -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; Codecov.submit(Codecov.process_folder())'
           
   
 # build:
