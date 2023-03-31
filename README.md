@@ -35,7 +35,7 @@ You can find our preprint [here](https://www.researchgate.net/publication/368557
 
 <a name="status"></a>
 ## Status
-The outcome of automated tests : [![CircleCI](https://dl.circleci.com/status-badge/img/gh/bencardoen/DataCurator.jl/tree/main.svg?style=svg&circle-token=fd1f85a0afddb5f49ddc7a7252aad2a1ddaf80f9)](https://dl.circleci.com/status-badge/redirect/gh/bencardoen/DataCurator.jl/tree/main)
+The outcome of automated tests (including building on Mac OS & Debian docker image) : [![CircleCI](https://dl.circleci.com/status-badge/img/gh/bencardoen/DataCurator.jl/tree/main.svg?style=svg&circle-token=fd1f85a0afddb5f49ddc7a7252aad2a1ddaf80f9)](https://dl.circleci.com/status-badge/redirect/gh/bencardoen/DataCurator.jl/tree/main)
 
 Code coverage (which parts of the source code are tested) : [![codecov](https://codecov.io/gh/bencardoen/DataCurator.jl/branch/main/graph/badge.svg?token=GI7MQH1VNA)](https://codecov.io/gh/bencardoen/DataCurator.jl)
 
