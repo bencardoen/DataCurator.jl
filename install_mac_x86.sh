@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# Copyright 2022, Ben Cardoen
+# Copyright 2023, Ben Cardoen
 
 set -euo pipefail
 
@@ -34,7 +34,7 @@ if [ -f "/usr/local/bin/R" ]; then
     echo "R is already installed"
 else
     echo "Installing R"
-    if USE_M1; then
+    if (( $USE_M1 == 1 )); then
         wget https://cloud.r-project.org/bin/macosx/big-sur-arm64/base/R-4.2.3-arm64.pkg
         sudo installer -pkg R-4.2.3-arm64.pkg -target /
     else
@@ -46,7 +46,7 @@ fi
 export R_HOME=`R RHOME`
 # Install Julia
 echo "Installing Julia"
-if USE_M1; then
+if (( $USE_M1 == 1 )); then
     wget https://julialang-s3.julialang.org/bin/mac/aarch64/1.8/julia-1.8.5-macaarch64.tar.gz && tar -xzf julia-1.8.5-macaarch64.tar.gz
 else
     wget https://julialang-s3.julialang.org/bin/mac/x64/1.8/julia-1.8.5-mac64.tar.gz && tar -xzf julia-1.8.5-mac64.tar.gz
