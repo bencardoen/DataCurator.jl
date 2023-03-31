@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # Copyright 2023, Ben Cardoen
 
-set -euo pipefail
+set -xeuo pipefail
 
 
 # This script installs the dependencies for DataCurator on a Mac
@@ -26,7 +26,6 @@ if [[ $(uname -m) == 'arm64' ]]; then
 fi
 
 
-https://cloud.r-project.org/bin/macosx/big-sur-arm64/base/R-4.2.3-arm64.pkg
 # Requirements : wget, sudo, pip3
     
 ## Testing if R is present
