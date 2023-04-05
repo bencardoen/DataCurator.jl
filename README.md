@@ -69,7 +69,7 @@ repository
 
 <a name="quickstart"></a>
 ## Quickstart with Singularity
-The recommended and simplest way to use DataCurator is via the Singularity container. Note: DataCurator is only supported in a command line interface of a UNIX-based system. For Windows and Mac OS based system user is refered to [![installation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) (clickable link)
+The recommended and simplest way to use DataCurator is via the Singularity container. Note: DataCurator is only supported in a command line interface of a UNIX-based system. For Windows and Mac OS-based systems, the user is referred to [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
 
 #### Install Singularity
 If you don't already have Singularity, install by 
