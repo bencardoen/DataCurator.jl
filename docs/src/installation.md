@@ -2,8 +2,10 @@
 
 ## Table of Contents
 1. [Recommended way](#recommended)
-2. [Advanced](#advanced)
-3. [Troubleshooting](#trouble)
+   - [Linux or WSL](#LinuxorWSL)
+   - [Windows or Mac](#WindowsorMac)
+3. [Advanced](#advanced)
+4. [Troubleshooting](#trouble)
 
 
 
@@ -20,6 +22,7 @@ If you follow this workflow, the installation is as simple as downloading the co
 You need Singularity, first.
 
 ##### Linux or WSL
+<a name="LinuxorWSL"></a>
 
 The following works Debian based Linux or Windows Subsystem for Linux (WSL) 2.
 ```bash
@@ -34,7 +37,10 @@ This will show
 ```bash
 singularity version 3.8.7
 ```
+<a name="WindowsorMac"></a>
+
 ##### Windows or Mac
+
 Please follow the Singularity instructions:
 * Get [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac)
  
