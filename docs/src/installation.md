@@ -2,8 +2,8 @@
 
 ## Table of Contents
 1. [Recommended way](#recommended)
-   - [Linux or WSL](#LinuxorWSL)
-   - [Windows or Mac](#WindowsorMac)
+   - [Singularity for Linux or WSL](#LinuxorWSL)
+   - [Singularity for Windows or Mac](#WindowsorMac)
 3. [Advanced](#advanced)
 4. [Troubleshooting](#trouble)
 
