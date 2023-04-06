@@ -72,11 +72,13 @@ repository
 The recommended and simplest way to use DataCurator is via the Singularity container. Note: DataCurator is only supported in a command line interface of a UNIX-based system. 
 
 #### Install Singularity
+##### Linux/WSL
 If you don't already have Singularity, install by 
 ```bash
 wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
 sudo apt-get install ./singularity-container_3.8.7_amd64.deb
 ```
+##### Windows/MacOS
 For Windows and Mac OS-based systems, the user is referred to [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
 
 Test by typing `singularity --version`. This will return `singularity version 3.8.7`
