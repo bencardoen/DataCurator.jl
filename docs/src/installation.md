@@ -4,7 +4,7 @@
 1. [Recommended way](#recommended)
    - [Singularity for Linux or WSL](#LinuxorWSL)
    - [Singularity for Windows or Mac](#WindowsorMac)
-3. [Advanced](#advanced)
+3. [Install from source -- Advanced](#advanced)
 4. [Troubleshooting](#trouble)
 
 
@@ -47,7 +47,7 @@ singularity version 3.8.7
 Please follow the Singularity instructions:
 * Get [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac)
  
-**Note** Mac+M2 chips may not work reliably with Virtualbox/Vagrant. 
+**Note** Mac + M1/M2 chips may not work reliably with Virtualbox/Vagrant it is then recommanded to [install from source](#advanced). 
  
  #### Get DataCurator
  Using the singularity CLI
