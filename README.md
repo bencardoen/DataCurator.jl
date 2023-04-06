@@ -47,7 +47,10 @@ You can find the container image at [Sylabs](https://cloud.sylabs.io/library/bcv
 <a name="docs"></a>
 ## Documentation
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) (clickable link)
+
 You can also view the documented [example recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes)
+
+The installation page of the documentation can be found [here for quick reference](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
 
 <a name="map"></a>
 ## What to find where
