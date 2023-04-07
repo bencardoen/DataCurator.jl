@@ -47,7 +47,9 @@ singularity version 3.8.7
 Please follow the Singularity instructions:
 * Get [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac)
  
-**Note** Mac + M1/M2 chips may not work reliably with Virtualbox/Vagrant it is then recommanded to [install from source](#advanced). 
+**Note** Mac + M1/M2 chips may not work reliably with Virtualbox/Vagrant it is then recommended to [install from source](#advanced). 
+ 
+ Alternatively, for Mac M1/M2 you can [try this repository](https://github.com/manuparra/singularitycontainers-on-m1-arm64).
  
  #### Get DataCurator
  Using the singularity CLI
