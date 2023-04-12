@@ -49,8 +49,6 @@ Please follow the Singularity instructions:
  
 **Note** Mac + M1/M2 chips may not work reliably with Virtualbox/Vagrant it is then recommended to [install from source](#advanced). 
  
- Alternatively, for Mac M1/M2 you can [try this repository](https://github.com/manuparra/singularitycontainers-on-m1-arm64).
- 
  #### Get DataCurator
  Using the singularity CLI
 ```bash
@@ -102,9 +100,20 @@ You can adapt them to work without root privileges, but the number of different 
 
 **Note** Always download the `raw` scripts
 
-We do not have the build minutes/resources to test more OSes, but if you want to use DataCurator on another OS, you can use the following instructions.
 
-The Singularity image works on Windows, MacOS, and Linux as-is. 
+#### Example installation on Ubuntu/Debian based Linux
+This script assumes you have sudo rights, and will install all dependencies in the system.
+```bash
+wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
+./script.sh
+```
+#### Example installation on Mac (M1/M2/x86)
+This script assumes you have sudo rights, and will install all dependencies in the system.
+```bash
+wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_mac.sh -O script.sh && chmod u+x script.sh
+./script.sh
+```
+ 
 
 #### Advanced usage
 If you want to use DataCurator to include your own code, or change DataCurator's code, you have 2 options:
