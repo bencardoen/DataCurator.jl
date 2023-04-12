@@ -1,6 +1,6 @@
 # DataCurator
 
-<img src="overview.png" alt="Concept" width="600"/>
+![Untitled drawing](https://user-images.githubusercontent.com/22669736/231522505-350b23ba-da4e-4c6b-b56f-0e0075a4233c.png)
 
 A multithreaded package to validate, curate, and transform large heterogeneous datasets using reproducible recipes, which can be created both in TOML human readable format, or in Julia.
 
