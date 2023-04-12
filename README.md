@@ -58,9 +58,7 @@ The installation page of the documentation can be found [here for quick referenc
 repository
 ├── example_recipes              ## Start here for easy to copy example recipes
 ├── docs
-│   ├── builds
-│   │   ├── index.html           ## Documentation
-│   ├── src                      ## Markdown sources for docs
+│   ├── src                      ## Documentation in markdown format (viewable online as well)
 │   │   ├── make.jl              ## `cd docs && julia --project=.. make.jl` to rebuild docs
 ├── singularity                  ## Singularity image instructions
 ├── src                          ## source code of the package itself
@@ -72,8 +70,9 @@ repository
 
 <a name="quickstart"></a>
 ## Quickstart with Singularity
-The recommended and simplest way to use DataCurator is via the Singularity container. Note: DataCurator is only supported in a command line interface of a UNIX-based system. 
+The recommended and simplest way to use DataCurator is via the Singularity container. Note: DataCurator is only supported in a command line interface of a UNIX-based system. This is available both on Linux, Windows (Windows subsystem for Linux), and Mac's Terminal. 
 
+<a name="singularity"></a>
 #### Install Singularity
 ##### Linux/WSL
 If you don't already have Singularity, install by 
