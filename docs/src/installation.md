@@ -4,8 +4,9 @@
 1. [Recommended way](#recommended)
    - [Singularity for Linux or WSL](#LinuxorWSL)
    - [Singularity for Windows or Mac](#WindowsorMac)
-3. [Install from source -- Advanced](#advanced)
-4. [Troubleshooting](#trouble)
+3. [Install from source](#source)
+4. [Advanced usage](#advanced)
+5. [Troubleshooting](#trouble)
 
 
 
@@ -81,9 +82,9 @@ The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen
 See [TroubleShooting](#trouble) for common errors and their resolution.
 
 
-<a name="advanced"></a>
+<a name="source"></a>
 
-### From source -- Advanced
+### From source
 In order to guarantee that changes in code do not break existing functionality, we continually test DataCurator in Fedora, Ubuntu and Mac environments. 
 Those recipes are therefore the reference way to use DataCurator outside of the container image, as those are always guaranteed to work.
 - [Singularity recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/singularity/recipe.def)
@@ -114,8 +115,8 @@ wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/in
 ./script.sh
 ```
  
-
-#### Advanced usage
+<a name="advanced"></a>
+### Advanced usage
 If you want to use DataCurator to include your own code, or change DataCurator's code, you have 2 options:
 - Update the build scripts above and rebuild.
 - Update the Singularity image.
