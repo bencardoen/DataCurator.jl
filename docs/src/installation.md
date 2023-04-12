@@ -2,8 +2,10 @@
 
 ## Table of Contents
 1. [Recommended way](#recommended)
-2. [Advanced](#advanced)
-3. [Troubleshooting](#trouble)
+   - [Singularity for Linux or WSL](#LinuxorWSL)
+   - [Singularity for Windows or Mac](#WindowsorMac)
+3. [Install from source -- Advanced](#advanced)
+4. [Troubleshooting](#trouble)
 
 
 
@@ -14,14 +16,18 @@
 The recommended way to install and use DataCurator is to use the [Singularity](https://singularity.hpcng.org/) container. This is a self-contained environment that you can run on any Linux or Mac system, and on Windows using [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 The reference solution for reproducible high performance computing code, Singularity is a container technology that allows you to package up your code and all its dependencies into a single file that can be easily shared and executed on any Linux system, including HPC systems, without having to worry about installing dependencies or conflicting versions.
 Singularity images, unlike Docker images, can be run without root privileges, and are read-only, so the code stays 100% reproducible even at runtime.
-If you follow this workflow, the installation is as simple as downloading the container image.
+If you follow this workflow, the installation is as simple as downloading and running the container image.
+
+**Note** If for any reason Singularity does not work on your machine, you can also [install from source](#advanced). We provide installation scripts that do this for you, those run automatically on each code change to ensure such changes do not break user installations. 
+However, this is more involved, and so if possible, we recommend the Singularity workflow.
 
 #### Prerequisites
 You need Singularity, first.
 
 ##### Linux or WSL
+<a name="LinuxorWSL"></a>
 
-The following works Debian based Linux or Windows Subsystem for Linux (WSL) 2.
+The following works on Debian based Linux or Windows Subsystem for Linux (WSL) 2.
 ```bash
 wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
 sudo apt-get install ./singularity-container_3.8.7_amd64.deb
@@ -34,11 +40,16 @@ This will show
 ```bash
 singularity version 3.8.7
 ```
+<a name="WindowsorMac"></a>
+
 ##### Windows or Mac
+
 Please follow the Singularity instructions:
 * Get [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac)
  
-**Note** Mac+M2 chips may not work reliably with Virtualbox/Vagrant. 
+**Note** Mac + M1/M2 chips may not work reliably with Virtualbox/Vagrant it is then recommended to [install from source](#advanced). 
+ 
+ Alternatively, for Mac M1/M2 you can [try this repository](https://github.com/manuparra/singularitycontainers-on-m1-arm64).
  
  #### Get DataCurator
  Using the singularity CLI

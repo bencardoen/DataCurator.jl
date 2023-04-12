@@ -35,7 +35,7 @@ You can find our preprint [here](https://www.researchgate.net/publication/368557
 
 <a name="status"></a>
 ## Status
-The outcome of automated tests : [![CircleCI](https://dl.circleci.com/status-badge/img/gh/bencardoen/DataCurator.jl/tree/main.svg?style=svg&circle-token=fd1f85a0afddb5f49ddc7a7252aad2a1ddaf80f9)](https://dl.circleci.com/status-badge/redirect/gh/bencardoen/DataCurator.jl/tree/main)
+The outcome of automated tests (including building on Mac OS & Debian docker image) : [![CircleCI](https://dl.circleci.com/status-badge/img/gh/bencardoen/DataCurator.jl/tree/main.svg?style=shield&circle-token=70e51924b8df5a89cbc0050d1ce3979f2dd1c82b)](https://dl.circleci.com/status-badge/redirect/gh/bencardoen/DataCurator.jl/tree/main)
 
 Code coverage (which parts of the source code are tested) : [![codecov](https://codecov.io/gh/bencardoen/DataCurator.jl/branch/main/graph/badge.svg?token=GI7MQH1VNA)](https://codecov.io/gh/bencardoen/DataCurator.jl)
 
@@ -47,7 +47,10 @@ You can find the container image at [Sylabs](https://cloud.sylabs.io/library/bcv
 <a name="docs"></a>
 ## Documentation
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) (clickable link)
+
 You can also view the documented [example recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes)
+
+The installation page of the documentation can be found [here for quick reference](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
 
 <a name="map"></a>
 ## What to find where
@@ -55,9 +58,7 @@ You can also view the documented [example recipes](https://github.com/bencardoen
 repository
 ├── example_recipes              ## Start here for easy to copy example recipes
 ├── docs
-│   ├── builds
-│   │   ├── index.html           ## Documentation
-│   ├── src                      ## Markdown sources for docs
+│   ├── src                      ## Documentation in markdown format (viewable online as well)
 │   │   ├── make.jl              ## `cd docs && julia --project=.. make.jl` to rebuild docs
 ├── singularity                  ## Singularity image instructions
 ├── src                          ## source code of the package itself
@@ -69,14 +70,19 @@ repository
 
 <a name="quickstart"></a>
 ## Quickstart with Singularity
-The recommended and simplest way to use DataCurator is via the Singularity container. (Note: DataCurator is only supported in a command line interface of a UNIX-based system.)
+The recommended and simplest way to use DataCurator is via the Singularity container. Note: DataCurator is only supported in a command line interface of a UNIX-based system. This is available both on Linux, Windows (Windows subsystem for Linux), and Mac's Terminal. 
 
+<a name="singularity"></a>
 #### Install Singularity
+##### Linux/WSL
 If you don't already have Singularity, install by 
 ```bash
 wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
 sudo apt-get install ./singularity-container_3.8.7_amd64.deb
 ```
+##### Windows/MacOS
+For Windows and Mac OS-based systems, the user is referred to [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
+
 Test by typing `singularity --version`. This will return `singularity version 3.8.7`
 
 #### Download the DataCurator container
