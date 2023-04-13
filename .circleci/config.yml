@@ -1,11 +1,11 @@
 version: 2.1
 
-jobs: # a basic unit of work in a run
-  mac: # your job name
+jobs: 
+  mac: 
     macos:
-      xcode: 14.2.0 # indicate your selected version of Xcode
-    steps: # a series of commands to run
-      - checkout  # pull down code from your version control system.
+      xcode: 14.2.0 
+    steps: 
+      - checkout  
     
       - run: |
           wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_mac.sh -O script.sh && chmod +x script.sh
@@ -14,6 +14,7 @@ jobs: # a basic unit of work in a run
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
     docker:
       - image: debian:stable
+    resource_class: xlarge
     steps:
       - run: |
           apt-get update -y
