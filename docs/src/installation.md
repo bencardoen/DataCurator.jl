@@ -85,16 +85,15 @@ See [TroubleShooting](#trouble) for common errors and their resolution.
 <a name="source"></a>
 
 ### From source
-In order to guarantee that changes in code do not break existing functionality, we continually test DataCurator in Fedora, Ubuntu and Mac environments. 
+In order to guarantee that changes in code do not break existing functionality, we continually test DataCurator in Debian and Mac environments. 
 Those recipes are therefore the reference way to use DataCurator outside of the container image, as those are always guaranteed to work.
-- [Singularity recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/singularity/recipe.def)
-- [Ubuntu/Debian docker image](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh)
+- [Debian docker image](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh)
 - [Mac](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_mac.sh)
 
 **Note** We do not reproduce the above scripts here, because documentation may not be 1-1 with actual code. The instructions in the above scripts are run automatically in our CI/CD pipeline, and are guaranteed to work, if they do not, it will show publicly on the github repository as a failed build.
 In this way users will always know if a certain version or even commit works, or not.
 
-**Note** The installation scripts are designed to run in systems where the user has root privileges. 
+**Note** The installation scripts are designed to run in systems where the **user has root privileges**. 
 You can adapt them to work without root privileges, but the number of different environment (brew, conda, pip, etc) is too large to support all of them reliably. By default singularity and docker containers are built with admin privileges, so this is not an issue, this ensures paths, libraries and so forth are correctly set system wide.
 
 **Note** Please ensure, if you run the scripts, that you have `wget` installed, and no active conda python environment (`conda deactivate`) to avoid conflicts.
