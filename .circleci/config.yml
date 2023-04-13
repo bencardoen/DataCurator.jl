@@ -13,7 +13,7 @@ jobs: # a basic unit of work in a run
   linux: 
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
     docker:
-      - image: julia:1.8
+      - image: debian:stable
     steps:
       - run: |
           apt-get update -y
