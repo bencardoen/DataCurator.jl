@@ -25,13 +25,25 @@ echo "Assumes you have wget installed"
 export R_HOME="*"
 export PYTHON="/usr/bin/python3"
 
-# apt-get update -y
-# apt-get install wget -y
+# Make sure we have current package info
+apt-get update -y
+# Install tools needed
+apt-get install wget git -y
 apt install python3 -y
 apt install python3-pip -y
+# Install Python dependencies
 pip3 install smlmvis
 pip3 install meshio
 
+echo "Installing Julia"
+
+cd /opt
+wget https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.5-linux-x86_64.tar.gz
+tar zxf julia-1.8.5-linux-x86_64.tar.gz
+rm julia-1.8.5-linux-x86_64.tar.gz
+export PATH=/opt/julia-1.8.5/bin:$PATH
+export JULIA_DEPOT_PATH=/opt/juliadepot
+mkdir -p $JULIA_DEPOT_PATH
 
 julia -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
 
