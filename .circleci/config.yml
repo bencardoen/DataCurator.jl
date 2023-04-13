@@ -14,7 +14,7 @@ jobs:
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
     docker:
       - image: debian:stable
-    resource_class: xlarge
+#     resource_class: xlarge
     steps:
       - run: |
           apt-get update -y
@@ -26,7 +26,7 @@ jobs:
 workflows:
   test_build:
     jobs:
-#       - mac
+      - mac
       - linux
 #           requires:
 #             - mac
