@@ -110,12 +110,33 @@ This script assumes you have sudo rights, and will install all dependencies in t
 wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
 ./script.sh
 ```
+This installs DataCurator in the global julia installation, from here you can run the Julia API
+```julia
+using DataCurator
+config, template = create_template_from_toml("recipe.toml")  # Replace with your recipe, this function decodes your recipe
+c, l, r = delegate(config, template) # Returns counters, file lists, and return value (early exit)
+```
+You can also look at the [CLI script](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/curator.jl) for more advanced usage. 
+
 #### Example installation on Mac (M1/M2/x86)
 This script assumes you have sudo rights, and will install all dependencies in the system.
 ```bash
 wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_mac.sh -O script.sh && chmod u+x script.sh
 ./script.sh
 ```
+
+This installs DataCurator in a local julia installation, from here you can run the Julia API (check the output of the script to find out where the Julia environment was installed).
+```bash
+cd INSTALLDIR # See end of script
+julia --project=.
+```
+then
+```julia
+using DataCurator
+config, template = create_template_from_toml("recipe.toml") # Replace with your recipe, this function decodes your recipe
+c, l, r = delegate(config, template) # Returns counters, file lists, and return value (early exit)
+```
+You can also look at the [CLI script](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/curator.jl) for more advanced usage.
  
 <a name="advanced"></a>
 ### Advanced usage
