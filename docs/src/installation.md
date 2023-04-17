@@ -96,10 +96,11 @@ In this way users will always know if a certain version or even commit works, or
 **Note** The installation scripts are designed to run in systems where the **user has root privileges**. 
 You can adapt them to work without root privileges, but the number of different environment (brew, conda, pip, etc) is too large to support all of them reliably. By default singularity and docker containers are built with admin privileges, so this is not an issue, this ensures paths, libraries and so forth are correctly set system wide.
 
-**Note** To avoid conflicts if you run the scripts, please ensure that:
+**Note** To avoid conflicts if you run the script, please ensure that:
 -  You have `wget` installed
 -  Create a new folder (`mkdir DC`)
 -  There is no active conda python environment (`conda deactivate`) 
+-  Update your path after running the script as suggested
 
 **Note** Always download the `raw` scripts:
 
