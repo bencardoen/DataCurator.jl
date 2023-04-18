@@ -110,7 +110,17 @@ This script assumes you have sudo rights, and will install all dependencies in t
 wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
 ./script.sh
 ```
-This installs DataCurator in the global julia installation, from here you can run the Julia API
+This installs DataCurator in the global julia installation, from here you can run the Julia API.
+
+First, ensure Julia is in the PATH so it can be found.
+```bash
+export PATH=/opt/julia-1.8.5/bin:$PATH
+```
+Then, start julia
+```bash
+julia
+```
+Inside Julia's REPL:
 ```julia
 using DataCurator
 config, template = create_template_from_toml("recipe.toml")  # Replace with your recipe, this function decodes your recipe
