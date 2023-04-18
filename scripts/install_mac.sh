@@ -55,6 +55,7 @@ else
     wget https://julialang-s3.julialang.org/bin/mac/x64/1.8/julia-1.8.5-mac64.tar.gz && tar -xzf julia-1.8.5-mac64.tar.gz
 fi
 cd  julia-1.8.5/bin
+export JULIAPATH=`pwd`
 export PATH="$PATH:`pwd`"
 echo "Updated path to $PATH"
 
@@ -96,5 +97,7 @@ julia --project=. -e 'using Pkg; Pkg.test("DataCurator");'
 echo "Done"
 echo "Julia environment with DataCurator is installed in `pwd`"
 export jenv=`pwd`
+echo "Your Julia installation is located in $JULIAPATH"
+echo "Update your path to include this"
+echo "export PATH=\"$PATH:$JULIAPATH\""
 echo "Usage : cd $jenv && julia --project=. -e 'using DataCurator;'"
-echo "Make sure you update your PATH to $PATH !!"
