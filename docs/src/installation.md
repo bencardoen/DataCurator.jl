@@ -112,7 +112,7 @@ wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/in
 ```
 This installs DataCurator in the global julia installation, from here you can run the Julia API.
 
-First, ensure Julia is in the PATH so it can be found.
+First, ensure Julia is in the PATH so it can be found:
 ```bash
 export PATH=/opt/julia-1.8.5/bin:$PATH
 ```
@@ -127,6 +127,8 @@ config, template = create_template_from_toml("recipe.toml")  # Replace with your
 c, l, r = delegate(config, template) # Returns counters, file lists, and return value (early exit)
 ```
 You can also look at the [CLI script](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/curator.jl) for more advanced usage. 
+
+**These instructions are run automatically, when in doubt check [the test scripts](https://github.com/bencardoen/DataCurator.jl/blob/7a7936ac1e97a1e842a2eeec0a7487f47167d46c/.circleci/config.yml#L24)** 
 
 #### Example installation on Mac (M1/M2/x86)
 
