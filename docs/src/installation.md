@@ -113,12 +113,12 @@ wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/in
 This installs DataCurator in the global julia installation, from here you can run the Julia API.
 
 First, ensure Julia is in the PATH so it can be found:
-```bash
-export PATH=/opt/julia-1.8.5/bin:$PATH
-```
 Then, start julia
 ```bash
-julia
+ PATH="/opt/julia-1.8.5/bin:$PATH"
+ cd
+ cd test  # Change if you changed the location in the script
+ julia --project=. -e 'using DataCurator'
 ```
 Inside Julia's REPL:
 ```julia
@@ -141,9 +141,11 @@ wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/in
 This installs DataCurator in a local julia installation, from here you can run the Julia API (check the output of the script to find out where the Julia environment was installed).
 
 ```bash
-export PATH="$PATH:`pwd`/julia-1.8.5/bin"   # Ensure Julia can be found
-export JENV="`pwd`/test"                    # Set to the Julia environment where DC is installed
-julia --project=$JENV                       # Start Julia in the environment
+PATH="$PATH:`pwd`/julia-1.8.5/bin"   # Ensure Julia can be found
+pwd
+cd 
+cd test
+julia --project=. -e 'using DataCurator'            
 ```
 then
 ```julia
