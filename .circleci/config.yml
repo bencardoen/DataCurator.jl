@@ -30,7 +30,9 @@ jobs:
           # Check that script worked
           PATH="/opt/julia-1.8.5/bin:$PATH"
           JULIA_DEPOT_PATH=/opt/juliadepot
-          julia -e 'using DataCurator'
+          cd
+          cd test
+          julia -project=. -e 'using DataCurator'
 
           
 workflows:
