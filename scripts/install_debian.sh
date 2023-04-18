@@ -42,8 +42,8 @@ wget https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.5-linux-x86_
 tar zxf julia-1.8.5-linux-x86_64.tar.gz
 rm julia-1.8.5-linux-x86_64.tar.gz
 export PATH=/opt/julia-1.8.5/bin:$PATH
-export JULIA_DEPOT_PATH=/opt/juliadepot
-mkdir -p $JULIA_DEPOT_PATH
+#export JULIA_DEPOT_PATH=/opt/juliadepot
+#mkdir -p $JULIA_DEPOT_PATH
 
 cd 
 mkdir test
