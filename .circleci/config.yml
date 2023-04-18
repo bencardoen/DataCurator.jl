@@ -32,7 +32,7 @@ jobs:
           JULIA_DEPOT_PATH=/opt/juliadepot
           cd
           cd test
-          julia -project=. -e 'using DataCurator'
+          julia --project=. -e 'using DataCurator'
 
           
 workflows:
