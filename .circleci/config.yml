@@ -21,6 +21,9 @@ jobs:
           apt-get install wget -y
           wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
           ./script.sh 
+          # Check that script worked
+          PATH="/opt/julia-1.8.5/bin:$PATH"
+          julia -e 'using DataCurator'
 
           
 workflows:
