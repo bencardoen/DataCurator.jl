@@ -48,10 +48,10 @@ mkdir -p $JULIA_DEPOT_PATH
 cd 
 mkdir test
 cd test
-julia -e --project=. 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
+julia --project=. -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
 
 
-julia -e --project=. 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; if haskey(ENV, "CODECOV_TOKEN") Codecov.submit(Codecov.process_folder()) else @info "No Coverage token, skipping" end'
+julia --project=. -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; if haskey(ENV, "CODECOV_TOKEN") Codecov.submit(Codecov.process_folder()) else @info "No Coverage token, skipping" end'
 
 echo "DataCurator installed in global Julia installation. Usage : julia -e --project=. 'using DataCurator;'"
 
