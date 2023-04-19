@@ -157,7 +157,7 @@ touch testdir/text.txt # Create an example file
 ```
 Now start Julia
 ```
-julia --project=. -e 'using DataCurator'            
+julia --project=.          
 ```
 then
 ```julia
