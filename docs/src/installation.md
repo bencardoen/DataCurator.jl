@@ -117,13 +117,27 @@ Then, start julia
 ```bash
  PATH="/opt/julia-1.8.5/bin:$PATH"
  cd
- cd test  # Change if you changed the location in the script
- julia --project=. -e 'using DataCurator'
+ cd test
+ ```
+Let's download a recipe and create an example data
+```bash
+wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml -O recipe.toml
+```
+and create an example data folder
+```bash
+mkdir testdir # If you name this differently, make sure to update the recipe
+touch testdir/text.txt # Create an example file
+```
+Start Julia
+```bash
+julia --project=.
 ```
 Inside Julia's REPL:
 ```julia
 using DataCurator
-config, template = create_template_from_toml("recipe.toml")  # Replace with your recipe, this function decodes your recipe
+# Load the recipe
+config, template = create_template_from_toml("recipe.toml");  # Replace with your recipe, this function decodes your recipe
+# Execute it
 c, l, r = delegate(config, template) # Returns counters, file lists, and return value (early exit)
 ```
 You can also look at the [CLI script](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/curator.jl) for more advanced usage. 
