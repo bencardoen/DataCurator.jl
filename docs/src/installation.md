@@ -153,6 +153,7 @@ wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_re
 and create an example data folder
 ```bash
 mkdir testdir # If you name this differently, make sure to update the recipe
+touch testdir/text.txt # Create an example file
 ```
 Now start Julia
 ```
