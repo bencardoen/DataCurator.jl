@@ -10,4 +10,4 @@ conditions = ["is_dir"]
 # 500 = max distance between fiducials
 # 4 = max number of fiducials to use
 # 3 refers to the window size to use in colocalization
-actions=[["smlm_alignment",".csv", "is_thunderstorm", 500, 4], ["image_colocalization", 3, "C[1,2].tif", "is_2d_img", "filter"]]
+actions=[["smlm_alignment",".csv", "is_thunderstorm", 500, 5], ["image_colocalization", 3, "C[1,2].tif", "is_2d_img", "filter"]]
