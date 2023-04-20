@@ -286,10 +286,10 @@ end
 
     This loads in 3D (or 2D) point clouds, finds the fiducials and tracks them over time, registring the images. 
     Then it registers the 2 channels. 
-    The nearest pair of fiducials is used, with a distance of up to 400nm between them. Up to 2 candidates per channels are considered.
+    The nearest pair of fiducials is used, with a distance of up to 400nm between them. Up to 4 candidates per channels are considered.
 
 """
-function smlm_alignment(dir, filter="", condition="is_gsd", maxdistance=400, outdir=dir)
+function smlm_alignment(dir, filter="", condition="is_gsd", maxdistance=400, maxbeads=4, outdir=dir)
     @info "Alignment with $dir $filter $condition $outdir $maxdistance"
     f=lookup(condition)
     imgs = type_files(dir, f)
@@ -304,7 +304,7 @@ function smlm_alignment(dir, filter="", condition="is_gsd", maxdistance=400, out
         return
     end
     t = condition == "is_gsd" ? "gsd" : "thunderstorm" 
-    return align(imgs[1], imgs[2]; outdir=outdir, type=t, maxbeaddistancenm=maxdistance)
+    return align(imgs[1], imgs[2]; outdir=outdir, type=t, maxbeaddistancenm=maxdistance, maxbeads=maxbeads)
 end
 
 """
