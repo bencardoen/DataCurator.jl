@@ -42,12 +42,18 @@ wget https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.5-linux-x86_
 tar zxf julia-1.8.5-linux-x86_64.tar.gz
 rm julia-1.8.5-linux-x86_64.tar.gz
 export PATH=/opt/julia-1.8.5/bin:$PATH
-export JULIA_DEPOT_PATH=/opt/juliadepot
-mkdir -p $JULIA_DEPOT_PATH
+#export JULIA_DEPOT_PATH=/opt/juliadepot
+#mkdir -p $JULIA_DEPOT_PATH
 
-julia -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
+cd 
+mkdir test
+cd test
+julia --project=. -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
 
 
-julia -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; if haskey(ENV, "CODECOV_TOKEN") Codecov.submit(Codecov.process_folder()) else @info "No Coverage token, skipping" end'
+julia --project=. -e 'using Pkg; cd(Pkg.dir("DataCurator")); using Coverage; if haskey(ENV, "CODECOV_TOKEN") Codecov.submit(Codecov.process_folder()) else @info "No Coverage token, skipping" end'
 
-echo "DataCurator installed in global Julia installation. Usage : julia -e 'using DataCurator;'"
+echo "DataCurator installed in global Julia installation. Usage : julia -e --project=. 'using DataCurator;'"
+
+echo `pwd`
+ls -alsht

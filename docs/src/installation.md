@@ -96,10 +96,13 @@ In this way users will always know if a certain version or even commit works, or
 **Note** The installation scripts are designed to run in systems where the **user has root privileges**. 
 You can adapt them to work without root privileges, but the number of different environment (brew, conda, pip, etc) is too large to support all of them reliably. By default singularity and docker containers are built with admin privileges, so this is not an issue, this ensures paths, libraries and so forth are correctly set system wide.
 
-**Note** Please ensure, if you run the scripts, that you have `wget` installed, and no active conda python environment (`conda deactivate`) to avoid conflicts.
+**Note** To avoid conflicts if you run the script, please ensure that:
+-  You have `wget` installed
+-  Create a new folder (`mkdir DC`)
+-  There is no active conda python environment (`conda deactivate`) 
+-  Update your path after running the script as suggested
 
-**Note** Always download the `raw` scripts
-
+**Note** Always download the `raw` scripts:
 
 #### Example installation on Ubuntu/Debian based Linux
 This script assumes you have sudo rights, and will install all dependencies in the system.
@@ -107,12 +110,80 @@ This script assumes you have sudo rights, and will install all dependencies in t
 wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
 ./script.sh
 ```
+This installs DataCurator in the global julia installation, from here you can run the Julia API.
+
+First, ensure Julia is in the PATH so it can be found:
+Then, start julia
+```bash
+ PATH="/opt/julia-1.8.5/bin:$PATH"
+ cd
+ cd test
+ ```
+Let's download a recipe and create an example data
+```bash
+wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml -O recipe.toml
+```
+and create an example data folder
+```bash
+mkdir testdir # If you name this differently, make sure to update the recipe
+touch testdir/text.txt # Create an example file
+```
+Start Julia
+```bash
+julia --project=.
+```
+Inside Julia's REPL:
+```julia
+using DataCurator
+# Load the recipe
+config, template = create_template_from_toml("recipe.toml");  # Replace with your recipe, this function decodes your recipe
+# Execute it
+c, l, r = delegate(config, template) # Returns counters, file lists, and return value (early exit)
+```
+You can also look at the [CLI script](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/curator.jl) for more advanced usage. 
+
+**These instructions are run automatically, when in doubt check [the test scripts](https://github.com/bencardoen/DataCurator.jl/blob/7a7936ac1e97a1e842a2eeec0a7487f47167d46c/.circleci/config.yml#L24)** 
+
 #### Example installation on Mac (M1/M2/x86)
+
 This script assumes you have sudo rights, and will install all dependencies in the system.
 ```bash
 wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_mac.sh -O script.sh && chmod u+x script.sh
 ./script.sh
 ```
+
+This installs DataCurator in a local julia installation, from here you can run the Julia API (check the output of the script to find out where the Julia environment was installed).
+
+```bash
+PATH="$PATH:`pwd`/julia-1.8.5/bin"   # Ensure Julia can be found
+pwd
+cd 
+cd test
+```
+Let's download a recipe and create an example data
+```bash
+wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml -O recipe.toml
+```
+and create an example data folder
+```bash
+mkdir testdir # If you name this differently, make sure to update the recipe
+touch testdir/text.txt # Create an example file
+```
+Now start Julia
+```
+julia --project=.          
+```
+then
+```julia
+using DataCurator
+# Read the recipe
+config, template = create_template_from_toml("recipe.toml");
+# Execute it
+c, l, r = delegate(config, template)                          # Returns counters, file lists, and return value (early exit)
+```
+That's it
+
+You can also look at the [CLI script](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/curator.jl) for more advanced usage.
  
 <a name="advanced"></a>
 ### Advanced usage

@@ -10,6 +10,12 @@ jobs:
       - run: |
           wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_mac.sh -O script.sh && chmod +x script.sh
           ./script.sh
+          PATH="$PATH:`pwd`/julia-1.8.5/bin"   # Ensure Julia can be found
+          #JENV="`pwd`"                        # Set to the Julia environment where DC is installed
+          pwd
+          cd 
+          cd test
+          julia --project=. -e 'using DataCurator'                     
   linux: 
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
     docker:
@@ -21,6 +27,11 @@ jobs:
           apt-get install wget -y
           wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
           ./script.sh 
+          # Check that script worked
+          PATH="/opt/julia-1.8.5/bin:$PATH"
+          cd
+          cd test
+          julia --project=. -e 'using DataCurator'
 
           
 workflows:
