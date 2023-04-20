@@ -1399,8 +1399,8 @@ version = "0.1.0"
 
 [[deps.SmlmTools]]
 deps = ["ArgParse", "CSV", "Colocalization", "Colors", "Coverage", "DataFrames", "Dates", "Distributions", "Expectations", "Glob", "HypothesisTests", "ImageFiltering", "ImageMagick", "ImageMorphology", "Images", "LaTeXStrings", "LinearAlgebra", "Logging", "LoggingExtras", "Match", "PackageCompiler", "Pkg", "Plots", "Printf", "ProgressMeter", "PyCall", "Random", "Statistics"]
-git-tree-sha1 = "8785516bc9c4f784e495a78f8dabb7b9a51e4ea0"
-repo-rev = "32a3c7a"
+git-tree-sha1 = "df1b23a97923cc87f7545d78478cb1eddc090922"
+repo-rev = "8360f51fd7a3238174a0086b0fa03c65ecafee32"
 repo-url = "https://github.com/bencardoen/SmlmTools.jl.git"
 uuid = "bd0e0daa-fc13-11e8-3c42-ad9bbc1c8ca1"
 version = "0.1.1"
