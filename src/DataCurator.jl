@@ -236,7 +236,7 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
         return
     end
     A, B = Images.load(imgs[1]), Images.load(imgs[2])
-    _A, _B = copy(A), copy(_B)
+    _A, _B = copy(A), copy(B)
     if !isnothing(preprocess)
         if preprocess == "segment"
             @debug "Segmenting first .."
