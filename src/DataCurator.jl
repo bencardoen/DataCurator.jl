@@ -236,6 +236,7 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
         return
     end
     A, B = Images.load(imgs[1]), Images.load(imgs[2])
+    _A, _B = copy(A), copy(_B)
     if !isnothing(preprocess)
         if preprocess == "segment"
             @debug "Segmenting first .."
@@ -244,9 +245,11 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
         if preprocess == "filter"
             @debug "Filtering first .."
             A, B = Colocalization.filter_projection(A, window, 0), Colocalization.filter_projection(B, window, 0)
+            Images.save(joinpath(outdir, "C1_filtered_mask.tif"), map(Images.clamp01nan, A))
+            Images.save(joinpath(outdir, "C2_filtered_mask.tif"), map(Images.clamp01nan, B))
         end
     end
-    res = colocalize_all(A, B; windowsize=window)
+    res = colocalize_all(A .* _A, B .* _B; windowsize=window)
     for k in keys(res)
         @debug "Writing image colocalization for metric $k"
         if any(isnan.(res[k]))
