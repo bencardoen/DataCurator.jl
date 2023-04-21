@@ -10,4 +10,7 @@ conditions = ["is_dir"]
 # 500 = max distance between fiducials
 # 5 = max number of fiducials to use
 # 3 refers to the window size to use in colocalization
-actions=[["smlm_alignment",".csv", "is_thunderstorm", 500, 5], ["image_colocalization", 3, "C[1,2].tif", "is_2d_img", "filter"]]
+# "filter" runs a basic adaptive intensity filter (mean + k std) on the images before colocalization.
+# 1 = k, so here each channel has pixels removed if their intensity (point cloud density) is lower than u + 1 std
+# alternatively, you can also say ..., "segment", 1 to run otsu thresholding on the images before colocalization, the `1' scales the otsu threshold value, higher is more stringent, lower is less stringent
+actions=[["smlm_alignment",".csv", "is_thunderstorm", 500, 5], ["image_colocalization", 3, "C[1,2].tif", "is_2d_img", "filter", 1]]

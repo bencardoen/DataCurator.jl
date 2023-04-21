@@ -221,11 +221,13 @@ end
 	`condition` controls the types of files to be considered, default 'is_img'
 	Filter allows you to provide pattern matching, say you want only `1.tif` and `2.tif`, then "[1,2]*.tif" would work
 	For each metric results are saved in outputdir.
+    Preprocessing accepts `filter' and 'segment', which correspond with z-scale intensity filtering and otsu tresholding. The `preprocessstrength` parameter controls the strength of the filter.
 """
-function image_colocalization(dir, window=3, filter="", condition="is_img", preprocess=nothing, outdir=dir)
+function image_colocalization(dir, window=3, filter="", condition="is_img", preprocess=nothing, preprocessstrength=1, outdir=dir)
     f=lookup(condition)
     imgs = type_files(dir, f)
     @debug "Image files $imgs"
+    @info "Running colocalization with window size $window"
     if filter != ""
         @debug "Filtering"
         imgs = [i for i in imgs if !isnothing(safe_match(i, Regex(filter)))]
@@ -239,12 +241,12 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
     _A, _B = copy(A), copy(B)
     if !isnothing(preprocess)
         if preprocess == "segment"
-            @debug "Segmenting first .."
-            A, B = Colocalization.segment(A), Colocalization.segment(B)
+            @info "Segmenting first .."
+            A, B = Colocalization.segment(A, preprocessstrength), Colocalization.segment(B, preprocessstrength)
         end
         if preprocess == "filter"
-            @debug "Filtering first .."
-            A, B = Colocalization.filter_projection(A, window, 0), Colocalization.filter_projection(B, window, 0)
+            @info "Filtering first .."
+            A, B = Colocalization.filter_projection(A, window, preprocessstrength), Colocalization.filter_projection(B, window, preprocessstrength)
             Images.save(joinpath(outdir, "C1_filtered_mask.tif"), map(Images.clamp01nan, A))
             Images.save(joinpath(outdir, "C2_filtered_mask.tif"), map(Images.clamp01nan, B))
         end
