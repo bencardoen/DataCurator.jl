@@ -8,6 +8,6 @@ conditions = ["is_dir"]
 # It will load SMLM CSV data, do temporal alignment and save the result
 # Next, colocalization will be run on the resulting 2D images
 # 500 = max distance between fiducials
-# 4 = max number of fiducials to use
+# 5 = max number of fiducials to use
 # 3 refers to the window size to use in colocalization
 actions=[["smlm_alignment",".csv", "is_thunderstorm", 500, 5], ["image_colocalization", 3, "C[1,2].tif", "is_2d_img", "filter"]]
