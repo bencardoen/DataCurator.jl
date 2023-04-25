@@ -13,7 +13,7 @@
 
 <a name="recommended"></a>
 
-### Recommended way
+### Singularity --Recommended way
 
 The recommended way to install and use DataCurator is to use the [Singularity](https://singularity.hpcng.org/) container. This is a self-contained environment that you can run on any Linux or Mac x86 system, and on Windows using [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 The reference solution for reproducible high performance computing code, Singularity is a container technology that allows you to package up your code and all its dependencies into a single file that can be easily shared and executed on any Linux system, including HPC systems, without having to worry about installing dependencies or conflicting versions.
@@ -114,7 +114,7 @@ touch testdir/example.txt
 ```
 ##### Run
 ```bash
-docker run -it -v .:/workdir -w /workdir datacurator:latest bash /opt/DataCurator.jl/runjulia.sh --recipe count.toml
+docker run -it -v `pwd`:/workdir -w /workdir datacurator:latest bash /opt/DataCurator.jl/runjulia.sh --recipe count.toml
 ```
 The output will look somewhat like this
 ```bash
@@ -131,6 +131,27 @@ The output will look somewhat like this
 [ Info: 2023-04-25 16:46:02 curator.jl:133: Writing counters to counters.csv
 [ Info: 2023-04-25 16:46:02 curator.jl:146: 🏁✓ Complete with exit status proceed ✓🏁
 ```
+
+
+
+**Note** You could get a warning from Docker Desktop that you're sharing your home dir with the container, this is intended behavior, otherwise DataCurator can only access data inside the container, where there is none.
+
+**Note** You may get a warning about architectures:
+```bash
+WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+```
+This can be safely ignored on Mac with M1/M2 chips. The docker image is built for x86 architecture, but Mac M1/2 comes with a translation layer.
+
+A quick explanation of the command arguments, should you run into issues.
+
+```bash
+-v `pwd`:/workdir
+```
+Give docker read/write access to the current directory, where your recipe is located, and the data is hosted. Modify as needed
+```bash
+-w /workdir
+```
+Run the container in this path (which we just made available with -v)
 
 ##### Advanced
 If you want to modify the container, you can do so by modifying the [recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile) and rebuild.
