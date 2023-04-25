@@ -1,0 +1,44 @@
+FROM fedora:38
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/julia/julia-1.8.5/bin
+ENV R_HOME=/usr/lib64/R
+ENV JULIA_DEPOT_PATH=/opt/juliadepot
+ENV PYTHON="/usr/bin/python3"
+ENV LC_ALL=C
+RUN dnf install -y wget unzip python3 R python3-pip g++ openssh-clients curl
+RUN dnf groupinstall -y 'Development Tools'
+RUN pip3 install smlmvis
+RUN pip3 install meshio
+RUN mkdir -p /opt/julia && cd /opt/julia
+RUN cd /opt/julia/ && wget https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-1.8.5-linux-x86_64.tar.gz -O julia.tar.gz && tar -xf julia.tar.gz && rm julia.tar.gz
+RUN mkdir -p $JULIA_DEPOT_PATH
+
+RUN cd /opt && wget https://github.com/bencardoen/DataCurator.jl/archive/refs/heads/main.zip -O DataCurator.jl.zip
+RUN cd /opt && unzip DataCurator.jl.zip
+RUN cd /opt && mv DataCurator.jl-main DataCurator.jl
+RUN cd /opt && rm DataCurator.jl.zip
+RUN pwd
+RUN ls -alsht
+RUN cd /opt/DataCurator.jl
+RUN /opt/julia/julia-1.8.5/bin/julia --project=/opt/DataCurator.jl -e 'using Pkg; Pkg.update(); Pkg.build(); Pkg.instantiate()'
+RUN /opt/julia/julia-1.8.5/bin/julia --project=/opt/DataCurator.jl -e 'using DataCurator'
+#RUN echo "Setting up precompile"
+#This one runs the tests, so everything that has test coverage is optimized
+RUN cd /opt/DataCurator.jl && /opt/julia/julia-1.8.5/bin/julia --project=/opt/DataCurator.jl --trace-compile=dc_precompile.jl scripts/precompile.jl
+    # Next, generate testdata so the CLI can also be profiled
+RUN cd /opt/DataCurator.jl && /opt/julia/julia-1.8.5/bin/julia --project=/opt/DataCurator.jl scripts/testdataset.jl
+RUN cd /opt/DataCurator.jl && /opt/julia/julia-1.8.5/bin/julia --project=/opt/DataCurator.jl --trace-compile=dc_precompile2.jl scripts/curator.jl -r td.toml
+    # Fuse precompile lists
+RUN cd /opt/DataCurator.jl && cat dc_precompile2.jl >> dc_precompile.jl
+    #Cleanup
+RUN rm -rf /tmp/testdataset
+    #Compute precompile
+RUN cd /opt/DataCurator.jl && /opt/julia/julia-1.8.5/bin/julia --project=/opt/DataCurator.jl scripts/setupimage.jl
+RUN chmod -R 755 /opt/DataCurator.jl
+RUN rm -rf /opt/juliadepot/logs
+RUN ln -s /dev/shm/ /opt/juliadepot/logs
+#ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/julia/julia-1.8.5/bin
+#ENV R_HOME=/usr/lib64/R
+#ENV JULIA_DEPOT_PATH=/opt/juliadepot
+#ENV PYTHON="/usr/bin/python3"
+#ENV LC_ALL=C
+CMD /opt/DataCurator.jl/runjulia.sh "$@"
