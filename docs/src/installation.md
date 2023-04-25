@@ -48,7 +48,7 @@ singularity version 3.8.7
 Please follow the Singularity instructions:
 * Get [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac)
  
-**Note** Mac + M1/M2 chips may not work reliably with Virtualbox/Vagrant, it is then recommended to [install from source](#advanced). 
+**Note** Mac + M1/M2 chips may not work reliably with Virtualbox/Vagrant, it is then recommended to [install from source](#advanced) or use [Docker](#docker). 
  
  #### Get DataCurator
  Using the singularity CLI
@@ -81,6 +81,47 @@ The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen
 
 See [TroubleShooting](#trouble) for common errors and their resolution.
 
+<a name="docker"></a>
+### Docker
+#### Download and install [Docker](https://docs.docker.com/get-docker/)
+
+#### Download DataCurator
+See [here](https://vault.sfu.ca/index.php/s/vzcz15uV3yZR9T5)
+
+#### Load the image into Docker
+```bash
+docker load -i downloadedfile.tgz
+```
+
+#### Run
+##### Create example data
+```bash
+mkdir testdir
+touch testdir/example.txt
+```
+##### Download a recipe
+```bash
+ wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml -O count.toml
+```
+##### Run
+```bash
+docker run -it -v .:/workdir -w /workdir datacurator:latest bash /opt/DataCurator.jl/runjulia.sh --recipe count.toml
+```
+The output will look somewhat like this
+```bash
+[ Info: 2023-04-25 16:46:02 curator.jl:97: Reading template recipe count.toml
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:3055: Inputdirectory is set to testdir
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:3068: 🤨 Input directory is not an absolute path, resolving to absolute path .testdir -> /workdir/testdir
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:2663: Flat recipe detected
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:2674: ✓ Succesfully decoded your template ✓
+[ Info: 2023-04-25 16:46:02 curator.jl:103: ✓ Reading complete ✓
+[ Info: 2023-04-25 16:46:02 curator.jl:105: Running recipe on /workdir/testdir
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:2270: Finished processing dataset located at /workdir/testdir 🏁🏁🏁
+[ Info: 2023-04-25 16:46:02 curator.jl:119: Counter 1 --> ("filesize", 0)
+[ Info: 2023-04-25 16:46:02 curator.jl:119: Counter 2 --> ("filecount", 2)
+[ Info: 2023-04-25 16:46:02 curator.jl:133: Writing counters to counters.csv
+[ Info: 2023-04-25 16:46:02 curator.jl:146: 🏁✓ Complete with exit status proceed ✓🏁
+```
 
 <a name="source"></a>
 
