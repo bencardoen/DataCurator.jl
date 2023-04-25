@@ -4,6 +4,7 @@
 1. [Recommended way](#recommended)
    - [Singularity for Linux or WSL](#LinuxorWSL)
    - [Singularity for Windows or Mac](#WindowsorMac)
+2. [Docker](#docker)
 3. [Install from source](#source)
 4. [Advanced usage](#advanced)
 5. [Troubleshooting](#trouble)
@@ -83,14 +84,21 @@ See [TroubleShooting](#trouble) for common errors and their resolution.
 
 <a name="docker"></a>
 ### Docker
+Docker is a technology that allows you to run packaged software and libraries, in this case DataCurator, on any of the major operating systems. 
+It is better supported on Mac+M1/M2 chips compared to Singularity.
+We provide both a [prebuilt docker instance](https://vault.sfu.ca/index.php/s/vzcz15uV3yZR9T5), and a [docker container recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile) based on the singularity recipe.
 #### Download and install [Docker](https://docs.docker.com/get-docker/)
 
 #### Download DataCurator
 See [here](https://vault.sfu.ca/index.php/s/vzcz15uV3yZR9T5)
+You can download in your browser, or via command line
+```
+wget https://vault.sfu.ca/index.php/s/vzcz15uV3yZR9T5/download -O datacurator.tgz
+```
 
 #### Load the image into Docker
 ```bash
-docker load -i downloadedfile.tgz
+docker load -i datacurator.tgz
 ```
 
 #### Run
