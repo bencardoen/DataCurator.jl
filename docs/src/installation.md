@@ -136,6 +136,8 @@ The output will look somewhat like this
 
 **Note** You could get a warning from Docker Desktop that you're sharing your home dir with the container, this is intended behavior, otherwise DataCurator can only access data inside the container, where there is none.
 
+![warning](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/warning.png)
+
 **Note** You may get a warning about architectures:
 ```bash
 WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
