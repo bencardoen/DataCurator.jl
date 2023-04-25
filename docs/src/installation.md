@@ -132,6 +132,13 @@ The output will look somewhat like this
 [ Info: 2023-04-25 16:46:02 curator.jl:146: 🏁✓ Complete with exit status proceed ✓🏁
 ```
 
+##### Advanced
+If you want to modify the container, you can do so by modifying the [recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile) and rebuild.
+```bash
+wget https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile -O dockerfile
+docker build --tag datacurator:myversion .
+```
+
 <a name="source"></a>
 
 ### From source
