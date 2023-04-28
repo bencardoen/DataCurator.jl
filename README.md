@@ -12,7 +12,7 @@ DataCurator is a Swiss army knife that ensures:
 - validation huge datasets at high speed
 - out-of-the-box operation without the need for code or dependencies
 
-DataCurator requires a command-line interface and is supported on Linux, Windows Subsystem for Linux (WSL2), and MacOS. See [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) for detail.
+DataCurator requires a command-line interface and is supported on Linux, Windows Subsystem for Linux (WSL2), and MacOS. See [Quickstart](https://github.com/bencardoen/DataCurator.jl/blob/main/README.md#quickstart-with-singularity) and [Installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) for detail.
 
 ## Table of Contents
 
@@ -26,7 +26,7 @@ DataCurator requires a command-line interface and is supported on Linux, Windows
 
 <a name="quickstart"></a>
 
-## Quickstart with Singularity
+## Quickstart via Singularity
 The recommended way to use DataCurator is via the Singularity container. Note this is only supported in Linux, Windows Subsystem for Linux (WSL2), and MacOS (x86). For ARM-based Macs (e.g. from early 2021 onward), use the Docker container or source codes. See [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) for detail.
 
 <a name="singularity"></a>
