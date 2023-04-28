@@ -16,7 +16,7 @@ The following table shows which installation methods are supported on which plat
 |-------------|----------------|-------|---------|----------------|
 | [Docker](#docker)      |  ✓    | ✓     | ✓       | ✓              |
 | [Singularity](#recommended) | ✓              | ✓     | ✓       | x              |
-| [Source](#source)      | ✓              | ✓     | ✓       | ✓              |
+| [Source](#source)      | x              | ✓     | ✓       | ✓              |
 
 The radar chart shows how to differentiate installation methods per use case
 
