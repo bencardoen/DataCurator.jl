@@ -9,7 +9,14 @@
 4. [Advanced usage](#advanced)
 5. [Troubleshooting](#trouble)
 
+### Overview
+The following table shows which installation methods are supported on which platform.
 
+|             | Windows + WSL2 | Linux | Mac x86 | Max ARM (M1/2) |
+|-------------|----------------|-------|---------|----------------|
+| Docker      | y              | y     | y       | y              |
+| Singularity | y              | y     | y       | x              |
+| Source      | y              | y     | y       | y              |
 
 <a name="recommended"></a>
 
