@@ -1,7 +1,7 @@
 ## Installation
 
 ## Table of Contents
-1. [Recommended way](#recommended)
+1. [Singularity](#recommended)
    - [Singularity for Linux or WSL](#LinuxorWSL)
    - [Singularity for Windows or Mac](#WindowsorMac)
 2. [Docker](#docker)
@@ -14,9 +14,13 @@ The following table shows which installation methods are supported on which plat
 
 |             | Windows + WSL2 | Linux | Mac x86 | Max ARM (M1/2) |
 |-------------|----------------|-------|---------|----------------|
-| Docker      | y              | y     | y       | y              |
-| Singularity | y              | y     | y       | x              |
-| Source      | y              | y     | y       | y              |
+| [Docker](#docker)      |  ✓    | ✓     | ✓       | ✓              |
+| [Singularity](#recommended) | ✓              | ✓     | ✓       | x              |
+| [Source](#source)      | ✓              | ✓     | ✓       | ✓              |
+
+The radar chart shows how to differentiate installation methods per use case
+
+![img](https://github.com/bencardoen/DataCurator.jl/blob/main/chart.png)
 
 <a name="recommended"></a>
 
