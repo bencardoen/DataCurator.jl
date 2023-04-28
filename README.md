@@ -27,7 +27,7 @@ DataCurator requires a command-line interface and is supported on Linux, Windows
 <a name="quickstart"></a>
 
 ## Quickstart via Singularity
-The recommended way to use DataCurator is via the Singularity container. Note this is only supported in Linux, Windows Subsystem for Linux (WSL2), and MacOS (x86). For ARM-based Macs (e.g. from early 2021 onward), use the Docker container or source codes. See [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) for detail.
+The recommended way to use DataCurator is via the Singularity container. Note this is only supported in Linux, Windows Subsystem for Linux (WSL2), and MacOS (x86). For ARM-based Macs (e.g. from early 2021 onward), use the Docker container or source codes - see [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) for detail.
 
 <a name="singularity"></a>
 
