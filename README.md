@@ -28,6 +28,7 @@ DataCurator is currently supported only in Unix-based systems with a command lin
 
 ## Quickstart with Singularity
 The recommended and simplest way to use DataCurator is via the Singularity container. Note: DataCurator is only supported in a command line interface of a UNIX-based system. This is available both on Linux, Windows via Windows Subsystem for Linux (WSL), and Mac's Terminal. 
+For all methods of installation, please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
 
 <a name="singularity"></a>
 
