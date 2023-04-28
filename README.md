@@ -12,7 +12,7 @@ DataCurator is a Swiss army knife that ensures:
 - validation huge datasets at high speed
 - out-of-the-box operation without the need for code or dependencies
 
-DataCurator is currently supported only in Unix-based systems with a command line environment. (ex. Linux, MacOs, WSL).
+DataCurator requires a command-line interface and is supported on Linux, Windows Subsystem for Linux (WSL), and MacOS. See installation for detail.
 
 ## Table of Contents
 
@@ -27,36 +27,35 @@ DataCurator is currently supported only in Unix-based systems with a command lin
 <a name="quickstart"></a>
 
 ## Quickstart with Singularity
-The recommended and simplest way to use DataCurator is via the Singularity container. Note: DataCurator is only supported in a command line interface of a UNIX-based system. This is available both on Linux, Windows via Windows Subsystem for Linux (WSL), and Mac's Terminal. 
-For all methods of installation, please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
+The recommended way to use DataCurator is via the Singularity container. Note this is only supported in Linux, Windows Subsystem for Linux (WSL), and MacOS (x86). For ARM-based Macs (e.g. from early 2021 onward), use the Docker container or source codes. See [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) for detail.
 
 <a name="singularity"></a>
 
 ### Install Singularity
+If you don't already have Singularity, install Singularity. 
 #### Linux/WSL
-If you don't already have Singularity, install by 
 ```bash
 wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
 sudo apt-get install ./singularity-container_3.8.7_amd64.deb
 ```
-#### Windows/MacOS
-For Windows and Mac OS-based systems, the user is referred to [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
+#### MacOS (x86)
+Please refer to the [Singularity docs](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac).
 
-Test by typing `singularity --version`. This will return `singularity version 3.8.7`
+After installation, test by typing in a terminal `singularity --version`. This will return `singularity version 3.8.7`
 
 
 #### Download the DataCurator container
 ```bash
 singularity pull datacurator.sif library://bcvcsert/datacurator/datacurator:latest
 ```
-You can find the container image at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
+The container image can be also found at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
 
 #### Set executable
 ```bash
 chmod u+x ./datacurator.sif
 ```
 
-### Testing DataCurator with a minimal example 
+### Test DataCurator with a minimal example 
 #### Copy the example recipe
 ```bash
  wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml
