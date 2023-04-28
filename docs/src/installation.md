@@ -12,11 +12,11 @@
 ### Overview
 The following table shows which installation methods are supported on which platform.
 
-|             | Windows + WSL2 | Linux | Mac x86 | Max ARM (M1/2) |
-|-------------|----------------|-------|---------|----------------|
-| [Docker](#docker)      |  ✓    | ✓     | ✓       | ✓              |
-| [Singularity](#recommended) | ✓              | ✓     | ✓       | x              |
-| [Source](#source)      | x              | ✓     | ✓       | ✓              |
+|             | Windows (WSL 2 Backend) | WSL 2 | Linux | Mac x86 | Mac ARM (M1/2) |
+|-------------|-------------------------|-------|-------|---------|----------------|
+| [Docker](#docker)      |  ✓    |  x | ✓     | ✓       | ✓              |
+| [Singularity](#recommended)| x  |  ✓        | ✓     | ✓       | x              |
+| [Source](#source)      | x     | x        | ✓     | ✓       | ✓              |
 
 The radar chart shows how to differentiate installation methods per use case
 
