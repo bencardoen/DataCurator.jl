@@ -117,7 +117,7 @@ touch testdir/example.txt
 ```
 ### Run
 ```bash
-docker run -it -v `pwd`:/workdir -w /workdir datacurator:latest bash /opt/DataCurator.jl/runjulia.sh --recipe count.toml
+docker run -it -v ${PWD}:/workdir -w /workdir datacurator:latest bash /opt/DataCurator.jl/runjulia.sh --recipe count.toml
 ```
 The output will look somewhat like this
 ```bash
@@ -148,7 +148,22 @@ This can be safely ignored on Mac with M1/M2 chips. The Docker image is built fo
 - ``-v `pwd`:/workdir``: Give docker read/write access to the current directory, where your recipe is located, and the data is hosted. Modify as needed.
 - ``-w /workdir``: Run the container in this path (which we just made available with -v)
 
-**Advanced** If you want to modify the Docker container, you can do so by modifying the [recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile) and rebuild.
+**Modifying the docker image**
+You can explore or modify the docker image as well. Just like the singularity image, it contains a Python3, R, and Julia installation with DataCurator preinstalled.
+To open a command line (as root) in the image:
+```bash
+docker run -it -v ${PWD}:/workdir -w /workdir datacurator:latest bash 
+```
+E.g. to check what version of julia is packaged inside:
+```bash
+which julia
+```
+to start R
+```bash
+R
+```
+
+**Advanced** If you want to modify and rebuild the Docker container, you can do so by modifying the [recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile) and rebuild.
 ```bash
 wget https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile -O dockerfile
 docker build --tag datacurator:myversion .
