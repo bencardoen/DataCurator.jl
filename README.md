@@ -76,7 +76,7 @@ That should show output similar to
 
 The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml).
 
-For a complete walkthrough of the test recipe and more examples, please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md).
+What next? Check out [two simple TOML recipe exampes](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md#two-simple-examples), and follow that with the [large collection of fully commented example recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes) or the [complete walkthrough of DataCurator](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md). Please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) for more.
 
 <!-- ![Concept](overview.png) -->
 
@@ -92,7 +92,7 @@ Code coverage (which parts of the source code are tested) : [![codecov](https://
 <a name="docs"></a>
 
 ## Documentation
-For full documentation, click here >> [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md). This includes more detailed [installation docs](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) and a large selection of [example recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes).
+For full documentation, click here >> [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md). This includes more detailed [installation docs](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md), [fully commented example recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes), [complete walkthrough of DataCurator](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md), and more. 
 
 <a name="map"></a>
 
