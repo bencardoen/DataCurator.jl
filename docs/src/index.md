@@ -5,7 +5,8 @@ A multithreaded package to validate, curate, and transform large heterogeneous d
 
 # Table of contents
 - [Installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md)
-- [Example Recipe -- detailed walkthrough](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md)
+- [Two Simple Examples](#twosimple)
+- [Walkthrough](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md)
 - [Conditions & Rules : your toolbox of options to check, and actions you can perform](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/conditions.md)
 - [Usage -- How to use the Julia API if you need to](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/usage.md)
 - [Remote usage: posting to Slack, Owncloud, SSH/SCP](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/remote.md)
@@ -25,7 +26,9 @@ DataCurator is a Swiss army knife that ensures:
 
 ![Concept](assets/whatami.png)
 
-## Quickstart
+<a name="twosimple"></a>
+
+## Two Simple Examples
 We'll show 2 simple examples on how to get started.
 
 DataCurator works on `recipes`, TOML text files (see [examples](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes)), which we will include inline here to illustrate how to use them.
