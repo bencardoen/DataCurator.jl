@@ -76,7 +76,7 @@ That should show output similar to
 
 The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml).
 
-What next? Check out [two simple examples of use cases and TOML recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md#two-simple-examples), and follow that with the [large collection of fully commented example recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes) or the [complete walkthrough of DataCurator](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md). Please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) for more.
+**What next?** Check out [two simple examples of use cases and TOML recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md#two-simple-examples), and follow that with the [large collection of well commented example recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes) or the [complete walkthrough of DataCurator](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md). Please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md).
 
 <!-- ![Concept](overview.png) -->
 
@@ -92,7 +92,7 @@ Code coverage (which parts of the source code are tested) : [![codecov](https://
 <a name="docs"></a>
 
 ## Documentation
-For full documentation, click here >> [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md). This includes more detailed [installation docs](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md), [two simple examples of use cases and TOML recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md#two-simple-examples), [fully commented example recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes), [complete walkthrough of DataCurator](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md), and more. 
+For full documentation, click here >> [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md). This includes more detailed [installation docs](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md), [two simple examples of use cases and TOML recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md#two-simple-examples), [well-commented example recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes), [complete walkthrough of DataCurator](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md), and more. 
 
 <a name="map"></a>
 
