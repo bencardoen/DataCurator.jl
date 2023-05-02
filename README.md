@@ -40,6 +40,7 @@ sudo apt-get install ./singularity-container_3.8.7_amd64.deb
 #### MacOS (x86)
 Please refer to the [Singularity docs](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac).
 
+#### 1.1 Test Singularity works
 After installation, test by typing in a terminal `singularity --version`. This will return `singularity version 3.8.7`
 
 
@@ -53,6 +54,12 @@ The container image can be also found at [Sylabs](https://cloud.sylabs.io/librar
 ```bash
 chmod u+x ./datacurator.sif
 ```
+Depending on the directory you're in, you may need to grant Singularity read/write access.
+By default Singularity has read/write access to $HOME, no other directory.
+```
+export SINGULARITY_BINDPATH=${PWD}
+```
+You can also do this at runtime with the `-B` flag. 
 
 ### 4. Test DataCurator with a minimal example 
 #### Copy the example recipe
