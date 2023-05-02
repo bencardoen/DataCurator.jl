@@ -9,7 +9,7 @@ A key aim of this package is that recipes can be read/written by any researcher 
 DataCurator is a Swiss army knife that ensures:
 - pipelines can focus on the algorithm/problem solving
 - human readable "recipes" for future reproducibility
-- validation huge datasets at high speed
+- validation of huge datasets at high speed
 - out-of-the-box operation without the need for code or dependencies
 
 DataCurator requires a command-line interface and is supported on Linux, Windows Subsystem for Linux (WSL2), and MacOS. See [Quickstart](https://github.com/bencardoen/DataCurator.jl/blob/main/README.md#quickstart-with-singularity) and [Installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) for detail.
