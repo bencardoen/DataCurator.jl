@@ -8,11 +8,11 @@ A key aim of this package is that recipes can be read/written by any researcher 
 
 DataCurator is a Swiss army knife that ensures:
 - pipelines can focus on the algorithm/problem solving
-- human readable `recipes` for future reproducibility
-- validation huge datasets at high speed
+- human readable "recipes" for future reproducibility
+- validation of huge datasets at high speed
 - out-of-the-box operation without the need for code or dependencies
 
-DataCurator is currently supported only in Unix-based systems with a command line environment. (ex. Linux, MacOs, WSL).
+DataCurator requires a command-line interface and is supported on Linux, Windows Subsystem for Linux (WSL2), and MacOS. See [Quickstart](https://github.com/bencardoen/DataCurator.jl/blob/main/README.md#quickstart-with-singularity) and [Installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) for detail.
 
 ## Table of Contents
 
@@ -26,36 +26,42 @@ DataCurator is currently supported only in Unix-based systems with a command lin
 
 <a name="quickstart"></a>
 
-## Quickstart with Singularity
-The recommended and simplest way to use DataCurator is via the Singularity container. Note: DataCurator is only supported in a command line interface of a UNIX-based system. This is available both on Linux, Windows (Windows subsystem for Linux), and Mac's Terminal. 
+## Quickstart via Singularity
+The recommended way to use DataCurator is via the Singularity container. Note this is only supported in Linux, Windows Subsystem for Linux (WSL2), and MacOS (x86). For ARM-based Macs (e.g. from early 2021 onward), use the Docker container or source codes - see [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md) for detail.
 
 <a name="singularity"></a>
 
-### Install Singularity
+### 1. Install Singularity
 #### Linux/WSL
-If you don't already have Singularity, install by 
 ```bash
 wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
 sudo apt-get install ./singularity-container_3.8.7_amd64.deb
 ```
-#### Windows/MacOS
-For Windows and Mac OS-based systems, the user is referred to [installation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
+#### MacOS (x86)
+Please refer to the [Singularity docs](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac).
 
-Test by typing `singularity --version`. This will return `singularity version 3.8.7`
+#### 1.1 Test Singularity works
+After installation, test by typing in a terminal `singularity --version`. This will return `singularity version 3.8.7`
 
 
-#### Download the DataCurator container
+### 2. Download the DataCurator container
 ```bash
 singularity pull datacurator.sif library://bcvcsert/datacurator/datacurator:latest
 ```
-You can find the container image at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
+The container image can be also found at [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator).
 
-#### Set executable
+### 3. Set executable
 ```bash
 chmod u+x ./datacurator.sif
 ```
+Depending on the directory you're in, you may need to grant Singularity read/write access.
+By default Singularity has read/write access to $HOME, no other directory.
+```
+export SINGULARITY_BINDPATH=${PWD}
+```
+You can also do this at runtime with the `-B` flag. 
 
-### Testing DataCurator with a minimal example 
+### 4. Test DataCurator with a minimal example 
 #### Copy the example recipe
 ```bash
  wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml
@@ -75,9 +81,9 @@ That should show output similar to
 ![Results](outcome.png)
 
 
-The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml)
+The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml).
 
-For a complete walkthrough, please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md).
+**What next?** Check out [two simple examples of use cases and TOML recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md#two-simple-examples), and follow that with the [large collection of well commented example recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes) or the [complete walkthrough of DataCurator](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md). Please see the [documentation](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md).
 
 <!-- ![Concept](overview.png) -->
 
@@ -93,11 +99,7 @@ Code coverage (which parts of the source code are tested) : [![codecov](https://
 <a name="docs"></a>
 
 ## Documentation
-[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md) (clickable link)
-
-You can also view the documented [example recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/example_recipes)
-
-The installation page of the documentation can be found [here for quick reference](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md).
+For full documentation, click here >> [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md). This includes more detailed [installation docs](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/installation.md), [two simple examples of use cases and TOML recipes](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md#two-simple-examples), [well-commented example recipes](https://github.com/bencardoen/DataCurator.jl/tree/main/example_recipes), [complete walkthrough of DataCurator](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/recipe.md), and more. 
 
 <a name="map"></a>
 
@@ -121,7 +123,7 @@ repository
 <a name="preprint"></a>
 
 ## Preprint
-You can find our preprint [here](https://www.researchgate.net/publication/368557426_DataCuratorjl_Efficient_portable_and_reproducible_validation_curation_and_transformation_of_large_heterogeneous_datasets_using_human-readable_recipes_compiled_into_machine_verifiable_templates)
+You can find our preprint [here](https://www.researchgate.net/publication/368557426_DataCuratorjl_Efficient_portable_and_reproducible_validation_curation_and_transformation_of_large_heterogeneous_datasets_using_human-readable_recipes_compiled_into_machine_verifiable_templates).
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7527517.svg)](https://doi.org/10.5281/zenodo.7527517)
 

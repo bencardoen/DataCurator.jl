@@ -1,39 +1,56 @@
-## Installation
+# Installation
 
 ## Table of Contents
-1. [Recommended way](#recommended)
-   - [Singularity for Linux or WSL](#LinuxorWSL)
-   - [Singularity for Windows or Mac](#WindowsorMac)
-3. [Install from source](#source)
-4. [Advanced usage](#advanced)
-5. [Troubleshooting](#trouble)
+1. [Overview](#overview)
+2. [Singularity](#recommended)
+3. [Docker](#docker)
+4. [Install from source](#source)
+5. [Advanced usage](#advanced)
+6. [Troubleshooting](#trouble)
+
+<a name="overview"></a>
+
+## Overview
+The following table shows which installation methods are supported on which platform. Note that if you are a Windows user, you need to install [Windows Subsytem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install).
+
+|             | Linux | WSL 2 | Mac x86 | Mac ARM (M1/2) | Windows PowerShell<br>(with WSL2 backend) | 
+|-------------|-------------------------|-------|-------|---------|----------------|
+| [Docker](#docker)      |  ✓    |  x | ✓     | ✓       | ✓              |
+| [Singularity](#recommended)| ✓  |  ✓        | ✓     | x       | x              |
+| [Source](#source)      | ✓     | x        | ✓     | ✓       | x              |
 
 
+The radar chart shows how to differentiate installation methods per use case
+
+![img](https://github.com/bencardoen/DataCurator.jl/blob/main/chart.png)
 
 <a name="recommended"></a>
 
-### Recommended way
+## Singularity --Recommended way
 
-The recommended way to install and use DataCurator is to use the [Singularity](https://singularity.hpcng.org/) container. This is a self-contained environment that you can run on any Linux or Mac system, and on Windows using [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
+The recommended way to install and use DataCurator is to use the [Singularity](https://singularity.hpcng.org/) container. This is a self-contained environment that you can run on any Linux or Mac x86 system, and on Windows using [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 The reference solution for reproducible high performance computing code, Singularity is a container technology that allows you to package up your code and all its dependencies into a single file that can be easily shared and executed on any Linux system, including HPC systems, without having to worry about installing dependencies or conflicting versions.
 Singularity images, unlike Docker images, can be run without root privileges, and are read-only, so the code stays 100% reproducible even at runtime.
 If you follow this workflow, the installation is as simple as downloading and running the container image.
 
-**Note** If for any reason Singularity does not work on your machine, you can also [install from source](#advanced). We provide installation scripts that do this for you, those run automatically on each code change to ensure such changes do not break user installations. 
-However, this is more involved, and so if possible, we recommend the Singularity workflow.
+**Note** If for any reason Singularity does not work on your machine (e.g. you have a shiny new Mac with M1/M2 instead of x86), you can also [install from source](#advanced) or use the [Docker images](#docker). We provide installation scripts that do this for you, those run automatically on each code change to ensure such changes do not break user installations. 
 
-#### Prerequisites
-You need Singularity, first.
+The Docker workflow is 1-1 with Singularity; However, the installation from source is more involved.
 
-##### Linux or WSL
-<a name="LinuxorWSL"></a>
+### Install Singularity
 
+#### Linux or WSL
 The following works on Debian based Linux or Windows Subsystem for Linux (WSL) 2.
 ```bash
 wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
 sudo apt-get install ./singularity-container_3.8.7_amd64.deb
 ```
-Test if it works
+#### MacOS (x86)
+Please refer to the [Singularity docs](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac).
+**Note** This involves installing VirtualBox, Vagrant, and Vagrant Manager. 
+**Note** Newer Macs with M1/M2 chips may not work reliably with Virtualbox/Vagrant. For this reason, we recommended using [Docker](#docker) or [installing from source](#advanced) for such Macs. 
+
+#### Test if it worked
 ```bash
 singularity --version
 ```
@@ -41,35 +58,27 @@ This will show
 ```bash
 singularity version 3.8.7
 ```
-<a name="WindowsorMac"></a>
-
-##### Windows or Mac
-
-Please follow the Singularity instructions:
-* Get [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/installation.html#install-on-windows-or-mac)
- 
-**Note** Mac + M1/M2 chips may not work reliably with Virtualbox/Vagrant, it is then recommended to [install from source](#advanced). 
- 
- #### Get DataCurator
- Using the singularity CLI
+### Download the DataCurator Singularity container
+Using the singularity CLI
 ```bash
 singularity pull datacurator.sif library://bcvcsert/datacurator/datacurator:latest
 ```
-or visit [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator)
-#### Set executable
+or visit [Sylabs](https://cloud.sylabs.io/library/bcvcsert/datacurator/datacurator).
+
+### Set executable
 ```bash
 chmod u+x ./datacurator.sif
 ```
-#### Copy an example recipe
+### Download the example recipe
 ```bash
  wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml
 ```
-#### Create test data
+### Create test data
 ```bash
 mkdir testdir
 touch testdir/text.txt
 ```
-#### Run
+### Run
 ```bash
 ./datacurator.sif -r count.toml
 ```
@@ -77,14 +86,92 @@ touch testdir/text.txt
 That should show output similar to
 ![Results](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/outcome.png)
 
-The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml)
+The recipe used can be found [here](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml).
 
 See [TroubleShooting](#trouble) for common errors and their resolution.
 
+<a name="docker"></a>
+## Docker
+Docker is a technology that allows you to run packaged software and libraries, in this case DataCurator, on any of the major operating systems. 
+It is better supported on Mac+M1/M2 chips compared to Singularity.
+We provide both a [prebuilt docker instance](https://vault.sfu.ca/index.php/s/vzcz15uV3yZR9T5), and a [docker container recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile) based on the singularity recipe.
+### Download and install [Docker](https://docs.docker.com/get-docker/)
+
+### Download the DataCurator Docker image
+You can download in your browser (see [link](https://vault.sfu.ca/index.php/s/vzcz15uV3yZR9T5)), or via command line
+```
+wget https://vault.sfu.ca/index.php/s/vzcz15uV3yZR9T5/download -O datacurator.tgz
+```
+### Load the image into Docker
+```bash
+docker load -i datacurator.tgz
+```
+### Download the example recipe
+```bash
+ wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/example_recipes/count.toml -O count.toml
+```
+### Create test data
+```bash
+mkdir testdir
+touch testdir/example.txt
+```
+### Run
+```bash
+docker run -it -v ${PWD}:/workdir -w /workdir datacurator:latest bash /opt/DataCurator.jl/runjulia.sh --recipe count.toml
+```
+The output will look somewhat like this
+```bash
+[ Info: 2023-04-25 16:46:02 curator.jl:97: Reading template recipe count.toml
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:3055: Inputdirectory is set to testdir
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:3068: 🤨 Input directory is not an absolute path, resolving to absolute path .testdir -> /workdir/testdir
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:2663: Flat recipe detected
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:2674: ✓ Succesfully decoded your template ✓
+[ Info: 2023-04-25 16:46:02 curator.jl:103: ✓ Reading complete ✓
+[ Info: 2023-04-25 16:46:02 curator.jl:105: Running recipe on /workdir/testdir
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:2270: Finished processing dataset located at /workdir/testdir 🏁🏁🏁
+[ Info: 2023-04-25 16:46:02 curator.jl:119: Counter 1 --> ("filesize", 0)
+[ Info: 2023-04-25 16:46:02 curator.jl:119: Counter 2 --> ("filecount", 2)
+[ Info: 2023-04-25 16:46:02 curator.jl:133: Writing counters to counters.csv
+[ Info: 2023-04-25 16:46:02 curator.jl:146: 🏁✓ Complete with exit status proceed ✓🏁
+```
+### Notes on Docker installation
+**Note** You could get a warning from Docker Desktop that you're sharing your home dir with the container. This is intended behavior; otherwise DataCurator can only access data inside the container, where there is none.
+![warning](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/warning.png)
+
+**Note** You may get a warning about architectures:
+```bash
+WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+```
+This can be safely ignored on Mac with M1/M2 chips. The Docker image is built for x86 architecture, but Mac M1/2 comes with a translation layer.
+
+**A quick explanation** of the `docker run` command arguments, should you run into issues:
+- ``-v `pwd`:/workdir``: Give docker read/write access to the current directory, where your recipe is located, and the data is hosted. Modify as needed.
+- ``-w /workdir``: Run the container in this path (which we just made available with -v)
+
+**Modifying the docker image**
+You can explore or modify the docker image as well. Just like the singularity image, it contains a Python3, R, and Julia installation with DataCurator preinstalled.
+To open a command line (as root) in the image:
+```bash
+docker run -it -v ${PWD}:/workdir -w /workdir datacurator:latest bash 
+```
+E.g. to check what version of julia is packaged inside:
+```bash
+which julia
+```
+to start R
+```bash
+R
+```
+
+**Advanced** If you want to modify and rebuild the Docker container, you can do so by modifying the [recipe](https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile) and rebuild.
+```bash
+wget https://github.com/bencardoen/DataCurator.jl/blob/main/docker/dockerfile -O dockerfile
+docker build --tag datacurator:myversion .
+```
 
 <a name="source"></a>
 
-### From source
+## From source
 In order to guarantee that changes in code do not break existing functionality, we continually test DataCurator in Debian and Mac environments. 
 Those recipes are therefore the reference way to use DataCurator outside of the container image, as those are always guaranteed to work.
 - [Debian docker image](https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh)
@@ -104,7 +191,7 @@ You can adapt them to work without root privileges, but the number of different 
 
 **Note** Always download the `raw` scripts:
 
-#### Example installation on Ubuntu/Debian based Linux
+### Example installation on Ubuntu/Debian based Linux
 This script assumes you have sudo rights, and will install all dependencies in the system.
 ```bash
 wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
@@ -144,7 +231,7 @@ You can also look at the [CLI script](https://github.com/bencardoen/DataCurator.
 
 **These instructions are run automatically, when in doubt check [the test scripts](https://github.com/bencardoen/DataCurator.jl/blob/7a7936ac1e97a1e842a2eeec0a7487f47167d46c/.circleci/config.yml#L24)** 
 
-#### Example installation on Mac (M1/M2/x86)
+### Example installation on Mac (M1/M2/x86)
 
 This script assumes you have sudo rights, and will install all dependencies in the system.
 ```bash
@@ -186,12 +273,12 @@ That's it
 You can also look at the [CLI script](https://github.com/bencardoen/DataCurator.jl/blob/main/scripts/curator.jl) for more advanced usage.
  
 <a name="advanced"></a>
-### Advanced usage
+## Advanced usage
 If you want to use DataCurator to include your own code, or change DataCurator's code, you have 2 options:
 - Update the build scripts above and rebuild.
 - Update the Singularity image.
 
-##### I want to modify the singularity container
+### I want to modify the singularity container
 Singularity images are by default for reproducibility **read-only**, but you can still alter them by adding an overlay if you need to, and sometimes you just do.
 
 Let's say you want to add 4GB of changes, for example to include or update your own Python, Julia, or R packages. Or perhaps you want to update the packages (e.g. compiler) inside the container.
@@ -206,7 +293,7 @@ Note that changes are compressed, so 4GB gets you a lot of space.
 Once you're confident your changes work as expected, you can add your changes to the build scripts and rebuild the image.
 Sharing your updated build instructions then can let anyone build your version of the container, custom with your own extensions.
 
-##### Rebuilding the container
+### Rebuilding the container
 See [buildimage.sh](https://github.com/bencardoen/DataCurator.jl/tree/main/buildimage.sh) and [recipe.def](https://github.com/bencardoen/DataCurator.jl/tree/main/singularity/recipe.def) on how the images are built if you want to modify them.
 
 This script needs singularity installed, as well as git, zip, and wget.
@@ -215,8 +302,8 @@ This script needs singularity installed, as well as git, zip, and wget.
 ```
 
 <a name="trouble"></a>
-### Troubleshooting
-#### I get file permission errors with the image, but the files are right here!
+## Troubleshooting
+### I get file permission errors with the image, but the files are right here!
 
 If you get read/write errors, but the files exist,  this is because the Singularity container by default has **no access except to your $HOME directory**. This is by design, to give it the least amount of privileges it needs to run (and alter data).
 You can easily give it specific tailored access to data outside of your home directory, by using the -B flag. 
@@ -230,7 +317,7 @@ If you use this often, use a environment variable:
  export SINGULARITY_BIND="/opt,/data:/mnt"
 ```
 
-#### It's so slow on first run !! (without the image)
+### It's so slow on first run !! (without the image)
 If you use DataCurator as a Julia package or cloned repository, on first run Julia needs to compile functions and load packages. If you process large datasets, this cost (up to 20s) is meaningless. However, for smaller use cases it can be annoying.
 
 You can avoid this cost, by precompiling. We already scripted this for you in the Singularity image, if you want to replicate this you can check the [recipe.def](https://github.com/bencardoen/DataCurator.jl/tree/main/singularity/recipe.def) file. 
@@ -241,15 +328,15 @@ A clear advantage is that you will run compiled code, not interpreted code, so t
 
 With the precompiled image stored in the container, you can both run at high speed without losing portability.
 
-##### How do I control the number of threads ?
+### How do I control the number of threads ?
 Use the environment variable `JULIA_NUM_THREADS=k` like so:
 ```bash
 export JULIA_NUM_THREADS=5
 ```
 If you want to disable multithreading, just set parallel=false in your recipe.
 
-###### Optional
+### Optional
 If you wish to use the remote capabilities (Owncloud, Slack, SCP), you need [curl](https://curl.se/download.html), [scp, and ssh](https://www.openssh.com/) installed and configured
 
-##### Help ! None of my problems are covered here!
+### Help ! None of my problems are covered here!
 If any of the above is not clear, or not working, [please report an issue online](https://github.com/bencardoen/DataCurator.jl/issues/new/choose).
