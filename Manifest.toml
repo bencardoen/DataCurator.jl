@@ -144,7 +144,7 @@ version = "0.7.1"
 
 [[deps.Colocalization]]
 deps = ["ArgParse", "CSV", "DataFrames", "Dates", "Distributions", "ImageFiltering", "ImageMorphology", "ImageSegmentation", "Images", "Logging", "LoggingExtras", "ProgressMeter", "Random", "Revise", "Statistics", "Test"]
-git-tree-sha1 = "10c6230d685f317675a6a8a268db07e2419c7bc3"
+git-tree-sha1 = "4737d6e6b77b36c5392f6b58d4271b31167da726"
 repo-rev = "main"
 repo-url = "https://github.com/bencardoen/Colocalization.jl.git"
 uuid = "5deedb61-f8ac-43ca-82f0-d70c51e04289"
@@ -1399,7 +1399,7 @@ version = "0.1.0"
 
 [[deps.SmlmTools]]
 deps = ["ArgParse", "CSV", "Colocalization", "Colors", "Coverage", "DataFrames", "Dates", "Distributions", "Expectations", "Glob", "HypothesisTests", "ImageFiltering", "ImageMagick", "ImageMorphology", "Images", "LaTeXStrings", "LinearAlgebra", "Logging", "LoggingExtras", "Match", "PackageCompiler", "Pkg", "Printf", "ProgressMeter", "PyCall", "Random", "Statistics"]
-git-tree-sha1 = "42ba2e3f6753ea3f0cd3e17fc1b3a1489eddf397"
+git-tree-sha1 = "8566aea8d06702ff14e89d67bdd755d5aa30053a"
 repo-rev = "master"
 repo-url = "https://github.com/bencardoen/SmlmTools.jl.git"
 uuid = "bd0e0daa-fc13-11e8-3c42-ad9bbc1c8ca1"
