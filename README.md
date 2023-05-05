@@ -32,7 +32,7 @@ The recommended way to use DataCurator is via the Singularity container. Note th
 <a name="singularity"></a>
 
 ### 1. Install Singularity
-#### Linux/WSL
+#### Linux or Windows + WSL
 ```bash
 wget https://github.com/apptainer/singularity/releases/download/v3.8.7/singularity-container_3.8.7_amd64.deb
 sudo apt-get install ./singularity-container_3.8.7_amd64.deb
@@ -59,8 +59,6 @@ By default Singularity has read/write access to $HOME, no other directory.
 ```
 export SINGULARITY_BINDPATH=${PWD}
 ```
-You can also do this at runtime with the `-B` flag. 
-
 ### 4. Test DataCurator with a minimal example 
 #### Copy the example recipe
 ```bash
