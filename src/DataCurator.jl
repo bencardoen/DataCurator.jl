@@ -244,6 +244,10 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
             @info "Segmenting first .."
             A, B = Colocalization.segment(A, preprocessstrength), Colocalization.segment(B, preprocessstrength)
         end
+        if preprocess == "specht"
+            @info "Segmenting first using Specht"
+            A, B = Colocalization.segment(A, preprocessstrength), Colocalization.segment(B, preprocessstrength; method="specht")
+        end
         if preprocess == "filter"
             @info "Filtering first .."
             A, B = Colocalization.filter_projection(A, window, preprocessstrength), Colocalization.filter_projection(B, window, preprocessstrength)
@@ -263,6 +267,15 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
     @info "Writing colocalization results to $outdir"
     df = summarize_colocalization(res, imgs[1], imgs[2])
     CSV.write(joinpath(outdir, "colocalization.csv"), df)
+    df_objects, d1map, d2map = Colocalization.object_stats(A .* _A, B .* _B, res)
+    CSV.write(joinpath(outdir, "colocalization_per_object.csv"), df_objects)
+    d1map .= d1map ./ 2^16
+    d2map .= d2map ./ 2^16
+    Images.save(joinpath(outdir, "C1_distance_to_C2.tif"), map(Images.clamp01nan, Images.N0f16.(d1map)))
+    Images.save(joinpath(outdir, "C2_distance_to_C1.tif"), map(Images.clamp01nan, Images.N0f16.(d2map)))
+    Images.save(joinpath(outdir, "1_segmentation_mask.tif"), map(Images.clamp01nan, A))
+    Images.save(joinpath(outdir, "2_segmentation_mask.tif"), map(Images.clamp01nan, B))
+    # Images.save()
 	return df
 end
 
