@@ -268,6 +268,7 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
     df = summarize_colocalization(res, imgs[1], imgs[2])
     CSV.write(joinpath(outdir, "colocalization.csv"), df)
     df_objects, d1map, d2map = Colocalization.object_stats(A .* _A, B .* _B, res)
+    df_objects[!, :directory] .= dir
     CSV.write(joinpath(outdir, "colocalization_per_object.csv"), df_objects)
     d1map .= d1map ./ 2^8
     d1map[d1map .> 1] .= 1
