@@ -6,3 +6,7 @@ inputdirectory = "testdir"
 all=true
 conditions = ["is_csv_file"]
 actions=[["add_to_file_list", "table"]]
+
+
+#  transformer=["extract_columns", ["x1"]],
+#  for each dataframe, only select column "X1"

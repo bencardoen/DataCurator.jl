@@ -10,3 +10,25 @@ all=true
 # Any CSV files, at any level of the data. Note, it's up to you that these files have the columns used in the aggrator!. You can use has_columns_named to check for this.
 conditions = ["is_csv_file"]
 actions=[["add_to_file_list", "table"]]
+
+
+
+# file_lists = [{name="table", transformer=["groupbycolumn", ["x1", "x2"], ["x3"], ["sum"], ["x3_sum"]], aggregator="concat_to_table"}]
+# syntax#
+# {name="outputnameoftable",
+# transformer=[a function applied on each object, in this case tables],
+# transformer=["groupbycolumn", ["x1", "x2"], ["x3"], ["sum"], ["x3_sum"]],
+# "groupbycolumn" expects a list of columns to aggregate over (use as unique pairs), and a list of columns and way to aggregate them
+# in this case, group by "x1, x2", then take "x3" and sum 
+# so if the table looks like this
+# x1  x2  x3 
+# a   b   1
+# a   a   1
+# a   a   2
+# The result will look like This
+# x1  x2  x3_sum
+# a   b   1
+# a   a   3
+# aggregator="concat_to_table"
+# This will concatenate all tables into 1 table
+# }

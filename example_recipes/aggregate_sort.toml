@@ -19,3 +19,14 @@ inputdirectory = "testdir"
 all=true
 conditions = ["is_csv_file"]
 actions=[["add_to_file_list", "table"], ["add_to_file_list", "out"]]
+
+#[[["change_path", "/tmp/output"],
+#                                         "filepath",
+#                                         "sort",
+#                                         "unique",
+#                                         "shared_list_to_file"]]}
+#              ]
+# For a list of files, change the prefix to /tmp/output, strip the filename so only the path remains, sort, then remove duplicates
+# the result is saved in a file#
+# E.g. /a/b/c/d.csv and /a/b/e/q.csv
+# Would become /tmp/output/a/c and /tmp/output/e 
