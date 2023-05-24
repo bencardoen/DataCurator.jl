@@ -46,7 +46,7 @@ any_of, whitespace_to, has_whitespace, is_lower, slice_image, is_upper, write_fi
 is_img, is_kd_img, is_2d_img, is_3d_img, is_dlp, load_dlp, is_rgb, read_dir, files, subdirs, buildcomp, has_n_files, has_n_subdirs, decode_filelist,
 apply_all, ignore, generate_counter, log_to_file, size_of_file, make_shared_list, ifnotsetdefault, is_grayscale,
 shared_list_to_file, addentry!, load_gsd, is_gsd, n_files_or_more, less_than_n_files, delete_file, delete_folder, new_path, move_to,
-copy_to, decode_j, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message,
+copy_to, decode_j, ends_with_integer, begins_with_integer, contains_integer, to_level, log_to_file_with_message, extract_file,
 safe_match, read_type, read_int, read_float, read_prefix_float, is_csv_file, is_tif_file, is_type_file, is_png_file,
 read_prefix_int, read_postfix_float, read_postfix_int, collapse_functions, flatten_to, generate_size_counter, decode_symbol, lookup, guess_argument,
 validate_global, type_files, image_files, image_colocalization, decode_level, decode_function, tolowercase, handlecounters!, handle_chained, apply_to, add_to_file_list, create_template_from_toml, delegate, extract_template, has_lower, has_upper,
@@ -266,7 +266,11 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
 	return df
 end
 
+"""
+    load_sqlite(name)
 
+    Load a sqlite database, return nothing if it does not exist
+"""
 function load_sqlite(name)
     if !isfile(name)
         @warn "File $name does not exist"
@@ -2447,11 +2451,11 @@ function shared_list_to_table(list::AbstractVector, name::AbstractString="")
         name=dbname
         delete!(ENV, "DC_write_to_sqlite")
 	else
-        @info "Current path = $(pwd()))"
+        @info "Current path = $(pwd())"
         CSV.write("$name", DF)
     end
 	if haskey(ENV, "DC_owncloud_configuration")
-		#@debug "Owncloud config active .. uploading"
+		@info "Owncloud config active .. uploading"
 		upload_to_owncloud(name)
 	end
 	return name
@@ -3799,6 +3803,18 @@ function verifier(node, template::Vector, level::Int; on_success=false)
         end
     end
     return :proceed
+end
+
+function extract_file(dir, pattern)
+    @info "Extracting $pattern from $dir"
+    g=Glob.glob(pattern, dir)
+    if length(g) == 0
+        throw(ArgumentError("No file matching $pattern in $dir"))
+    end
+    if length(g) > 1
+        throw(ArgumentError("More than one file matching $pattern in $dir"))
+    end
+    return g[1]
 end
 
 function make_aggregator(name, list, adder, aggregator)
