@@ -270,12 +270,20 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
     df_objects, d1map, d2map = Colocalization.object_stats(A .* _A, B .* _B, res)
     df_objects[!, :directory] .= dir
     CSV.write(joinpath(outdir, "colocalization_per_object.csv"), df_objects)
-    d1map .= d1map ./ 2^8
-    d1map[d1map .> 1] .= 1
-    d2map .= d2map ./ 2^8
-    d2map[d2map .> 1] .= 1
-    Images.save(joinpath(outdir, "C1_distance_to_C2.tif"), map(Images.clamp01nan, Images.N0f16.(d1map)))
-    Images.save(joinpath(outdir, "C2_distance_to_C1.tif"), map(Images.clamp01nan, Images.N0f16.(d2map)))
+    # Where the map = 0.1, set it to 1
+    # Whe
+    d1 = copy(d1map)
+    d1[d1map .== 0.1] .= 1
+    d1[d1map .> 0.1] .= min.(1 , d1map[d1map .> 0.1] ./ 2^8)
+    d1[d1map .> 0.1] .= 1 .- d1[d1map .> 0.1]
+
+    d2 = copy(d2map)
+    d2[d2map .== 0.1] .= 1
+    d2[d2map .> 0.1] .= min.(1, d2map[d2map .> 0.1] ./ 2^8)
+    d2[d2map .> 0.1] .= 1 .- d2[d2map .> 0.1]
+    
+    Images.save(joinpath(outdir, "C1_distance_to_C2.tif"), map(Images.clamp01nan, Images.N0f16.(d1)))
+    Images.save(joinpath(outdir, "C2_distance_to_C1.tif"), map(Images.clamp01nan, Images.N0f16.(d2)))
     Images.save(joinpath(outdir, "1_segmentation_mask.tif"), map(Images.clamp01nan, A))
     Images.save(joinpath(outdir, "2_segmentation_mask.tif"), map(Images.clamp01nan, B))
     # Images.save()
