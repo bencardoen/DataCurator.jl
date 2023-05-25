@@ -33,7 +33,7 @@ The reference solution for reproducible high performance computing code, Singula
 Singularity images, unlike Docker images, can be run without root privileges, and are read-only, so the code stays 100% reproducible even at runtime.
 If you follow this workflow, the installation is as simple as downloading and running the container image.
 
-**Note** If for any reason Singularity does not work on your machine (e.g. you have a shiny new Mac with M1/M2 instead of x86), you can also [install from source](#advanced) or use the [Docker images](#docker). We provide installation scripts that do this for you, those run automatically on each code change to ensure such changes do not break user installations. 
+**Note** If for any reason Singularity does not work on your machine (e.g. you have a shiny new Mac with M1/M2 instead of x86), you can also use the [Docker images](#docker) or [install from source](#advanced). We provide installation scripts that do this for you, those run automatically on each code change to ensure such changes do not break user installations. 
 
 The Docker workflow is 1-1 with Singularity; However, the installation from source is more involved.
 

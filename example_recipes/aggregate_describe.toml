@@ -9,3 +9,7 @@ all=true
 # conditions=[["endswith", "*.tif"]]
 conditions = ["is_tif_file"]
 actions=[["add_to_file_list", "image_stats"]]
+
+
+# transformer=["describe_image", 3],
+# describe image computes (in 3D) the intensity statistics of the image and saves it to a CSV file 

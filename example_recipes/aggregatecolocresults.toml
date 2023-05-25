@@ -1,0 +1,10 @@
+[global]
+act_on_success=true
+hierarchical=false
+inputdirectory = "/dev/shm/testdir"
+parallel=false
+traversal="topdown"
+file_lists = [{name="all_coloc_results", aggregator="concat_to_table"}]
+[any]
+conditions = [["endswith", "colocalization_per_object.csv"]]
+actions=[["->", "all_coloc_results"]]

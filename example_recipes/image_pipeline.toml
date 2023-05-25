@@ -12,3 +12,9 @@ actions=[{name_transform=["tolowercase"], content_transform=[ ["gaussian", 3],
                                                                 "erode_image"], mode="copy"}]
 # Full syntax
 # {name_transform=[entry+], content_transform=[entry+], mode={copy, move, inplace}}
+# ["gaussian", sigma ] # Smooth the image with a Gaussian kernel of width sigma
+# ["threshold_image", "abs >", 0.01],  # Threshold, using absolute value, < 0.01 is set to 0
+# ["apply_to_image", ["abs"]] # Set all pixels to absolute value
+# "otsu_threshold_image", # Perform otsu thresholding
+# "erode_image"], # Erosion removes small isolated pixels 
+# mode="copy"}]   # This ensures the original is not changed, but a copy is created with the output
