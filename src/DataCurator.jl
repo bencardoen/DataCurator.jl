@@ -348,6 +348,7 @@ end
 	Try to load the contents of a mesh file, return nothing if it fails
 """
 function try_mesh(x)
+    @info "Testing if file is mesh"
 	try
 		load_mesh(x)
 	catch e
@@ -1114,6 +1115,7 @@ function load_content(x::AbstractString)
     # if is_sqlite(x)
     #     return load_sqlite(x)
     # end
+    @info "Testing if file is mesh"
 	q = try_mesh(x)
 	if isnothing(q)
 	    @error "No matching file type (img, csv), assuming your functions know how to handle this"
