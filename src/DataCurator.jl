@@ -357,10 +357,20 @@ function try_mesh(x)
 	end
 end
 
-function describe_file(x)
+
+function describe_file(x::AbstractString)
+    @debug "Describe file for $x" 
     return DataFrame(filename=x, filesize_kb=round(Int, filesize(x)/1024), extension=split(x, ".")[end])
 end
 
+function describe_file(x::AbstractVector)
+    @debug "Describe file for vec $x"
+    dfs = []
+    for _x in x
+        push!(dfs, describe_file(_x))
+    end 
+    return vcat(dfs...)
+end
 
 """
 	is_mesh(x)
@@ -1467,10 +1477,8 @@ function decode_filelist(fe::AbstractVector, glob)
 end
 
 function decode_filelist(fe::AbstractDict, glob::AbstractDict)
-    #Here check for
-    # KEys name, transformer, aggregator
     default=Dict([("transformer", identity), ("aggregator", shared_list_to_file)])
-    #@debug "Decoding $fe , default = $default"
+    @debug "Decoding $fe , default = $default"
     if ~haskey(fe, "name")
         @error "Invalid file list entry $fe"
         throw(ArgumentError("Your list should have at least a name, use file_lists=[{\"name\":\"mylistname\",...}]"))
@@ -1480,7 +1488,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     ag = default["aggregator"]
     if haskey(fe, "transformer")
         TF = fe["transformer"]
-        #@debug "Found a transformer entry $TF"
+        @debug "Found a transformer entry $TF"
         tf = decode_symbol(TF, glob;condition=false)
         if isnothing(tf)
             @error "Invalid $TF"
@@ -1489,14 +1497,14 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     end
     if haskey(fe, "aggregator")
         AG = fe["aggregator"]
-		#@debug "Decoding aggregator $AG"
+		@debug "Decoding aggregator $AG"
         ag = decode_aggregator(AG, glob)
-        #@debug "Found a aggregator entry $AG -> $ag"
+        @debug "Found a aggregator entry $AG -> $ag"
     end
-    #@debug "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
+    @debug "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
     if tf != identity
-        #@debug "Custom transform, wrapping with copy"
+        @debug "Custom transform $tf, wrapping with copy"
         adder = x::AbstractString -> add_to_file_list(tf(wrap_transform(x)), l)
     else
         adder = x::AbstractString -> add_to_file_list(x, l)
@@ -1530,7 +1538,7 @@ end
 
 function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractDict)
     ## Inner vector is a chain of A -> B -> SINK
-    #@debug "Decoding chained aggregator $(ag)"
+    @debug "Decoding chained aggregator $(ag)"
     if length(ag) != 1
         throw(ArgumentError("Invalid aggregator $ag, expecting [[A, B, C, D]] s.t. D(C(B(A)))"))
     end
@@ -1549,9 +1557,9 @@ function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractD
         end
         push!(chain, cfs)
     end
-    #@debug "Collapsing chain"
+    @debug "Collapsing chain"
     functor = collapse_functions(chain; left_to_right=true)
-    #@debug "Fixme --> Sink $sink"
+    @debug "Fixme --> Sink $sink"
     fs = lookup(sink)
     if isnothing(fs)
         throw(ArgumentError("$sink is not valid function call"))
@@ -2438,6 +2446,80 @@ function check_slice(img, d, m, M)
     end
     throw(ArgumentError("Invalid slice index for image with size $(SZ) , $d, $m, $M"))
     return false
+end
+
+
+function shared_list_to_table(list::AbstractVector{<:AbstractDataFrame}, name::AbstractString="")
+	if name == ""
+		#@debug "Aggregator without name specified"
+		rs = tmpname(10)
+		while isfile("$(rs).csv")
+			#@debug "$rs exists, trying again"
+			rs = tmpname(10)
+		end
+		name = "$(rs).csv"
+	end
+    @debug "Saving total of $(length(list)) to $name csv"
+    DF = vcat(list...)
+    if ~endswith(name, ".csv")
+        #@debug "Postfixing .csv"
+        name="$(name).csv"
+    end
+    @info "Writing aggregated tables to $name"
+    # "Current path = $(pwd()))"
+    if haskey(ENV, "DC_write_to_sqlite")
+        @info "Saving to SQLite"
+        dbname = ENV["DC_write_to_sqlite"]
+        @info "Using DB $dbname"
+		dataframe_to_sqlite(DF, dbname, name[1:end-4])
+        name=dbname
+        delete!(ENV, "DC_write_to_sqlite")
+	else
+        @info "Current path = $(pwd())"
+        CSV.write("$name", DF)
+    end
+	if haskey(ENV, "DC_owncloud_configuration")
+		@info "Owncloud config active .. uploading"
+		upload_to_owncloud(name)
+	end
+	return name
+end
+
+
+function shared_list_to_table(list::DataFrame, name::AbstractString="")
+	if name == ""
+		#@debug "Aggregator without name specified"
+		rs = tmpname(10)
+		while isfile("$(rs).csv")
+			#@debug "$rs exists, trying again"
+			rs = tmpname(10)
+		end
+		name = "$(rs).csv"
+	end
+    @debug "Saving total of $(size(list)) to $name csv"
+    DF = list
+    if ~endswith(name, ".csv")
+        #@debug "Postfixing .csv"
+        name="$(name).csv"
+    end
+    @info "Writing aggregated tables to $name"
+    # "Current path = $(pwd()))"
+    if haskey(ENV, "DC_write_to_sqlite")
+        @info "Saving to SQLite"
+        dbname = ENV["DC_write_to_sqlite"]
+        @info "Using DB $dbname"
+		dataframe_to_sqlite(DF, dbname, name[1:end-4])
+        name=dbname
+        delete!(ENV, "DC_write_to_sqlite")
+	else
+        @info "Current path = $(pwd())"
+        CSV.write("$name", DF)
+    end
+	if haskey(ENV, "DC_owncloud_configuration")
+		@info "Owncloud config active .. uploading"
+		upload_to_owncloud(name)
+	end
+	return name
 end
 
 function shared_list_to_table(list::AbstractVector, name::AbstractString="")

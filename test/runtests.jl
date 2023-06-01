@@ -68,6 +68,21 @@ correctpath()
         delete_folder(IN)
     end
 
+    @testset "filesizes" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        Images.save(joinpath(IN, "1.tif"), zeros(10, 10, 10))
+        res = create_template_from_toml(joinpath("..","example_recipes","describefiles.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        isfile("filetable.csv")
+        remove("filetable.csv")
+        delete_folder(IN)
+    end
+
     @testset "coloc" begin
         t=mktempdir()
         Images.save(joinpath(t, "1.tif"), zeros(100, 100))
