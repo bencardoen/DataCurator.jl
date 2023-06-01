@@ -42,34 +42,40 @@ correctpath()
         @test !isnothing(f)
     end
 
-    # @testset "rj" begin
-        # @test !isnothing(decode_j("Julia.SmlmTools.align"))
-    # end
-    # @testset "c+a" begin
-    #     correctpath()
-    #     IN="testdir"
-    #     delete_folder("outdir")
-    #     delete_folder(IN)
-    #     mkdir(IN)
-    #     cp("1p.csv", joinpath(IN, "1p.csv"))
-    #     cp("2p.csv", joinpath(IN, "2p.csv"))
-    #     res = create_template_from_toml(joinpath("..","example_recipes","coloc_and_align.toml"))
-    #     c, t = res
-    #     cts, cls, rv = delegate(c, t)
-    #     @test isfile(joinpath(IN, "aligned_c1.csv"))
-    #     @test isfile(joinpath(IN, "aligned_c1.csv"))
-    #     @test isfile(joinpath(IN, "manders.tif"))
-    #     delete_folder(IN)
-    # end
+    @testset "rj" begin
+        @test !isnothing(decode_j("Julia.SmlmTools.align"))
+    end
+    
+    @testset "rj2" begin
+        @test !isnothing(decode_j("Julia.Colocalization.object_stats"))
+    end
+    
+    
+    @testset "c+a" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        cp("1p.csv", joinpath(IN, "1p.csv"))
+        cp("2p.csv", joinpath(IN, "2p.csv"))
+        res = create_template_from_toml(joinpath("..","example_recipes","coloc_and_align.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        @test isfile(joinpath(IN, "aligned_c1.csv"))
+        @test isfile(joinpath(IN, "aligned_c1.csv"))
+        @test isfile(joinpath(IN, "manders.tif"))
+        delete_folder(IN)
+    end
 
-    # @testset "coloc" begin
-    #     t=mktempdir()
-    #     Images.save(joinpath(t, "1.tif"), zeros(100, 100))
-    #     Images.save(joinpath(t, "2.tif"), zeros(100, 100))
-    #     @test length(image_files(t)) == 2
-    #     image_colocalization(t, 3, "[1,2].tif", "is_2d_img", t)
-    #     rm(t, recursive=true, force=true)
-    # end
+    @testset "coloc" begin
+        t=mktempdir()
+        Images.save(joinpath(t, "1.tif"), zeros(100, 100))
+        Images.save(joinpath(t, "2.tif"), zeros(100, 100))
+        @test length(image_files(t)) == 2
+        image_colocalization(t, 3, "[1,2].tif", "is_2d_img", t)
+        rm(t, recursive=true, force=true)
+    end
 
     @testset "filesize" begin
         Images.save("test.tif", zeros(1000, 1000))

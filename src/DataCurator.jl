@@ -38,7 +38,7 @@ using PyCall
 using RCall
 pyimport("smlmvis")
 
-export topdown, is_case_inssensitive_fs, validate_owncloud, file_attribute, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, is_case_inssensitive_fs, describe_file, validate_owncloud, file_attribute, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -355,6 +355,10 @@ function try_mesh(x)
 		@error "Failed loading mesh $x"
 		return nothing
 	end
+end
+
+function describe_file(x)
+    return DataFrame(filename=x, filesize_kb=round(Int, filesize(x)/1024), extension=split(x, ".")[end])
 end
 
 
