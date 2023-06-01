@@ -1,0 +1,7 @@
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+file_lists = [ {name="filetable", aggregator=[["describe_file","concat_to_table"]]}]
+[any]
+conditions = ["is_file"]
+actions=[["add_to_file_list", "filetable"]]
