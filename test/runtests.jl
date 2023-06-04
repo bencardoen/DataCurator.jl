@@ -83,6 +83,23 @@ correctpath()
         delete_folder(IN)
     end
 
+    @testset "dfops2" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+       
+        df = DataFrame(rand(10, 10), :auto)
+        CSV.write(joinpath(IN,"1.csv"), df)
+        res = create_template_from_toml(joinpath("..","example_recipes","dataframefilter.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        dfx = CSV.read(joinpath(IN, "filtered1.csv"), DataFrame)
+        @test names(dfx) == ["x1"]
+        delete_folder(IN)
+    end
+
     @testset "coloc" begin
         t=mktempdir()
         Images.save(joinpath(t, "1.tif"), zeros(100, 100))

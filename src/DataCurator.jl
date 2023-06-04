@@ -1850,7 +1850,7 @@ function fix1p5(xs)
     return all.(xs|>collect)
 end
 
-function execute_dataframe_function(df::DataFrame, command::AbstractString, columns::AbstractVector, operators::AbstractVector, values::AbstractVector)
+function execute_dataframe_function(df::DataFrame, command::AbstractString, columns::AbstractVector, operators::AbstractVector, values::AbstractVector, selectcols)
     _df = copy(df)
     cols = names(df)
     #@debug "Dataframe --> Cols = $cols"
@@ -1858,19 +1858,31 @@ function execute_dataframe_function(df::DataFrame, command::AbstractString, colu
     # valid = reduce(&, map(check, columns))
     valid = all(map(check, columns)) # reduce doesn't short circuit, even with short circuit operators, because it can't know the reducer
     if ~valid
-        throw(ArgumentError("You're specifying conditions on $columns but frame only has $cols"))
+        @warn "You're specifying conditions on $columns but frame only has $cols : not changing dataframe content!!"
+        return _df
     end
-    # if command == "extract"
-    # BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
-    fx = (x, y) -> x .& y
+    if isnothing(selectcols)
+        @debug "No columns specified beyond condition --> using $(names(df))"
+        selectcols = names(df)
+    end
+    cmd = command
+    if occursin("_any", command)
+        cmd = split(cmd, "_")[1]
+        @debug "Using logical OR"
+        fx = (x, y) -> x .| y
+    else
+        @debug "Using logical AND"
+        fx = (x, y) -> x .& y
+    end
     BV = reduce( fx , (buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
-    sel = _df[BV, :]
+    # sel = _df[BV, :]
     #@debug "Remainder selection is"
     #@debug sel
-    return @match command begin
-        "extract" => copy(_df[BV, :])
-        "delete" => copy(_df[Not(BV), :])
-        _ => throw(ArgumentError("Invalid comman $command"))
+    
+    return @match cmd begin
+        "extract" => copy(_df[BV, selectcols])
+        "delete" => copy(_df[Not(BV), selectcols])
+        _ => throw(ArgumentError("Invalid command $command"))
     end
 end
 
@@ -1968,16 +1980,24 @@ end
         - col, op, vals (for in, between, ....)
 """
 function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
-    if length(x) != 2
+    @debug "DF $x"
+    # @debug length(x)
+    if ~(length(x) == 2 || length(x) == 3)
         throw(ArgumentError("Invalid dataframe conditions $x, expecting [command, [(col, op, vals),...]]"))
     end
     command::AbstractString = x[1]
     cols, ops, vals = decode_df_entries(x[2])
+    if length(x) == 3
+        fcols = x[3]
+    else
+        fcols = nothing
+    end
+    @debug "Selected columns are $fcols"
     if length(cols) != length(ops) != length(vals)
         throw(ArgumentError("Ops. cols, and values do not match in length"))
     end
     #@debug "Dataframe modifier with $command $cols $ops $vals"
-    return x -> execute_dataframe_function(x, command, cols, ops, vals)
+    return x -> execute_dataframe_function(x, command, cols, ops, vals, fcols)
 end
 
 function decode_df_entries(entries::AbstractVector{<:AbstractVector})
@@ -2089,25 +2109,25 @@ function _handle_cp(glob, f)
             throw(ArgumentError("Expecting `change_path newpath`, got $f"))
     end
     old = glob["inputdirectory"]
-    #@debug "Change path : $old --> $(f[2])"
+    @debug "Change path : $old --> $(f[2])"
     return x -> new_path(glob["inputdirectory"], x, f[2])
 end
 
 function _handle_extract(glob, f)
-	@warn "DataFrame extraction call needed"
+	@debug "DataFrame extraction call needed"
     return decode_dataframe_function(f, glob)
 end
 
 function _handle_all(glob, f, condition)
-	#@debug "Nested function with $f $f"
+	@debug "Nested function with $f $f"
     rem = f[2:end]
     _fs = [decode_function(_f, glob; condition=condition) for _f in rem]
-    #@debug _fs
+    @debug _fs
 	if condition
-        #@debug "Nested condition"
+        @debug "Nested condition"
         return x->all_of(_fs, x)
     else
-        #@debug "Nested action"
+        @debug "Nested action"
         return x->apply_all(_fs, x)
     end
 end
@@ -2136,6 +2156,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
 	#@debug "Decode function with $f"
 	@match f1 begin
 		"extract" => return _handle_extract(glob, f)
+		"extract_any" => return _handle_extract(glob, f)
 		"change_path" => return _handle_cp(glob, f)
 		"not" => begin negate=true; f=f[2:end]; @debug "Negate on function list is now $f"; end
 		"all" => return _handle_all(glob, f, condition)
@@ -2626,6 +2647,15 @@ function sort_stack(list; aggregator=list_to_image)
         agg = aggregator(fs)
         #@debug "Saving aggregation for $prefix"
         Images.save(prefix, agg)
+    end
+end
+
+function prefixfilename(x::AbstractString, pfx::AbstractString)
+    sp = splitpath(x)
+    if length(sp) == 1
+        return "$(pfx)$(x)"
+    else
+        return joinpath(sp[1:end-1]..., "$(pfx)$(sp[end])")
     end
 end
 
