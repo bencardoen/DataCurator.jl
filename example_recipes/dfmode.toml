@@ -1,0 +1,11 @@
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+# You often do not need all of your content, e.g. 1 out of 128 columns. You can specify in words what kind of filter conditions you want applied to extract your data
+all=true
+conditions=["is_csv_file", "has_upper"]
+actions=[{name_transform=[["prefixfilename", "filtered"]], content_transform=[["extract", [["z [nm]", "mode", [-1, 1]], ["uncertainty [nm]", "<", 15]]]], mode="inplace"}]
+
+# Example recipe to filter SMLM data
+# Remove data outside of the focal plane (mode [-1, 1]) --> find focal plane in Z, remove +- 1D
