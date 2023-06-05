@@ -275,12 +275,12 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
     # Whe
     d1 = copy(d1map)
     d1[d1map .== 0.1] .= 1
-    d1[d1map .> 0.1] .= min.(1 , d1map[d1map .> 0.1] ./ 2^8)
+    d1[d1map .> 0.1] .= min.(1 , (d1map[d1map .> 0.1] ./ 16))
     d1[d1map .> 0.1] .= 1 .- d1[d1map .> 0.1]
 
     d2 = copy(d2map)
     d2[d2map .== 0.1] .= 1
-    d2[d2map .> 0.1] .= min.(1, d2map[d2map .> 0.1] ./ 2^8)
+    d2[d2map .> 0.1] .= min.(1, (d2map[d2map .> 0.1] ./ 16))
     d2[d2map .> 0.1] .= 1 .- d2[d2map .> 0.1]
     
     Images.save(joinpath(outdir, "C1_distance_to_C2.tif"), map(Images.clamp01nan, Images.N0f16.(d1)))
