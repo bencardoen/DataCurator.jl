@@ -2,10 +2,29 @@
 act_on_success=true
 inputdirectory = "testdir"
 [any]
-# You often do not need all of your content, e.g. 1 out of 128 columns. You can specify in words what kind of filter conditions you want applied to extract your data
 all=true
-conditions=["is_csv_file", "has_upper"]
-actions=[{name_transform=[["prefixfilename", "filtered"]], content_transform=[["extract", [["z [nm]", "mode", [-1, 1]], ["uncertainty [nm]", "<", 15]]]], mode="inplace"}]
+conditions=["is_csv_file"]
+actions=[{name_transform=[["prefixfilename", "filtered"]], content_transform=[["extract_any", [["z [nm]", "mode", [-1, 1]], ["uncertainty [nm]", "<", 15]]]], mode="copy"}]
 
 # Example recipe to filter SMLM data
-# Remove data outside of the focal plane (mode [-1, 1]) --> find focal plane in Z, remove +- 1D
+
+# name_transform=[["prefixfilename", "filtered"]]
+# After modifying the CSV file, save it with prefix "filtered". For example, "1.csv", becomes "filtered1.csv".
+
+# The actual filtering:
+# content_transform=[["extract", [["z [nm]", "mode", [-1, 1]], ["uncertainty [nm]", "<", 15]]]]
+
+# Look at the Z distribution, find the `mode' (density peak, which corresponds with the focal plane)
+# Then remove all data +- 1 STD (standard deviation) above an below that peak
+# ["z [nm]", "mode", [-1, 1]
+
+# We also want to remove uncertain data
+# ["uncertainty [nm]", "<", 15]
+
+# The end result is saved in a new CSV file, in the same directory, prefixed by 'filtered'.
+
+# The above conditions are "AND", so read these as "I want data near the focal plane AND high precision"
+# If you want to use logical "OR", switch "extract" to extract_any
+
+# Let's say the `mode' is incorrect, you can also hardcode this, for example to keep data between -100 and +100nm:
+# ["z [nm]", "between", [-100, 100]]
