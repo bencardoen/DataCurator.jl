@@ -1,0 +1,8 @@
+#this recipe computes the sizes of files in KB and records the results to a single csv table
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+file_lists = [ {name="filetable", aggregator=[["describe_file","concat_to_table"]]}]
+[any]
+conditions = ["is_file"]
+actions=[["add_to_file_list", "filetable"]]

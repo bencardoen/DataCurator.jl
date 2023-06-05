@@ -22,7 +22,7 @@ echo "Assumes you have wget installed"
 # Assumes to be run with sudo or as root (see CircleCI)
 
 ## Set to python which we will install, and install R inside DC
-export R_HOME="*"
+# export R_HOME="*"
 export PYTHON="/usr/bin/python3"
 
 # Make sure we have current package info
@@ -30,6 +30,8 @@ apt-get update -y
 # Install tools needed
 apt-get install wget git -y
 apt install python3 -y
+apt install r-base -y
+export R_HOME=`R RHOME`
 apt install python3-pip -y
 # Install Python dependencies
 pip3 install smlmvis

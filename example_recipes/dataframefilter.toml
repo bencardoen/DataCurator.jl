@@ -1,0 +1,7 @@
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+all=true
+conditions=["is_csv_file"]
+actions=[{name_transform=[["prefixfilename", "filtered"]], content_transform=[["extract", [["z [nm]", "mode", [-1, 1]], ["uncertainty [nm]", "<", 15]]]], mode="inplace"}]

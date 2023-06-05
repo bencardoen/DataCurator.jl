@@ -42,9 +42,15 @@ correctpath()
         @test !isnothing(f)
     end
 
-    # @testset "rj" begin
-        # @test !isnothing(decode_j("Julia.SmlmTools.align"))
-    # end
+    @testset "rj" begin
+        @test !isnothing(decode_j("Julia.SmlmTools.align"))
+    end
+    
+    @testset "rj2" begin
+        @test !isnothing(decode_j("Julia.Colocalization.object_stats"))
+    end
+    
+    
     @testset "c+a" begin
         correctpath()
         IN="testdir"
@@ -59,6 +65,38 @@ correctpath()
         @test isfile(joinpath(IN, "aligned_c1.csv"))
         @test isfile(joinpath(IN, "aligned_c1.csv"))
         @test isfile(joinpath(IN, "manders.tif"))
+        delete_folder(IN)
+    end
+
+    @testset "filesizes" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        Images.save(joinpath(IN, "1.tif"), zeros(10, 10, 10))
+        res = create_template_from_toml(joinpath("..","example_recipes","describefiles.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        isfile("filetable.csv")
+        remove("filetable.csv")
+        delete_folder(IN)
+    end
+
+    @testset "dfops2" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+       
+        df = DataFrame(rand(10, 10), :auto)
+        CSV.write(joinpath(IN,"1.csv"), df)
+        res = create_template_from_toml(joinpath("..","example_recipes","dataframefilter.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        dfx = CSV.read(joinpath(IN, "filtered1.csv"), DataFrame)
+        @test names(dfx) == ["x1"]
         delete_folder(IN)
     end
 

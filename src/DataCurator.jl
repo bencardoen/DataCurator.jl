@@ -13,6 +13,7 @@
 # Copyright 2022, Ben Cardoen
 module DataCurator
 using Base.Threads
+using KernelDensity
 import Random
 using JSON
 using IOCapture
@@ -38,7 +39,7 @@ using PyCall
 using RCall
 pyimport("smlmvis")
 
-export topdown, is_case_inssensitive_fs, validate_owncloud, file_attribute, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
+export topdown, is_case_inssensitive_fs, describe_file, validate_owncloud, file_attribute, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
 verify_template, always, filepath, never, increment_counter, make_counter, read_counter, transform_template, all_of, size_image,
 transform_inplace, ParallelCounter, transform_copy, warn_on_fail, validate_scp_config, quit_on_fail, sample, expand_sequential, always_fails, filename_ends_with_integer,
 expand_threaded, transform_template, quit, proceed, filename, integer_name, extract_columns, wrap_transform,
@@ -356,6 +357,7 @@ end
 	Try to load the contents of a mesh file, return nothing if it fails
 """
 function try_mesh(x)
+    @info "Testing if file is mesh"
 	try
 		load_mesh(x)
 	catch e
@@ -364,6 +366,20 @@ function try_mesh(x)
 	end
 end
 
+
+function describe_file(x::AbstractString)
+    @debug "Describe file for $x" 
+    return DataFrame(filename=x, filesize_kb=round(Int, filesize(x)/1024), extension=split(x, ".")[end])
+end
+
+function describe_file(x::AbstractVector)
+    @debug "Describe file for vec $x"
+    dfs = []
+    for _x in x
+        push!(dfs, describe_file(_x))
+    end 
+    return vcat(dfs...)
+end
 
 """
 	is_mesh(x)
@@ -1122,6 +1138,7 @@ function load_content(x::AbstractString)
     # if is_sqlite(x)
     #     return load_sqlite(x)
     # end
+    @info "Testing if file is mesh"
 	q = try_mesh(x)
 	if isnothing(q)
 	    @error "No matching file type (img, csv), assuming your functions know how to handle this"
@@ -1469,10 +1486,8 @@ function decode_filelist(fe::AbstractVector, glob)
 end
 
 function decode_filelist(fe::AbstractDict, glob::AbstractDict)
-    #Here check for
-    # KEys name, transformer, aggregator
     default=Dict([("transformer", identity), ("aggregator", shared_list_to_file)])
-    #@debug "Decoding $fe , default = $default"
+    @debug "Decoding $fe , default = $default"
     if ~haskey(fe, "name")
         @error "Invalid file list entry $fe"
         throw(ArgumentError("Your list should have at least a name, use file_lists=[{\"name\":\"mylistname\",...}]"))
@@ -1482,7 +1497,7 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     ag = default["aggregator"]
     if haskey(fe, "transformer")
         TF = fe["transformer"]
-        #@debug "Found a transformer entry $TF"
+        @debug "Found a transformer entry $TF"
         tf = decode_symbol(TF, glob;condition=false)
         if isnothing(tf)
             @error "Invalid $TF"
@@ -1491,14 +1506,14 @@ function decode_filelist(fe::AbstractDict, glob::AbstractDict)
     end
     if haskey(fe, "aggregator")
         AG = fe["aggregator"]
-		#@debug "Decoding aggregator $AG"
+		@debug "Decoding aggregator $AG"
         ag = decode_aggregator(AG, glob)
-        #@debug "Found a aggregator entry $AG -> $ag"
+        @debug "Found a aggregator entry $AG -> $ag"
     end
-    #@debug "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
+    @debug "Constructed aggregation list $fn transform with $tf and aggregation by $ag"
     l = make_shared_list()
     if tf != identity
-        #@debug "Custom transform, wrapping with copy"
+        @debug "Custom transform $tf, wrapping with copy"
         adder = x::AbstractString -> add_to_file_list(tf(wrap_transform(x)), l)
     else
         adder = x::AbstractString -> add_to_file_list(x, l)
@@ -1532,7 +1547,7 @@ end
 
 function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractDict)
     ## Inner vector is a chain of A -> B -> SINK
-    #@debug "Decoding chained aggregator $(ag)"
+    @debug "Decoding chained aggregator $(ag)"
     if length(ag) != 1
         throw(ArgumentError("Invalid aggregator $ag, expecting [[A, B, C, D]] s.t. D(C(B(A)))"))
     end
@@ -1551,9 +1566,9 @@ function decode_aggregator(ag::AbstractVector{<:AbstractVector}, glob::AbstractD
         end
         push!(chain, cfs)
     end
-    #@debug "Collapsing chain"
+    @debug "Collapsing chain"
     functor = collapse_functions(chain; left_to_right=true)
-    #@debug "Fixme --> Sink $sink"
+    @debug "Fixme --> Sink $sink"
     fs = lookup(sink)
     if isnothing(fs)
         throw(ArgumentError("$sink is not valid function call"))
@@ -1844,7 +1859,7 @@ function fix1p5(xs)
     return all.(xs|>collect)
 end
 
-function execute_dataframe_function(df::DataFrame, command::AbstractString, columns::AbstractVector, operators::AbstractVector, values::AbstractVector)
+function execute_dataframe_function(df::DataFrame, command::AbstractString, columns::AbstractVector, operators::AbstractVector, values::AbstractVector, selectcols)
     _df = copy(df)
     cols = names(df)
     #@debug "Dataframe --> Cols = $cols"
@@ -1852,19 +1867,28 @@ function execute_dataframe_function(df::DataFrame, command::AbstractString, colu
     # valid = reduce(&, map(check, columns))
     valid = all(map(check, columns)) # reduce doesn't short circuit, even with short circuit operators, because it can't know the reducer
     if ~valid
-        throw(ArgumentError("You're specifying conditions on $columns but frame only has $cols"))
+        @warn "You're specifying conditions on $columns but frame only has $cols : not changing dataframe content!!"
+        return _df
     end
-    # if command == "extract"
-    # BV = reduce(.&, [buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)])
-    fx = (x, y) -> x .& y
+    if isnothing(selectcols)
+        @debug "No columns specified beyond condition --> using $(names(df))"
+        selectcols = names(df)
+    end
+    cmd = command
+    if occursin("_any", command)
+        cmd = split(cmd, "_")[1]
+        @debug "Using logical OR"
+        fx = (x, y) -> x .| y
+    else
+        @debug "Using logical AND"
+        fx = (x, y) -> x .& y
+    end
     BV = reduce( fx , (buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
-    sel = _df[BV, :]
-    #@debug "Remainder selection is"
-    #@debug sel
-    return @match command begin
-        "extract" => copy(_df[BV, :])
-        "delete" => copy(_df[Not(BV), :])
-        _ => throw(ArgumentError("Invalid comman $command"))
+    
+    return @match cmd begin
+        "extract" => copy(_df[BV, selectcols])
+        "delete" => copy(_df[Not(BV), selectcols])
+        _ => throw(ArgumentError("Invalid command $command"))
     end
 end
 
@@ -1962,16 +1986,24 @@ end
         - col, op, vals (for in, between, ....)
 """
 function decode_dataframe_function(x::AbstractVector, glob::AbstractDict)
-    if length(x) != 2
+    @debug "DF $x"
+    # @debug length(x)
+    if ~(length(x) == 2 || length(x) == 3)
         throw(ArgumentError("Invalid dataframe conditions $x, expecting [command, [(col, op, vals),...]]"))
     end
     command::AbstractString = x[1]
     cols, ops, vals = decode_df_entries(x[2])
+    if length(x) == 3
+        fcols = x[3]
+    else
+        fcols = nothing
+    end
+    @debug "Selected columns are $fcols"
     if length(cols) != length(ops) != length(vals)
         throw(ArgumentError("Ops. cols, and values do not match in length"))
     end
     #@debug "Dataframe modifier with $command $cols $ops $vals"
-    return x -> execute_dataframe_function(x, command, cols, ops, vals)
+    return x -> execute_dataframe_function(x, command, cols, ops, vals, fcols)
 end
 
 function decode_df_entries(entries::AbstractVector{<:AbstractVector})
@@ -2027,8 +2059,26 @@ function buildcomp(df::DataFrame, col::AbstractString, op::AbstractString, val::
     return @match op begin
         "between" => val[1] .< df[:,col] .< val[2]
         "in" => BitVector(map(c,df[:,col]))
+        "mode" => handle_mode(df, col, val)
         _ => throw(ArgumentError("Op $op is invalid, between or in"))
     end
+end
+
+function handle_mode(df, col, val)
+    k, j = val
+    @debug "Val $val"
+    @debug "Mode computation"
+    xs = df[:, col]
+    m = univariate_mode(xs)[1]
+    @debug "$m"
+    s = std(xs)
+    @debug "Masking with mode $m and std $s"
+    return (m + k*s) .< df[:, col] .< (m + j*s)
+end
+
+function univariate_mode(xs)
+    dx = kde(xs)
+    return dx.x[dx.density.==maximum(dx.density)]
 end
 
 """
@@ -2083,25 +2133,25 @@ function _handle_cp(glob, f)
             throw(ArgumentError("Expecting `change_path newpath`, got $f"))
     end
     old = glob["inputdirectory"]
-    #@debug "Change path : $old --> $(f[2])"
+    @debug "Change path : $old --> $(f[2])"
     return x -> new_path(glob["inputdirectory"], x, f[2])
 end
 
 function _handle_extract(glob, f)
-	@warn "DataFrame extraction call needed"
+	@debug "DataFrame extraction call needed"
     return decode_dataframe_function(f, glob)
 end
 
 function _handle_all(glob, f, condition)
-	#@debug "Nested function with $f $f"
+	@debug "Nested function with $f $f"
     rem = f[2:end]
     _fs = [decode_function(_f, glob; condition=condition) for _f in rem]
-    #@debug _fs
+    @debug _fs
 	if condition
-        #@debug "Nested condition"
+        @debug "Nested condition"
         return x->all_of(_fs, x)
     else
-        #@debug "Nested action"
+        @debug "Nested action"
         return x->apply_all(_fs, x)
     end
 end
@@ -2130,6 +2180,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
 	#@debug "Decode function with $f"
 	@match f1 begin
 		"extract" => return _handle_extract(glob, f)
+		"extract_any" => return _handle_extract(glob, f)
 		"change_path" => return _handle_cp(glob, f)
 		"not" => begin negate=true; f=f[2:end]; @debug "Negate on function list is now $f"; end
 		"all" => return _handle_all(glob, f, condition)
@@ -2442,6 +2493,80 @@ function check_slice(img, d, m, M)
     return false
 end
 
+
+function shared_list_to_table(list::AbstractVector{<:AbstractDataFrame}, name::AbstractString="")
+	if name == ""
+		#@debug "Aggregator without name specified"
+		rs = tmpname(10)
+		while isfile("$(rs).csv")
+			#@debug "$rs exists, trying again"
+			rs = tmpname(10)
+		end
+		name = "$(rs).csv"
+	end
+    @debug "Saving total of $(length(list)) to $name csv"
+    DF = vcat(list...)
+    if ~endswith(name, ".csv")
+        #@debug "Postfixing .csv"
+        name="$(name).csv"
+    end
+    @info "Writing aggregated tables to $name"
+    # "Current path = $(pwd()))"
+    if haskey(ENV, "DC_write_to_sqlite")
+        @info "Saving to SQLite"
+        dbname = ENV["DC_write_to_sqlite"]
+        @info "Using DB $dbname"
+		dataframe_to_sqlite(DF, dbname, name[1:end-4])
+        name=dbname
+        delete!(ENV, "DC_write_to_sqlite")
+	else
+        @info "Current path = $(pwd())"
+        CSV.write("$name", DF)
+    end
+	if haskey(ENV, "DC_owncloud_configuration")
+		@info "Owncloud config active .. uploading"
+		upload_to_owncloud(name)
+	end
+	return name
+end
+
+
+function shared_list_to_table(list::DataFrame, name::AbstractString="")
+	if name == ""
+		#@debug "Aggregator without name specified"
+		rs = tmpname(10)
+		while isfile("$(rs).csv")
+			#@debug "$rs exists, trying again"
+			rs = tmpname(10)
+		end
+		name = "$(rs).csv"
+	end
+    @debug "Saving total of $(size(list)) to $name csv"
+    DF = list
+    if ~endswith(name, ".csv")
+        #@debug "Postfixing .csv"
+        name="$(name).csv"
+    end
+    @info "Writing aggregated tables to $name"
+    # "Current path = $(pwd()))"
+    if haskey(ENV, "DC_write_to_sqlite")
+        @info "Saving to SQLite"
+        dbname = ENV["DC_write_to_sqlite"]
+        @info "Using DB $dbname"
+		dataframe_to_sqlite(DF, dbname, name[1:end-4])
+        name=dbname
+        delete!(ENV, "DC_write_to_sqlite")
+	else
+        @info "Current path = $(pwd())"
+        CSV.write("$name", DF)
+    end
+	if haskey(ENV, "DC_owncloud_configuration")
+		@info "Owncloud config active .. uploading"
+		upload_to_owncloud(name)
+	end
+	return name
+end
+
 function shared_list_to_table(list::AbstractVector, name::AbstractString="")
 	if name == ""
 		#@debug "Aggregator without name specified"
@@ -2546,6 +2671,15 @@ function sort_stack(list; aggregator=list_to_image)
         agg = aggregator(fs)
         #@debug "Saving aggregation for $prefix"
         Images.save(prefix, agg)
+    end
+end
+
+function prefixfilename(x::AbstractString, pfx::AbstractString)
+    sp = splitpath(x)
+    if length(sp) == 1
+        return "$(pfx)$(x)"
+    else
+        return joinpath(sp[1:end-1]..., "$(pfx)$(sp[end])")
     end
 end
 
