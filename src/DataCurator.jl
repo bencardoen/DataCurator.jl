@@ -13,6 +13,7 @@
 # Copyright 2022, Ben Cardoen
 module DataCurator
 using Base.Threads
+using KernelDensity
 import Random
 using JSON
 using IOCapture
@@ -1875,9 +1876,6 @@ function execute_dataframe_function(df::DataFrame, command::AbstractString, colu
         fx = (x, y) -> x .& y
     end
     BV = reduce( fx , (buildcomp(_df, c, o, v) for (c, o, v) in zip(columns, operators, values)))
-    # sel = _df[BV, :]
-    #@debug "Remainder selection is"
-    #@debug sel
     
     return @match cmd begin
         "extract" => copy(_df[BV, selectcols])
@@ -2053,8 +2051,26 @@ function buildcomp(df::DataFrame, col::AbstractString, op::AbstractString, val::
     return @match op begin
         "between" => val[1] .< df[:,col] .< val[2]
         "in" => BitVector(map(c,df[:,col]))
+        "mode" => handle_mode(df, col, val)
         _ => throw(ArgumentError("Op $op is invalid, between or in"))
     end
+end
+
+function handle_mode(df, col, val)
+    k, j = val
+    @debug "Val $val"
+    @debug "Mode computation"
+    xs = df[:, col]
+    m = univariate_mode(xs)[1]
+    @debug "$m"
+    s = std(xs)
+    @debug "Masking with mode $m and std $s"
+    return (m + k*s) .< df[:, col] .< (m + j*s)
+end
+
+function univariate_mode(xs)
+    dx = kde(xs)
+    return dx.x[dx.density.==maximum(dx.density)]
 end
 
 """
