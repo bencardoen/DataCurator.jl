@@ -247,7 +247,7 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
         end
         if preprocess == "specht"
             @info "Segmenting first using Specht"
-            A, B = Colocalization.segment(A, preprocessstrength), Colocalization.segment(B, preprocessstrength; method="specht")
+            A, B = Colocalization.segment(A, preprocessstrength; method="specht"), Colocalization.segment(B, preprocessstrength; method="specht")
         end
         if preprocess == "filter"
             @info "Filtering first .."
@@ -267,6 +267,7 @@ function image_colocalization(dir, window=3, filter="", condition="is_img", prep
     end
     @info "Writing colocalization results to $outdir"
     df = summarize_colocalization(res, imgs[1], imgs[2])
+    df[!, :directory] .= dir
     CSV.write(joinpath(outdir, "colocalization.csv"), df)
     df_objects, d1map, d2map = Colocalization.object_stats(A .* _A, B .* _B, res)
     df_objects[!, :directory] .= dir
