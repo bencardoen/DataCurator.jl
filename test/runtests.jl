@@ -63,7 +63,7 @@ correctpath()
         c, t = res
         cts, cls, rv = delegate(c, t)
         @test isfile(joinpath(IN, "1p_aligned_c1.csv"))
-        @test isfile(joinpath(IN, "2p_aligned_c1.csv"))
+        @test isfile(joinpath(IN, "2p_aligned_c2.csv"))
         @test isfile(joinpath(IN, "manders.tif"))
         delete_folder(IN)
     end
