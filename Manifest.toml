@@ -1403,11 +1403,11 @@ version = "0.1.0"
 
 [[deps.SmlmTools]]
 deps = ["ArgParse", "CSV", "Colocalization", "Colors", "Coverage", "DataFrames", "Dates", "Distributions", "Expectations", "Glob", "HypothesisTests", "ImageFiltering", "ImageMagick", "ImageMorphology", "Images", "KernelDensity", "LaTeXStrings", "LinearAlgebra", "Logging", "LoggingExtras", "Match", "PackageCompiler", "Pkg", "Printf", "ProgressMeter", "PyCall", "Random", "Revise", "Statistics"]
-git-tree-sha1 = "700c95b569e0536962fbfdbb22836bd1e9a1b8f9"
+git-tree-sha1 = "c3fe4f027294fbc627126b10037040cdd9adc529"
 repo-rev = "master"
 repo-url = "https://github.com/bencardoen/SmlmTools.jl"
 uuid = "bd0e0daa-fc13-11e8-3c42-ad9bbc1c8ca1"
-version = "0.1.4"
+version = "0.1.5"
 
 [[deps.SnoopPrecompile]]
 deps = ["Preferences"]

@@ -62,8 +62,8 @@ correctpath()
         res = create_template_from_toml(joinpath("..","example_recipes","coloc_and_align.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
-        @test isfile(joinpath(IN, "aligned_c1.csv"))
-        @test isfile(joinpath(IN, "aligned_c1.csv"))
+        @test isfile(joinpath(IN, "1p_aligned_c1.csv"))
+        @test isfile(joinpath(IN, "2p_aligned_c1.csv"))
         @test isfile(joinpath(IN, "manders.tif"))
         delete_folder(IN)
     end
