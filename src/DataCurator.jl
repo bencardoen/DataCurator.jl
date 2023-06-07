@@ -324,7 +324,7 @@ end
     The nearest pair of fiducials is used, with a distance of up to 400nm between them. Up to 4 candidates per channels are considered.
 
 """
-function smlm_alignment(dir, filter="", condition="is_gsd", maxdistance=400, maxbeads=4, outdir=dir)
+function smlm_alignment(dir, filter="", condition="is_gsd", maxdistance=400, maxbeads=4, zmode=1, maxprecision=15, outdir=dir)
     @info "Alignment with $dir $filter $condition $outdir $maxdistance"
     f=lookup(condition)
     imgs = type_files(dir, f)
@@ -339,7 +339,7 @@ function smlm_alignment(dir, filter="", condition="is_gsd", maxdistance=400, max
         return
     end
     t = condition == "is_gsd" ? "gsd" : "thunderstorm" 
-    return align(imgs[1], imgs[2]; outdir=outdir, type=t, maxbeaddistancenm=maxdistance, maxbeads=maxbeads)
+    return align(imgs[1], imgs[2]; outdir=outdir, type=t, maxbeaddistancenm=maxdistance, maxbeads=maxbeads, zmode=zmode, maxprecision=maxprecision)
 end
 
 """
