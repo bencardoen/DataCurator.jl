@@ -125,7 +125,7 @@ The output will look somewhat like this
 [ Info: 2023-04-25 16:46:02 DataCurator.jl:3055: Inputdirectory is set to testdir
 [ Info: 2023-04-25 16:46:02 DataCurator.jl:3068: 🤨 Input directory is not an absolute path, resolving to absolute path .testdir -> /workdir/testdir
 [ Info: 2023-04-25 16:46:02 DataCurator.jl:2663: Flat recipe detected
-[ Info: 2023-04-25 16:46:02 DataCurator.jl:2674: ✓ Succesfully decoded your template ✓
+[ Info: 2023-04-25 16:46:02 DataCurator.jl:2674: ✓ Successfully decoded your template ✓
 [ Info: 2023-04-25 16:46:02 curator.jl:103: ✓ Reading complete ✓
 [ Info: 2023-04-25 16:46:02 curator.jl:105: Running recipe on /workdir/testdir
 [ Info: 2023-04-25 16:46:02 DataCurator.jl:2270: Finished processing dataset located at /workdir/testdir 🏁🏁🏁

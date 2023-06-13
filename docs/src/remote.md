@@ -84,7 +84,7 @@ You can find tutorials on how to do this here:
 
 Make sure you have configured key-based access, password based access will NOT work.
 
-Next, you need to creat a `json` file, let's call it `ssh.json` for now, that looks like the below:
+Next, you need to create a `json` file, let's call it `ssh.json` for now, that looks like the below:
 ```json
 {"port":"22","remote":"remote.server.name", "path":"/remote/directory","user":"you"}
 ```

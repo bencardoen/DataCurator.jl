@@ -319,7 +319,7 @@ end
 """
     use SmlmTools's alignment on point clouds
 
-    This loads in 3D (or 2D) point clouds, finds the fiducials and tracks them over time, registring the images. 
+    This loads in 3D (or 2D) point clouds, finds the fiducials and tracks them over time, registering the images. 
     Then it registers the 2 channels. 
     The nearest pair of fiducials is used, with a distance of up to 400nm between them. Up to 4 candidates per channels are considered.
 

@@ -48,7 +48,7 @@ This works thanks to [PyCall.jl and Conda.jl](https://github.com/JuliaPy/PyCall.
 
 #### Note on installing
 When DataCurator builds, it will try to use your existing Python installation.
-If the environment variable PYTHON is defined, then DataCurator will asume you have installed all dependencies:
+If the environment variable PYTHON is defined, then DataCurator will assume you have installed all dependencies:
 ```bash
 apt install python3 -y
 apt install python3-pip -y
