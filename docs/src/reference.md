@@ -1,6 +1,6 @@
 # Reference
 
-You can generate the function reference, but more practicaly is to do on the Julia REPL (command line):
+You can generate the function reference, but more practically is to do on the Julia REPL (command line):
 ```julia
 using DataCurator
 ?DataCurator.myfunction
