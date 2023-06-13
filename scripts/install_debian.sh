@@ -33,9 +33,10 @@ apt install python3 -y
 apt install r-base -y
 export R_HOME=`R RHOME`
 apt install python3-pip -y
+apt install pipx -y # Work around pip complaining we need an env
 # Install Python dependencies
-pip3 install smlmvis
-pip3 install meshio
+pipx install smlmvis
+pipx install meshio
 
 echo "Installing Julia"
 
