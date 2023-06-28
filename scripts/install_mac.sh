@@ -87,8 +87,10 @@ julia --project=. -e 'using Pkg; Pkg.add("PyCall"); Pkg.add("RCall");'
 julia --project=. -e 'using PyCall; pyimport("smlmvis")'
 # Add Julia Dependencies
 echo "Adding Julia dependencies"
-julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git");'
+julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/ERGO.jl.git"); Pkg.add(url="https://github.com/bencardoen/SPECHT.jl.git"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git");'
 # Add DC
+# Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git");Pkg.add(url="https://github.com/bencardoen/ERGO.jl.git"); Pkg.add(url="https://github.com/bencardoen/SPECHT.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
+
 echo "Adding DataCurator"
 julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git");' 
 # Run tests
