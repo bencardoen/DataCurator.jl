@@ -225,11 +225,11 @@ function filter_and_mask(x, k, channels="*[0-2].tif")
         return
     end
     ifs = [Images.load(i) for i in fs]
-    f1 = SPECHT.filter_k(ifs[1], k)
+    f1 = SPECHT.filter_k(ifs[1], k)[1]
     m1 = bm(f1)
-    f2 = SPECHT.filter_k(ifs[2], k)
+    f2 = SPECHT.filter_k(ifs[2], k)[1]
     m2 = bm(f2)
-    Images.save(joinpath(x, "masked.tif"), ifs[3] .* (m1 .& m2))
+    Images.save(joinpath(x, "masked.tif"), ifs[3] .* (m1 .* m2))
 end
 
 function bm(xs)
