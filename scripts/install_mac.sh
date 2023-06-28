@@ -92,7 +92,7 @@ julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/ERGO
 # Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git");Pkg.add(url="https://github.com/bencardoen/ERGO.jl.git"); Pkg.add(url="https://github.com/bencardoen/SPECHT.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator", coverage=true);'
 
 echo "Adding DataCurator"
-julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git");' 
+julia --project=. -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator");' 
 # Run tests
 echo "Running tests"
 julia --project=. -e 'using Pkg; Pkg.test("DataCurator");' 
