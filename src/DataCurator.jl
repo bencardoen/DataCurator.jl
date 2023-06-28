@@ -38,7 +38,7 @@ using MAT
 using Logging, LoggingExtras, Dates
 using PyCall
 using RCall
-using SPECHT
+# using SPECHT
 pyimport("smlmvis")
 
 export topdown, is_case_inssensitive_fs, filter_and_mask, describe_file, validate_owncloud, file_attribute, mk_remote_path, decode_python, upload_to_scp, config_log, upload_to_owncloud, groupbycolumn, tmpname, bottomup, expand_filesystem, mask, stack_images_by_prefix, canwrite, visit_filesystem, verifier, transformer, logical_and,
