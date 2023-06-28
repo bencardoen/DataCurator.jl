@@ -229,7 +229,9 @@ function filter_and_mask(x, k, channels="*[0-2].tif")
     m1 = bm(f1)
     f2 = _filter_k(ifs[2], k)[1]
     m2 = bm(f2)
-    Images.save(joinpath(x, "masked.tif"), ifs[3] .* (m1 .* m2))
+    Images.save(joinpath(x, "mask1.tif"), m1)
+    Images.save(joinpath(x, "mask2.tif"), m2)
+    Images.save(joinpath(x, "masked_3.tif"), ifs[3] .* (m1 .* m2))
 end
 
 function _filter_k(xs, k)

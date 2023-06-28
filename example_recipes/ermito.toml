@@ -1,0 +1,7 @@
+[global]
+act_on_success=true
+inputdirectory = "/tmp/testdir"
+[any]
+all=true
+conditions = ["is_dir"]
+actions=[["filter_and_mask", 3, "*[0-2].tif"]]
