@@ -33,9 +33,9 @@ apt install python3 -y
 apt install r-base -y
 export R_HOME=`R RHOME`
 apt install python3-pip -y
+# apt install pipx -y # Work around pip complaining we need an env
 # Install Python dependencies
-pip3 install smlmvis
-pip3 install meshio
+pip3 install smlmvis meshio --break-system-packages # We're root, and this is the only package that is going to use this python base, so it's safe to override the new PEP (and the recomemnded way fails)  
 
 echo "Installing Julia"
 

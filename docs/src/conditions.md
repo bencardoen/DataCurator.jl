@@ -2,7 +2,7 @@
 
 
 !!! tip "Don't repeat yourself"
-    Quite often you will want to apply certain conditions or actions several times in a hierarchical template. In that case you can define `common_actions` and `common_condtions` in the `[global]` section, which you can refer to by name. Any of the actions and conditions below can be used to compose more complex actions and conditions.
+    Quite often you will want to apply certain conditions or actions several times in a hierarchical template. In that case you can define `common_actions` and `common_conditions` in the `[global]` section, which you can refer to by name. Any of the actions and conditions below can be used to compose more complex actions and conditions.
 
 ## Actions
 
@@ -135,7 +135,7 @@ inputdirectory = "testdir"
 save_tables_to_sqlite="test.db"
 [any]
 all=true
-# A lot of duplication, but it's inteded to show what can be done
+# A lot of duplication, but it's intended to show what can be done
 # Test if the file is a SQLite database, if it has a table named `temp`, and if it has 5 rows where x2 = 0
 # If so, send it to the aggregator
 conditions = ["is_file", "is_sqlite", ["sqlite_has_tables", ["temp"]], ["has_n_rows","SELECT * FROM temp WHERE x2 = 0", 5]]
