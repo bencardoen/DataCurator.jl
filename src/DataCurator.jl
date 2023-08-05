@@ -1733,6 +1733,7 @@ function decode_counter(c::AbstractVector)
 end
 
 function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
+    @info "Decode function for $(f) and $(condition)"
 	if f == "upload_to_owncloud"
 		return x -> _upload_to_owncloud(x, glob["owncloud_configuration"])
 	end
@@ -2223,7 +2224,7 @@ end
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     negate=false
 	f1 = f[1]
-	#@debug "Decode function with $f"
+	@info "Decode function with $f"
 	@match f1 begin
 		"extract" => return _handle_extract(glob, f)
 		"extract_any" => return _handle_extract(glob, f)
@@ -2917,6 +2918,7 @@ end
 """
 function parse_acsym(a, glob; condition=false)
     #@debug "Parsing $a"
+    @info "Parsing $a"
     parsed = decode_symbol(a, glob; condition=condition)
     if isnothing(parsed)
         throw(ArgumentError("Not a valid action or condition : $a"))
