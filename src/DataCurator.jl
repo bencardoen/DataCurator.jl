@@ -219,13 +219,13 @@ end
 
 
 function filter_mcsdetect(x, k, channels="*[0-2].tif")
-   fs = Glob.glob(channels, x)
-   for f in fs
-	i = Images.load(f)
-	fi = _filter_k(i, k)[1]
-	m = bm(fi)
-	Images.save("mask_$(i).tif", m)
-   end
+    fs = Glob.glob(channels, x)
+    for f in fs
+        i = Images.load(f)
+	    fi = _filter_k(i, k)[1]
+	    m = bm(fi)
+	    Images.save("mask_$(i).tif", m)
+    end
 end
 
 function filter_and_mask(x, k, channels="*[0-2].tif")
