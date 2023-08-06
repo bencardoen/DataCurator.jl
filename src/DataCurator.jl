@@ -1733,7 +1733,7 @@ function decode_counter(c::AbstractVector)
 end
 
 function decode_function(f::AbstractString, glob::AbstractDict; condition=false)
-    @info "Decode function for $(f) and $(condition)"
+    @debug "Decode function for $(f) and $(condition)"
 	if f == "upload_to_owncloud"
 		return x -> _upload_to_owncloud(x, glob["owncloud_configuration"])
 	end
@@ -2224,7 +2224,7 @@ end
 function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
     negate=false
 	f1 = f[1]
-	@info "Decode function with $f"
+	@debug "Decode function with $f"
 	@match f1 begin
 		"extract" => return _handle_extract(glob, f)
 		"extract_any" => return _handle_extract(glob, f)
@@ -2235,7 +2235,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
 		"count" => return lookup_counter(f, glob)
 		f1::AbstractVector => return _handle_nested(glob, f, condition)#error("Trigger")
 		f1::AbstractString, if startswith(f1, "transform_") end => return handle_chained(f, glob; condition=condition)
-        _                   => @warn("Unexpected $f")
+        _                   => @debug("Unexpected $f -- Broke tests with mathch > 1.3, where not matching is a failure")
 	end
     fname = f[1] # When negate = on, we need to reindex, so don't do fn=f1
 	if fname ∈ ["add_to_file_list", "aggregate", "aggregate_to", "->", "-->", "=>"]
@@ -2919,7 +2919,7 @@ end
 """
 function parse_acsym(a, glob; condition=false)
     #@debug "Parsing $a"
-    @info "Parsing $a"
+    @debug "Parsing $a"
     parsed = decode_symbol(a, glob; condition=condition)
     if isnothing(parsed)
         throw(ArgumentError("Not a valid action or condition : $a"))
@@ -3210,7 +3210,7 @@ function decode_r(str)
         @error "Invalid syntax for R $str use R.library.function, e.g. R.base.sum"
         return nothing
     end
-    @info st
+    @debug st
     r=rimport(String(st[2]))
     g=getfield(r, Symbol(st[3]))
     return x -> rcopy(g(x))
