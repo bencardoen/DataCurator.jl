@@ -2235,6 +2235,7 @@ function decode_function(f::AbstractVector, glob::AbstractDict; condition=false)
 		"count" => return lookup_counter(f, glob)
 		f1::AbstractVector => return _handle_nested(glob, f, condition)#error("Trigger")
 		f1::AbstractString, if startswith(f1, "transform_") end => return handle_chained(f, glob; condition=condition)
+        _                   => @warn("Unexpected $f")
 	end
     fname = f[1] # When negate = on, we need to reindex, so don't do fn=f1
 	if fname ∈ ["add_to_file_list", "aggregate", "aggregate_to", "->", "-->", "=>"]
