@@ -83,6 +83,27 @@ correctpath()
         delete_folder(IN)
     end
 
+    @testset "mcsdetect" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        Random.seed!(42)
+        i = rand(100, 100)
+        i[i .< 0.05] .= 0
+        Images.save(joinpath(IN, "1.tif"), i)
+        res = create_template_from_toml(joinpath("..","example_recipes","ermito.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        isfile(joinpath(IN,"masked_1.tif"))
+        ij = Images.load(joinpath(IN, "masked_1.tif"))
+        @test sum(ij) < sum(i)
+        # remove("filetable.csv")
+        delete_folder(IN)
+    end
+
+
     @testset "dfops2" begin
         correctpath()
         IN="testdir"

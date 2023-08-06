@@ -1,10 +1,11 @@
-# This recipe looks for folders that have tif image files (3), ending with 0.tif, 1.tif, and 2.tif
-# It then does a z-thresholding on channel 1 and channel 2, saves the masks, and maskes the 3rd channel where mask 1 and mask 2 are not both positive. 
-# In other words, only keep pixels where channel 1 and 2 overlap.
+# This recipe looks for folders that have tif image files ending with 0.tif, 1.tif, and 2.tif
+# For each tif file, it applies the background thresholding used in MCS Detect.
+# Output is saved, for each file f, as "masked_f.tif" and the binary mask as "mask_f.tif"
 [global]
 act_on_success=true
 inputdirectory = "testdir"
 [any]
 all=true
 conditions = ["is_dir"]
-actions=[["filter_and_mask", 3, "*[0-2].tif"]]
+actions=[["filter_mcsdetect", 3, "*[0-2].tif"]]
+# Change to "*[1-2].tif" to match only files ending in 1.tif and 2.tif, for example

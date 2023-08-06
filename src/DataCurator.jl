@@ -221,15 +221,20 @@ end
     Finds tiff files in directory x, filters them in a z-filter (z=k), saves mask and masked with original filename
 """
 function filter_mcsdetect(x, k, channels="*[0-2].tif")
+    @debug "Dir $x k $k channels $(channels)"
     fs = Glob.glob(channels, x)
+    @debug "Found $fs"
     for f in fs
         i = Images.load(f)
-        fn = splitpath(f)[end]
+        pt = splitpath(f)
+        fn = pt[end]
         fne = splitext(fn)[1]
-	    fi = _filter_k(i, k)[1]
+	    fi, th = _filter_k(i, k)
+        @debug "Threshold used: $(th)"
 	    m = bm(fi)
-	    Images.save("mask_$(fne).tif", m)
-        Images.save("masked_$(fne).tif", fi)
+        @debug "Saving as mask_$(fne).tif) in $(joinpath(pt[1:end-1]...))"
+	    Images.save(joinpath(pt[1:end-1]...,"mask_$(fne).tif"), m)
+        Images.save(joinpath(pt[1:end-1]...,"masked_$(fne).tif"), fi)
     end
 end
 
