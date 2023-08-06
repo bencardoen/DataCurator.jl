@@ -217,14 +217,19 @@ function type_files(dir, condition)
     [f for f in files(dir) if condition(f)]
 end
 
-
+"""
+    Finds tiff files in directory x, filters them in a z-filter (z=k), saves mask and masked with original filename
+"""
 function filter_mcsdetect(x, k, channels="*[0-2].tif")
     fs = Glob.glob(channels, x)
     for f in fs
         i = Images.load(f)
+        fn = splitpath(f)[end]
+        fne = splitext(fn)[1]
 	    fi = _filter_k(i, k)[1]
 	    m = bm(fi)
-	    Images.save("mask_$(i).tif", m)
+	    Images.save("mask_$(fne).tif", m)
+        Images.save("masked_$(fne).tif", fi)
     end
 end
 
