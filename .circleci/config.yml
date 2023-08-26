@@ -1,7 +1,8 @@
 version: 2.1
 
 jobs: 
-  mac: 
+  mac:
+    resource_class : macos.m1.medium.gen1
     macos:
       xcode: 14.2.0 
     steps: 
