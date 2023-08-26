@@ -535,8 +535,11 @@ function config_log(minlevel=Logging.Debug)
         ConsoleLogger(stdout, defl) |> timestamp_logger |> global_logger
 end
 
+function is_file(x::AbstractString)
+    return isfile(x)
+end
 
-is_file = x -> isfile(x)
+# is_file = x -> isfile(x)
 has_n_columns = (x, k) -> length(column_names(x)) == k
 has_less_than_n_columns = (x, k) -> length(column_names(x)) < k
 has_more_than_or_n_columns = (x, k) -> length(column_names(x)) >= k
