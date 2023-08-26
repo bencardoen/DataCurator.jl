@@ -4,7 +4,7 @@ jobs:
   mac:
     resource_class : macos.m1.medium.gen1
     macos:
-      xcode: 15.1
+      xcode: 14.2.0
     steps: 
       - checkout  
     
