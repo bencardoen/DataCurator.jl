@@ -1,0 +1,8 @@
+# This recipe tests if exceptions are caught by the action caller. This eventually will be mode optional.
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+all=true
+conditions = ["is_tif_file"]
+actions=["raise_exception"] # Old behavior would kill DC, new behavior allows it to move on.

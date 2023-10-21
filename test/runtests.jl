@@ -68,6 +68,20 @@ correctpath()
         delete_folder(IN)
     end
 
+    @testset "exceptionproof" begin
+        correctpath()
+        IN="testdir"
+        delete_folder("outdir")
+        delete_folder(IN)
+        mkdir(IN)
+        Images.save(joinpath(IN, "1.tif"), zeros(10, 10, 10))
+        res = create_template_from_toml(joinpath("..","example_recipes","exception.toml"))
+        c, t = res
+        cts, cls, rv = delegate(c, t)
+        @test true # If the code fails, it'll trigger an exception and we won't get here at all.
+        delete_folder(IN)
+    end
+
     @testset "filesizes" begin
         correctpath()
         IN="testdir"
@@ -78,7 +92,7 @@ correctpath()
         res = create_template_from_toml(joinpath("..","example_recipes","describefiles.toml"))
         c, t = res
         cts, cls, rv = delegate(c, t)
-        isfile("filetable.csv")
+        @test isfile("filetable.csv")
         remove("filetable.csv")
         delete_folder(IN)
     end

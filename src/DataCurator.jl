@@ -58,13 +58,23 @@ dostep, is_hidden_file, is_hidden_dir, is_hidden, remove_from_to_inclusive, remo
 remove_from_to_extension_inclusive, remove_from_to_extension_exclusive, aggregator_add, aggregator_aggregate, is_dir, is_file, gaussian, laplacian,
 less_than_n_subdirs, tmpcopy, has_columns_named, has_more_than_or_n_columns, describe_image, has_less_than_n_columns, has_n_columns, load_content, has_image_extension, file_extension_one_of, save_content, transform_wrapper, path_only, reduce_images, mode_copy, mode_move, mode_inplace, reduce_image, remove, replace_pattern, remove_pattern, remove_from_to_extension,
 remove_from_to, stack_list_to_image, smlm_alignment, concat_to_table, make_aggregator, describe_objects, load_rainstorm, is_rainstorm,
-gaussian, is_sqlite, load_sqlite, laplacian, dilate_image, erode_image, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image, evaluate_sql, less_than_n_rows, greater_or_equal_than_n_rows, has_n_rows
+gaussian, is_sqlite, load_sqlite, laplacian, dilate_image, erode_image, raise_exception, load_mesh, is_mesh, invert, opening_image, closing_image, otsu_threshold_image, threshold_image, apply_to_image, evaluate_sql, less_than_n_rows, greater_or_equal_than_n_rows, has_n_rows
 
 is_8bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f8}
 is_16bit_img = x -> eltype(Images.load(x)) <: Images.Gray{Images.N0f16}
 
 file_smaller_than = (f, v) -> file_attribute(f, "size", v, "<")
 file_greater_than = (f, v) -> file_attribute(f, "size", v, ">")
+
+
+"""
+    raise_exception(_)
+
+    Purely for testing, but test recipes need a name.
+"""
+function raise_exception(_)
+    throw("This is an exception")
+end
 
 """
 	load_mesh(x)
@@ -1425,7 +1435,13 @@ function dostep(node::Any, t::NamedTuple{(:condition, :action), Tuple{Any, Any}}
     #@debug "Do-step for 2-tuple c/a for $node on_success=$(on_success)"
     if t.condition(node) == on_success
         #@debug "Condition fired for $node with on_success == $(on_success)"
-        rv = t.action(node)
+        rv = :proceed
+        try 
+            rv = t.action(node)
+        catch e
+            @error "Failed executing action for $node with $e"
+            return :proceed
+        end
         if rv == :quit
             #@debug "Early exit for $node"
             return :quit
@@ -1446,7 +1462,13 @@ end
 function dostep(node::Any, t::NamedTuple{(:condition, :action, :counteraction), Tuple{Any, Any, Any}}, on_success::Bool)
     if t.condition(node) == on_success
         #@debug "Condition fired for $node with on_success == $(on_success)"
-        rv = t.action(node)
+        rv = :proceed
+        try 
+            rv = t.action(node)
+        catch e
+            @error "Failed executing action for $node with $e"
+            return :proceed
+        end
         if rv == :quit
             #@debug "Early exit for $node"
             return :quit
