@@ -9,8 +9,8 @@ jobs:
     steps:
       - run:
             name: Run test
+            no_output_timeout: 40m
             command: |
-                 no_output_timeout: 40m \
                  apt-get-update-y
                  apt-get install wget -y
                  wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
