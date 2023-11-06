@@ -20,7 +20,7 @@ DataCurator requires a command-line interface and is supported on Linux, Windows
 2. [Status](#status)
 3. [Documentation (including installation)](#docs)
 4. [What to Find Where](#map)
-5. [Preprint/Cite](#preprint)
+5. [Publication/Cite](#publication)
 6. [Troubleshooting](#faq)
 
 
@@ -118,12 +118,27 @@ repository
 
 
 
-<a name="preprint"></a>
+<a name="publication"></a>
+[![DOI](https://doi.org/10.1093/bioadv/vbad068)
 
-## Preprint
-You can find our preprint [here](https://www.researchgate.net/publication/368557426_DataCuratorjl_Efficient_portable_and_reproducible_validation_curation_and_transformation_of_large_heterogeneous_datasets_using_human-readable_recipes_compiled_into_machine_verifiable_templates).
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7527517.svg)](https://doi.org/10.5281/zenodo.7527517)
+## Publication
+```bibtex
+@article{10.1093/bioadv/vbad068,
+    author = {Cardoen, Ben and Ben Yedder, Hanene and Lee, Sieun and Nabi, Ivan Robert and Hamarneh, Ghassan},
+    title = "{DataCurator.jl: efficient, portable and reproducible validation, curation and transformation of large heterogeneous datasets using human-readable recipes compiled into machine-verifiable templates}",
+    journal = {Bioinformatics Advances},
+    volume = {3},
+    number = {1},
+    pages = {vbad068},
+    year = {2023},
+    month = {06},
+    abstract = "{Large-scale processing of heterogeneous datasets in interdisciplinary research often requires time-consuming manual data curation. Ambiguity in the data layout and preprocessing conventions can easily compromise reproducibility and scientific discovery, and even when detected, it requires time and effort to be corrected by domain experts. Poor data curation can also interrupt processing jobs on large computing clusters, causing frustration and delays. We introduce DataCurator, a portable software package that verifies arbitrarily complex datasets of mixed formats, working equally well on clusters as on local systems. Human-readable TOML recipes are converted into executable, machine-verifiable templates, enabling users to easily verify datasets using custom rules without writing code. Recipes can be used to transform and validate data, for pre- or post-processing, selection of data subsets, sampling and aggregation, such as summary statistics. Processing pipelines no longer need to be burdened by laborious data validation, with data curation and validation replaced by human and machine-verifiable recipes specifying rules and actions. Multithreaded execution ensures scalability on clusters, and existing Julia, R and Python libraries can be reused. DataCurator enables efficient remote workflows, offering integration with Slack and the ability to transfer curated data to clusters using OwnCloud and SCP. Code available at: https://github.com/bencardoen/DataCurator.jl.}",
+    issn = {2635-0041},
+    doi = {10.1093/bioadv/vbad068},
+    url = {https://doi.org/10.1093/bioadv/vbad068},
+    eprint = {https://academic.oup.com/bioinformaticsadvances/article-pdf/3/1/vbad068/50693195/vbad068.pdf},
+}
+```
 
 <a name="faq"></a>
 
