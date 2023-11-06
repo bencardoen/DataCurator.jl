@@ -119,7 +119,7 @@ repository
 
 
 <a name="publication"></a>
-[![DOI](https://doi.org/10.1093/bioadv/vbad068)
+[![DOI](https://github.com/NanoscopyAI/.github/raw/main/profile/doi.gif)](https://doi.org/10.1093/bioadv/vbad068)   
 
 ## Publication
 ```bibtex
