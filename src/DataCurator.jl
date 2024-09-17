@@ -239,11 +239,12 @@ function filter_mcsdetect(x, start=1, step=0.1, stop=3, channels="*[0-2].tif")
     fs = Glob.glob(channels, x)
     @debug "Found $fs"
     @threads for f in fs
+        dfs = []
+        i = Images.load(f)
+        pt = splitpath(f)
+        fn = pt[end]
+        fne = splitext(fn)[1]
         for _z in start:step:stop
-            i = Images.load(f)
-            pt = splitpath(f)
-            fn = pt[end]
-            fne = splitext(fn)[1]
             fi, th = _filter_k(i, _z)
             @debug "Threshold used for $(_z) : $(th)"
             m = bm(fi)
@@ -253,8 +254,9 @@ function filter_mcsdetect(x, start=1, step=0.1, stop=3, channels="*[0-2].tif")
             df = describe_objects(fi)
             df[!,:z] .= _z
             df[!,:filename] .= f
-            CSV.write(joinpath(pt[1:end-1]...,"masked_$(_z)_$(fne).csv"), df)
+            push!(dfs, df)
         end
+        CSV.write(joinpath(pt[1:end-1]...,"stats_$(start)_$(step)_$(stop)_$(fne).csv"), vcat(dfs...))
     end
 end
 
