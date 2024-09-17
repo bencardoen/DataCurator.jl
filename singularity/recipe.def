@@ -11,8 +11,8 @@ From: fedora:38
     pip3 install smlmvis
     pip3 install meshio
     ## Setup Julia
-    export JLMJV=1.9
-    export JLV=$JLMJV.3
+    export JLMJV=1.10
+    export JLV=$JLMJV.5
     export PYTHON=`which python3`
     unset R_HOME
     export R_HOME=`R RHOME`
@@ -53,10 +53,10 @@ From: fedora:38
 %environment
     export LC_ALL=C
     export LOCALPKG=/opt/DataCurator.jl
-    export JLMJV=1.9
+    export JLMJV=1.10
     export PYTHON="/usr/bin/python3"
     export R_HOME="/usr/lib64/R"
-    export JLV=$JLMJV.3
+    export JLV=$JLMJV.5
     export PATH=/opt/julia/julia-$JLV/bin:$PATH
     export JULIA_DEPOT_PATH=/opt/juliadepot
 
