@@ -40,10 +40,10 @@ pip3 install smlmvis meshio --break-system-packages # We're root, and this is th
 echo "Installing Julia"
 
 cd /opt
-wget https://julialang-s3.julialang.org/bin/linux/x64/1.9/julia-1.9.3-linux-x86_64.tar.gz
-tar zxf julia-1.9.3-linux-x86_64.tar.gz
-rm julia-1.9.3-linux-x86_64.tar.gz
-export PATH=/opt/julia-1.9.3/bin:$PATH
+wget https://julialang-s3.julialang.org/bin/linux/x64/1.9/julia-1.10.5-linux-x86_64.tar.gz
+tar zxf julia-1.10.5-linux-x86_64.tar.gz
+rm julia-1.10.5-linux-x86_64.tar.gz
+export PATH=/opt/julia-1.10.5/bin:$PATH
 #export JULIA_DEPOT_PATH=/opt/juliadepot
 #mkdir -p $JULIA_DEPOT_PATH
 
