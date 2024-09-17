@@ -230,21 +230,31 @@ end
 """
     Finds tiff files in directory x, filters them in a z-filter (z=k), saves mask and masked with original filename
 """
-function filter_mcsdetect(x, k, channels="*[0-2].tif")
-    @debug "Dir $x k $k channels $(channels)"
+function filter_mcsdetect(x, start=1, step=0.1, stop=3, channels="*[0-2].tif")
+    @debug "Dir $x sweep from $start → $stop in steps $step matching channels $channels"
+    # Add sweep support for ranges 
+    # Param k=start, step, stop optional
+    # Inner for : for z in start:step:stop
+    # Add CSV computation of features
     fs = Glob.glob(channels, x)
     @debug "Found $fs"
-    for f in fs
-        i = Images.load(f)
-        pt = splitpath(f)
-        fn = pt[end]
-        fne = splitext(fn)[1]
-	    fi, th = _filter_k(i, k)
-        @debug "Threshold used: $(th)"
-	    m = bm(fi)
-        @debug "Saving as mask_$(fne).tif) in $(joinpath(pt[1:end-1]...))"
-	    Images.save(joinpath(pt[1:end-1]...,"mask_$(fne).tif"), m)
-        Images.save(joinpath(pt[1:end-1]...,"masked_$(fne).tif"), fi)
+    @threads for f in fs
+        for _z in start:step:stop
+            i = Images.load(f)
+            pt = splitpath(f)
+            fn = pt[end]
+            fne = splitext(fn)[1]
+            fi, th = _filter_k(i, _z)
+            @debug "Threshold used for $(_z) : $(th)"
+            m = bm(fi)
+            @debug "Saving as mask_$(fne).tif) in $(joinpath(pt[1:end-1]...))"
+            Images.save(joinpath(pt[1:end-1]...,"mask_$(_z)_$(fne).tif"), m)
+            Images.save(joinpath(pt[1:end-1]...,"masked_$(_z)_$(fne).tif"), fi)
+            df = describe_objects(fi)
+            df[!,:z] .= _z
+            df[!,:filename] .= f
+            CSV.write(joinpath(pt[1:end-1]...,"masked_$(_z)_$(fne).csv"), df)
+        end
     end
 end
 
