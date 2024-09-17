@@ -1,0 +1,12 @@
+# This recipe looks for folders that have tif image files ending with 0.tif, 1.tif, and 2.tif
+# For each tif file, it applies the background thresholding used in MCS Detect.
+# Output is saved, for each file f, as "masked_f.tif" and the binary mask as "mask_f.tif"
+[global]
+act_on_success=true
+inputdirectory = "testdir"
+[any]
+all=true
+conditions = ["is_dir"]
+# Test all values from [1 to 2] with steps of .1, (so 1.0, 1.1, ..., 1.9, 2.0)
+# Saves csv files for each filtered channels with stats on the objects
+actions=[["filter_mcsdetect", 1, 0.1, 2"*[0-2].tif"]]

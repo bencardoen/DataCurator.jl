@@ -232,10 +232,6 @@ end
 """
 function filter_mcsdetect(x, start=1, step=0.1, stop=3, channels="*[0-2].tif")
     @debug "Dir $x sweep from $start → $stop in steps $step matching channels $channels"
-    # Add sweep support for ranges 
-    # Param k=start, step, stop optional
-    # Inner for : for z in start:step:stop
-    # Add CSV computation of features
     fs = Glob.glob(channels, x)
     @debug "Found $fs"
     @threads for f in fs
