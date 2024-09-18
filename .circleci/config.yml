@@ -1,45 +1,23 @@
 version: 2.1
-
-jobs:             
-  linux: 
+orbs:
+  codecov: codecov/codecov@3.0.0
+jobs:
+  build:
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
     docker:
-      - image: debian:stable
-#     resource_class: xlarge
+      - image: julia:1.10
     steps:
-      - run:
-            name: Run test
-            no_output_timeout: 40m
-            command: |
-                 apt-get update -y
-                 apt-get install wget -y
-                 wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
-                 ./script.sh
-                 PATH="/opt/julia-1.10.5/bin:$PATH"
-                 cd
-                 cd test
-                 julia --project=. -e 'using DataCurator'
-            # apt-get update -y
-            # apt-get install wget -y
-            # wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
-            # ./script.sh 
-      # - run: 
-      #     command: |
-      #     apt-get update -y
-      #     apt-get install wget -y
-      #     wget https://raw.githubusercontent.com/bencardoen/DataCurator.jl/main/scripts/install_debian.sh -O script.sh && chmod +x script.sh
-      #     ./script.sh 
-      #     # Check that script worked
-      #     PATH="/opt/julia-1.9.3/bin:$PATH"
-      #     cd
-      #     cd test
-      #     julia --project=. -e 'using DataCurator'
-      #     no_output_timeout: 30m
-          
-workflows:
-  test_build:
-    jobs:
-      #- mac #Circle ci is deprecating the runners for OSS :( 
-      - linux
-#           requires:
-#             - mac
+       - run: ls -alsht
+       - run: pwd
+       - run: apt update
+       - run: apt install r-base -y
+       - run: export R_HOME=`R RHOME`
+       - run: apt install python3 -y
+       - run: apt install python3-pip -y
+       - run: pip3 install scikit-image kneed  smlmvis meshio --break-system-packages
+       - run:
+          command: julia -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/ERGO.jl.git"); Pkg.add(url="https://github.com/bencardoen/SPECHT.jl.git"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator");'
+          environment:
+            R_HOME : `R RHOME`
+            PYTHON : "/usr/bin/python3"
+      
