@@ -18,6 +18,6 @@ jobs:
        - run:
           command: julia -e 'using Pkg; Pkg.add(url="https://github.com/bencardoen/ERGO.jl.git"); Pkg.add(url="https://github.com/bencardoen/SPECHT.jl.git"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator");'
           environment:
-            R_HOME : "/usr/lib64/R"
+            R_HOME : "/usr/lib/R"
             PYTHON : "/usr/bin/python3"
       
