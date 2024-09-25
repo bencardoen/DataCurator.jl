@@ -16,7 +16,7 @@ jobs:
        - run: apt install python3-pip -y
        - run: pip3 install scikit-image kneed  smlmvis meshio --break-system-packages
        - run:
-          command: julia -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/ERGO.jl.git"); Pkg.add(url="https://github.com/bencardoen/SPECHT.jl.git"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator",coverage=true); import DataCurator; joinpath(dirname(pathof(DataCurator)), "..");using Coverage; Codecov.submit(Codecov.process_folder());'
+          command: julia -e 'using Pkg; Pkg.add("Coverage"); Pkg.add(url="https://github.com/bencardoen/ERGO.jl.git"); Pkg.add(url="https://github.com/bencardoen/SPECHT.jl.git"); Pkg.add(url="https://github.com/bencardoen/SlurmMonitor.jl.git"); Pkg.add(url="https://github.com/bencardoen/SmlmTools.jl.git"); Pkg.add(url="https://github.com/bencardoen/DataCurator.jl.git"); Pkg.build("DataCurator"); Pkg.test("DataCurator",coverage=true); import DataCurator; joinpath(dirname(pathof(DataCurator)), "..");using Coverage;'
           environment:
             R_HOME : "/usr/lib/R"
             PYTHON : "/usr/bin/python3"
