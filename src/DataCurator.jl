@@ -237,6 +237,11 @@ function filter_mcsdetect(x, start=1, step=0.1, stop=3, channels="*[0-2].tif")
     @threads for f in fs
         dfs = []
         i = Images.load(f)
+        # Add unfiltered quantification
+        df = describe_objects(i)
+        df[!,:z] .= NaN
+        df[!,:filename] .= f
+        push!(dfs, df)
         pt = splitpath(f)
         fn = pt[end]
         fne = splitext(fn)[1]
