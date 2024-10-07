@@ -227,6 +227,59 @@ function type_files(dir, condition)
     [f for f in files(dir) if condition(f)]
 end
 
+function _normalizemaxmin(arr)
+    M = maximum(arr)
+    m = minimum(arr)
+    @assert all(arr .>= 0)
+    @assert m <= M
+    if M == m
+        @warn "Max == min, degenerate normalization"
+        #If the min == max, then all values are either 0 or 1. 
+        if iszero(m)
+            return arr # all zeros anyway
+        else
+            # Max == min, and it's not zero, so then normalized they're all 1
+            return ones(size(arr))
+        end
+    else
+        return (arr .- m) ./ (M-m)
+    end
+end
+
+
+function _dtocent(ccs)
+    # From MCS Detect, to be refactored. 
+    cts = Images.component_centroids(ccs)
+    centroids = _toarray(cts[2:end]) # Array of Nx3
+    centroid = mean(centroids, dims=1)
+    distances = sqrt.(sum((centroids .- centroid).^2, dims=2))
+    distances_norm = _normalizemaxmin(distances)
+    return distances, distances_norm, centroid, centroids
+end
+
+function _toarray(cts)
+    if length(cts) == 0
+        @error "Converting empty array"
+        throw(ArgumentError("Array argument is empty"))
+    end
+    d = length(cts[1])
+    @debug "Have $d dimensions"
+    if d < 2 || d > 3
+        @error "Dimensions of $d not supported, expecting 2 or 3 d."
+        throw(ArgumentError("D $d not supported"))
+    end
+    res = zeros(Float64, length(cts), length(cts[1]))
+    for (i,c) in enumerate(cts)
+        if d == 3
+            res[i,:] .= [c[1], c[2], c[3]]
+        end
+        if d == 2
+            res[i,:] .= [c[1], c[2]]
+        end
+    end
+    return res
+end
+
 """
     Finds tiff files in directory x, filters them in a z-filter (z=k), saves mask and masked with original filename
 """
@@ -922,7 +975,7 @@ function describe_objects(img::AbstractArray{T, 2}) where {T<:Any}
 	## Changed 3-2 connectivity
 	get_components_diag = mask -> Images.label_components(mask, length(size(mask))==2 ? trues(3,3) : trues(3,3,3))
     coms = get_components_diag(b)
-    lengths = Images.component_lengths(coms)[2:end]
+    # lengths = Images.component_lengths(coms)[2:end]
     indices = Images.component_indices(coms)[2:end]
     boxes = Images.component_boxes(coms)[2:end]
     N = maximum(coms)
@@ -942,11 +995,18 @@ function describe_objects(img::AbstractArray{T, 2}) where {T<:Any}
 		w[ic, 11] = getextent2(boxes[ic])
 		# w[ic, 11:13] = _xy, _z, _zp
     end
+    distances, nd, ctr, ctrs = _dtocent(coms)
 	columns = [:size, :weighted, :minimum, :Q1, :mean, :median, :Q3, :maximum, :std, :kurtosis, :xyspan]
     df = DataFrame()
     for (i,c) in enumerate(columns)
         df[!,c] = w[:,i]
     end
+    df[!, :distance_to_centroid] .= distances
+    df[!, :distance_to_centroid_normalized] .= nd
+    df[!, :centroid_channel_x] .= ctr[1]
+    df[!, :centroid_channel_y] .= ctr[2]
+    df[!, :centroid_object_x] .= ctrs[:, 1]
+    df[!, :centroid_object_y] .= ctrs[:, 2]
     return df
 end
 
@@ -983,7 +1043,7 @@ function describe_objects(img::AbstractArray{T, 3}) where {T<:Any}
 	## Changed 3-2 connectivity
 	get_components_diag = mask -> Images.label_components(mask, length(size(mask))==2 ? trues(3,3) : trues(3,3,3))
     coms = get_components_diag(b)
-    lengths = Images.component_lengths(coms)[2:end]
+    # lengths = Images.component_lengths(coms)[2:end]
     indices = Images.component_indices(coms)[2:end]
     boxes = Images.component_boxes(coms)[2:end]
     N = maximum(coms)
@@ -1008,6 +1068,15 @@ function describe_objects(img::AbstractArray{T, 3}) where {T<:Any}
     for (i,c) in enumerate(columns)
         df[!,c] = w[:,i]
     end
+    distances, nd, ctr, ctrs = _dtocent(coms)
+    df[!, :distance_to_centroid] .= distances
+    df[!, :distance_to_centroid_normalized] .= nd
+    df[!, :centroid_channel_x] .= ctr[1]
+    df[!, :centroid_channel_y] .= ctr[2]
+    df[!, :centroid_channel_z] .= ctr[3]
+    df[!, :centroid_object_x] .= ctrs[:, 1]
+    df[!, :centroid_object_y] .= ctrs[:, 2]
+    df[!, :centroid_object_z] .= ctrs[:, 3] 
     return df
 end
 

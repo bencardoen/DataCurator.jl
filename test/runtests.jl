@@ -378,15 +378,18 @@ correctpath()
     end
 
     @testset "dimg" begin
+        # Create 3D img
         timg = zeros(100, 100, 10)
         Random.seed!(42)
         timg[20:25, 20:25, 5:7] .= rand(6, 6, 3)
         Images.save("t3.tif", timg)
         Images.save("t4.tif", timg)
+        # 2D image
         _timg = zeros(100, 100)
         _timg[20:25, 20:25] .= 1
         Images.save("t5.tif", _timg)
-        Images.save("t4.tif", timg)
+        # Images.save("t4.tif", timg)
+        ## Test if passing array works
         dfs=describe_image(["t3.tif", "t4.tif"])
         @test length(dfs) == 2
         # names(dfs[1])
@@ -399,7 +402,9 @@ correctpath()
         _dfs=describe_objects(["t5.tif"])
         @test length(dfs) == 2
         # @test dfs[1] == dfs[2]
-        @test size(dfs[1]) == (1,14)
+        @test size(dfs[1]) == (1,22)
+        @test size(_dfs[1]) == (1,18) # 2D so x,y, not xyz
+        # @test size(dfs[1] )
     end
 
     @testset "testcolumnagg" begin
