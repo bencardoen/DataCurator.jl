@@ -1,4 +1,5 @@
 # DataCurator
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/bencardoen/DataCurator.jl/tree/main.svg?style=shield&circle-token=70e51924b8df5a89cbc0050d1ce3979f2dd1c82b)](https://dl.circleci.com/status-badge/redirect/gh/bencardoen/DataCurator.jl/tree/main) [![codecov](https://codecov.io/gh/bencardoen/DataCurator.jl/branch/main/graph/badge.svg?token=GI7MQH1VNA)](https://codecov.io/gh/bencardoen/DataCurator.jl) [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://github.com/bencardoen/DataCurator.jl/blob/main/docs/src/index.md)
 
 ![Untitled drawing](https://user-images.githubusercontent.com/22669736/231522505-350b23ba-da4e-4c6b-b56f-0e0075a4233c.png)
 
