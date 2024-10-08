@@ -246,6 +246,18 @@ size     weighted  minimum    Q1        mean      median    Q3        maximum  s
 Float64  Float64   Float64    Float64   Float64   Float64   Float64   Float64  Float64   Float64   Float64  Float64  Float64    String
 216.0   104.894  0.0156863  0.258824  0.485621  0.454902  0.730392      1.0  0.283031    6.6581  8.48528      6.0       23.0    ...
 ```
+All features recorded:
+- size (nr of non zero voxels
+- weighted (intensity sum om objects)
+- minimum, Q1, mean, mediam, Q3, maximum, std, kurtosis : describes the intensity distribution of the object
+- xyspan : major axis of 2D projection, pixels
+- zrange : extent in Z
+- zmidpoint : midpoint in Z slice
+- distance_to_centroid: distance of this object's centroid to centroid of all objects, describes clustering
+- distance_to_centroid_normalized: rescale the above to 0-1, where 0 is centroid of all objects, 1 is maximum dispersion
+- centroid_channel_{x,y,z} : in pixel coordinates, record the centroid of _all_ objects, this is the reference for the distance computation
+- centroid_object_{x,y,z} : in pixel coordinates, record the object centroid
+    
 You can use this in aggregation, for example, to describe all objects in all channel 1 tifs
 ```toml
 [global]
