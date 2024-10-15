@@ -5,7 +5,7 @@ jobs:
   build:
     working_directory: /root/project/DataCurator.jl   # Clone into a directory whose name matches your Package.
     docker:
-      - image: julia:1.10
+      - image: julia:1.9
     steps:
        - run: ls -alsht
        - run: pwd
